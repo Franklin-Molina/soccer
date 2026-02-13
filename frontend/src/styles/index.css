@@ -1,0 +1,56 @@
+/* body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: rgb(144 196 148 / 85%);
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* === ESTILOS DE SCROLLBAR PERSONALIZADO PARA EL SIDEBAR === */
+
+/* Para Firefox */
+aside nav {
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 transparent;
+}
+.dark aside nav {
+  scrollbar-color: #6b7280 transparent;
+}
+
+/* Para Navegadores WebKit (Chrome, Safari, Edge) */
+aside nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+aside nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+aside nav::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 10px;
+}
+
+.dark aside nav::-webkit-scrollbar-thumb {
+  background: #6b7280;
+}
+
+aside nav::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
+.dark aside nav::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}

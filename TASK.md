@@ -1,0 +1,18 @@
+- [x] Analizar requisitos de diseño para el correo (2026-02-11)
+- [x] Localizar archivos de plantillas de correo existentes (2026-02-11)
+- [x] Diseñar plantilla HTML profesional para recuperación de contraseña (2026-02-11)
+- [x] Implementar la lógica para incluir el link de cambio de contraseña en el correo (2026-02-11)
+- [x] Realizar pruebas de envío de correo con el nuevo diseño (2026-02-11)
+- [x] Verificar diseño visual y redirección inicial (2026-02-11)
+- [x] Asegurar que el flujo sea funcional (envío desde la app real) (2026-02-11)
+- [x] Limpiar archivos de prueba (2026-02-11)
+
+## Detectadas durante el trabajo
+- [x] Validar que el link generado en el correo redirija correctamente al frontend según la configuración de `DOMAIN` y `PROTOCOL` en `DJOSER`. (2026-02-11)
+- [x] Corregir ImportError: Module "users.email" does not define a "PasswordChangedConfirmationEmail" attribute/class (2026-02-11)
+- [x] Corregir errores de sintaxis en settings.py por conflictos de merge (2026-02-11)
+- [x] Cambiar plantilla de correo password_reset_email.html a modo claro (2026-02-12)
+- [x] Cambiar plantilla de correo password_changed_confirmation_email.html a modo claro (2026-02-12)
+- [x] Corregir error `useCallback is not defined` en `useDashboardUsersLogic.js` (2026-02-13)
+- [x] Conectar botones de suspender/reactivar con la lógica del hook en `DashboardUsersPage.jsx` (2026-02-13)
+- [x] Corregir bug que impedía acciones en el primer usuario (ID 0) por validación de falsy (2026-02-13)

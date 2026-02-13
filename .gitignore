@@ -1,0 +1,33 @@
+# dependencias
+node_modules/
+
+# producción
+/build
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# entorno
+.env
+consolegoogle.json
+
+# editor
+.vscode/
+.idea/
+
+# caché
+.cache/
+__pycache__/
+__pycache__
+
+# Archivos de medios del backend
+backend/media/courts/images
+
+
+# Python virtual env
+env/
+venv/
+.venv/
+

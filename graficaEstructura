@@ -1,0 +1,53 @@
+Cline Arquitecture
+
+frontend/src/
+├── domain/
+│   ├── entities/
+│   │   ├── court.js
+│   │   ├── user.js
+│   │   └── booking.js
+│   └── repositories/
+│       ├── court-repository.js  (Interfaz ICourtRepository)
+│       └── auth-repository.js   (Interfaz IAuthRepository)
+├── application/
+│   ├── use-cases/
+│   │   ├── get-courts.js       (UseCase GetCourtsUseCase)
+│   │   └── login-user.js       (UseCase LoginUserUseCase)
+│   └── services/
+│       └── auth-service.js     (Interfaz IAuthService)
+├── infrastructure/
+│   ├── api/
+│   │   └── api.js              (Instancia de Axios)
+│   ├── repositories/
+│   │   ├── api-court-repository.js (Implementación de ICourtRepository)
+│   │   └── api-auth-repository.js  (Implementación de IAuthRepository)
+│   └── services/
+│       └── auth-service-impl.js  (Implementación de IAuthService)
+├── presentation/
+│   ├── components/             (Componentes de UI)
+│   ├── pages/                  (Páginas de la aplicación)
+│   └── context/                (Contextos de React, interactúan con la capa de Aplicación)
+├── styles/
+├── utils/                      (Utilidades generales que no pertenecen a una capa específica, como helpers)
+└── index.jsx                   (Punto de entrada de la aplicación)
+
+
+
+
+backend/courts/
+├── domain/
+│   ├── entities/  (Opcional, si se usan clases separadas de los modelos Django)
+│   └── repositories/
+│       └── court_repository.py  (Interfaz ICourtRepository)
+├── application/
+│   └── use_cases/
+│       └── get_court_details.py (UseCase GetCourtDetailsUseCase)
+├── infrastructure/
+│   └── repositories/
+│       └── django_court_repository.py (Implementación de ICourtRepository usando ORM Django)
+├── api/  (O Presentation)
+│   ├── views.py
+│   └── serializers.py
+├── models.py (Entidades del Dominio)
+├── urls.py
+└── ... (otros archivos de la aplicación Django)

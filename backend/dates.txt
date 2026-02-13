@@ -1,0 +1,18 @@
+# Crear user adminglobal
+python backend/manage.py createsuperuser
+
+
+
+from users.models import User
+
+try:
+    user = User.objects.get(username='admingod') # Usar el nombre de usuario que creaste
+    user.role = 'adminglobal'
+    user.save()
+    print(f"Usuario '{user.username}' actualizado con role='adminglobal'.")
+except User.DoesNotExist:
+    print(f"Usuario 'admingod' no encontrado.")
+except Exception as e:
+    print(f"Ocurrió un error: {e}")
+
+

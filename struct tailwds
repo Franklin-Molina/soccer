@@ -1,0 +1,22 @@
+📦 proyecto/
+├─ 📁 src/
+│  ├─ 📁 assets/                # Imágenes, íconos, fuentes
+│  ├─ 📁 components/            # Componentes reutilizables
+│  │  ├─ common/                # Botones, inputs, modales, etc.
+│  │  ├─ layout/                # Navbar, Sidebar, Footer...
+│  │  └─ ui/                    # Componentes visuales con Tailwind
+│  ├─ 📁 hooks/                 # Hooks personalizados (useAuth, useFetch, etc.)
+│  ├─ 📁 pages/                 # Páginas principales (Home, Login, Dashboard)
+│  ├─ 📁 context/               # Context API (authContext, themeContext, etc.)
+│  ├─ 📁 utils/                 # Funciones auxiliares (formatDate, validations)
+│  ├─ 📁 routes/                # Configuración de React Router
+│  ├─ 📁 data/                  # Datos estáticos o mocks
+│  ├─ index.css                 # Importa Tailwind
+│  ├─ main.jsx                  # Entrada principal
+│  └─ App.jsx                   # Layout base y router
+│
+├─ 📄 tailwind.config.js
+├─ 📄 postcss.config.js
+├─ 📄 package.json
+├─ 📄 .prettierrc               # Con prettier-plugin-tailwindcss
+└─ 📄 vite.config.js
