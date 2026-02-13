@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+import dj_database_url
 
 from dotenv import load_dotenv  # Importar load_dotenv
 
@@ -96,6 +97,7 @@ MIDDLEWARE = [
     # Añadir CorsMiddleware
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -206,6 +208,18 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "digitaldxz1@gmail.com")
 
 
 
+DATABASES = {
+    "default": dj_database_url.config(
+        default=os.getenv("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True
+    )
+}
+
+
+
+
+
 # Configuración de Djoser
 DJOSER = {
     "LOGIN_FIELD": "email",
@@ -236,16 +250,11 @@ DJOSER = {
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": os.environ.get("DB_ENGINE", "django.db.backends.postgresql"),
-        "NAME": os.environ.get("DB_NAME"),
-        "USER": os.environ.get("DB_USER"),
-        "PASSWORD": os.environ.get("DB_PASSWORD"),
-        "HOST": os.environ.get("DB_HOST", "db"),  # This will now be 'db'
-        "PORT": os.environ.get("DB_PORT"),
-    }
-}
+
+
+
+if os.getenv("DATABASE_URL"):
+    DATABASES["default"] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -293,6 +302,17 @@ import os  # Importar os
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = os.getenv("STATIC_URL", "static/")
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+# Configuración de WhiteNoise para servir archivos estáticos comprimidos
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Configuración para archivos multimedia (imágenes subidas por usuarios)
 MEDIA_URL = os.getenv("MEDIA_URL", "/media/")

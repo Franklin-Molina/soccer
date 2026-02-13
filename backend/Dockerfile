@@ -11,8 +11,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar el resto del código de la aplicación
 COPY . .
 
+# Hacer el script de construcción ejecutable
+RUN chmod +x build.sh
+
 # Exponer el puerto en el que se ejecuta Django
 EXPOSE 8000
 
-# Comando para ejecutar la aplicación Django
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Comando para ejecutar la aplicación Django usando Gunicorn para producción
+CMD ["gunicorn", "cancha.wsgi:application", "--bind", "0.0.0.0:8000"]

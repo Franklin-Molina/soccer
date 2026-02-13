@@ -1,10 +1,48 @@
-# Archivo de configuración para Render
+# Archivo de configuración para Render (Blueprints)
 services:
+  # Base de Datos PostgreSQL
+  - type: database
+    name: cancha-db
+    databaseName: cancha
+    user: cancha_user
+    plan: free
+
+  # Backend (Django)
+  - type: web
+    name: cancha-backend
+    env: docker
+    rootDir: backend/
+    plan: free
+    healthCheckPath: /admin/login/
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cancha-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://cancha-sintetica-frontend.onrender.com"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://cancha-sintetica-frontend.onrender.com"
+      - key: SITE_ID
+        value: "1"
+      # Configuración de correo (rellenar en el dashboard de Render)
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+
+  # Frontend (Vite/React)
   - type: web
     name: cancha-sintetica-frontend
     env: docker
     rootDir: frontend/
-    port: 3000
+    plan: free
     envVars:
       - key: VITE_API_URL
-        value: "https://your-backend-url.onrender.com" # Reemplazar con la URL real de tu backend en Render
+        value: "https://cancha-backend.onrender.com"
