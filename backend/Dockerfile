@@ -12,10 +12,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Dar permisos de ejecución al entrypoint
-RUN chmod +x entrypoint.sh
+RUN chmod +x build.sh
 
 # Exponer el puerto en el que se ejecuta Django
 EXPOSE 8000
 
 # Usar el entrypoint para iniciar la aplicación
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["./build.sh"]
