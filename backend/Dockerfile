@@ -18,4 +18,4 @@ RUN chmod +x build.sh
 EXPOSE 8000
 
 # Comando para ejecutar la aplicación Django usando Gunicorn para producción
-CMD ["gunicorn", "cancha.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD sh -c "python manage.py migrate && gunicorn cancha.wsgi:application --bind 0.0.0.0:8000"
