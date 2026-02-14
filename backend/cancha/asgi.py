@@ -8,17 +8,19 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
 """
 
 import os
-
+import django
 from django.core.asgi import get_asgi_application
-from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.auth import AuthMiddlewareStack
-from users.middleware import JWTAuthMiddleware
 
-# Configurar Django ANTES de importar las rutas
+# Configurar Django ANTES de cualquier otra importación que dependa de él
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cancha.settings')
+django.setup()
 
 # Obtener la aplicación ASGI de Django para HTTP
 django_asgi_app = get_asgi_application()
+
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+from users.middleware import JWTAuthMiddleware
 
 # Ahora SÍ importar las rutas (después de configurar Django)
 from matches.routing import websocket_urlpatterns as matches_ws
