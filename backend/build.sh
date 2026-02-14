@@ -28,4 +28,4 @@ if username and password:
 END
 
 echo "Iniciando servidor..."
-gunicorn cancha.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 1 --timeout 120
+gunicorn cancha.wsgi:application --bind 0.0.0.0:8000 --workers 1 --threads 2 --timeout 120
