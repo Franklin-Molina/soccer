@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true); // Estado para indicar si se está cargando la sesión inicial
+  const [isRefreshing, setIsRefreshing] = useState(false); // Nuevo estado para indicar si se está despertando el backend
   const hasFetchedUser = useRef(false); // Ref para asegurar que fetchUser se llame solo una vez
 
   // Obtener la función de navegación
@@ -45,6 +46,7 @@ export const AuthProvider = ({ children }) => {
   // Función para obtener la información completa del usuario usando el caso de uso
   const fetchUser = async () => {
     setLoading(true); // Indicar que se está cargando el usuario
+    setIsRefreshing(true); // Indicar que estamos intentando conectar/refrescar
 
     try {
       // Llamar al caso de uso para obtener el usuario autenticado
@@ -78,6 +80,7 @@ export const AuthProvider = ({ children }) => {
       // No redirigir aquí, la redirección al login se maneja en ProtectedRoute
     } finally {
       setLoading(false); // Asegurar que loading se establezca en false siempre
+      setIsRefreshing(false); // Finalizar estado de refresco
     }
   };
 
@@ -207,11 +210,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  if (isRefreshing && loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+        <p className="text-gray-400 animate-pulse">Despertando servidor...</p>
+        <p className="text-xs text-gray-600 mt-2">Esto puede tardar hasta 30 segundos tras un periodo de inactividad.</p>
+      </div>
+    );
+  }
+
   return (
     <AuthContext.Provider value={{ 
       user, 
       isAuthenticated, 
       loading, 
+      isRefreshing,
       login, 
       logout, 
       loginWithGoogle, 

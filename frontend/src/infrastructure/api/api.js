@@ -14,21 +14,35 @@ const api = axios.create({
   withCredentials: true, // Importante para enviar cookies a través de dominios/puertos
 });
 
-// Función auxiliar para refrescar el token
-export const refreshToken = async () => {
+// Función auxiliar para refrescar el token con reintentos para manejar el "cold start" de Render
+export const refreshToken = async (retries = 3, delay = 5000) => {
   const refresh = localStorage.getItem('refreshToken');
   if (!refresh) return null;
   
-  try {
-    const response = await axios.post(`${API_BASE_URL}/api/users/login/refresh/`, { refresh });
-    const { access } = response.data;
-    localStorage.setItem('accessToken', access);
-    return access;
-  } catch (error) {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    return null;
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/users/login/refresh/`, { refresh });
+      const { access } = response.data;
+      localStorage.setItem('accessToken', access);
+      return access;
+    } catch (error) {
+      const isLastAttempt = i === retries - 1;
+      const serverAwakening = !error.response || error.code === 'ECONNABORTED' || error.message === 'Network Error';
+
+      // Si el servidor no responde (cold start) y no es el último intento, esperar y reintentar
+      if (serverAwakening && !isLastAttempt) {
+        console.warn(`⏳ Backend despertando (intento ${i + 1}/${retries})... esperando ${delay}ms`);
+        await new Promise(res => setTimeout(res, delay));
+        continue;
+      }
+
+      // Si hay una respuesta de error real (ej: 401, 400) o agotamos reintentos, limpiar y salir
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      return null;
+    }
   }
+  return null;
 };
 
 api.interceptors.request.use(
@@ -49,17 +63,23 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    // CASO 1: El servidor está apagado o no hay internet
-    if (!error.response) {
-      console.warn("⚠️ Error de red o servidor caído. NO desloguear.");
-      return Promise.reject(error);
-    }
-
     const originalRequest = error.config;
 
-    // Verificar si es un error 401 y no es una solicitud de refresh token
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true; 
+    // CASO 1: El servidor está apagado o no hay internet (Cold Start)
+    if (!error.response && !originalRequest._retry) {
+      originalRequest._retry = true;
+      console.warn("⚠️ El servidor no responde. Intentando despertar backend...");
+      
+      const newAccessToken = await refreshToken();
+      if (newAccessToken) {
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        return api(originalRequest);
+      }
+    }
+
+    // CASO 2: Error 401 (Token expirado)
+    if (error.response && error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
 
       const newAccessToken = await refreshToken();
       if (newAccessToken) {
