@@ -80,12 +80,22 @@ INSTALLED_APPS = [
 # ASGI Configuration
 ASGI_APPLICATION = "cancha.asgi.application"
 
-# Channels Configuration (Development: InMemory)
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
-    },
-}
+# Channels Configuration (Production: Redis, Development: InMemory)
+if os.getenv("REDIS_URL"):
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [os.getenv("REDIS_URL")],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        },
+    }
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -400,3 +410,6 @@ if csrf_origins:
     CSRF_TRUSTED_ORIGINS = csrf_origins.split(",")
 else:
     CSRF_TRUSTED_ORIGINS = []
+
+# Cross-Origin Opener Policy para mitigar advertencias de COOP en navegadores
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
