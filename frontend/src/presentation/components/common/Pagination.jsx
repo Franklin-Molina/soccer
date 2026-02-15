@@ -49,16 +49,16 @@ const Pagination = ({
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <div className="px-6 py-4">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <p className="text-sm text-slate-600 dark:text-gray-300">
+    <div className="px-4 sm:px-6 py-4">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+          <p className="text-sm text-slate-600 dark:text-gray-300 text-center sm:text-left">
             Mostrando <span className="font-semibold text-slate-900 dark:text-white">{startItem}</span> a{' '}
             <span className="font-semibold text-slate-900 dark:text-white">{endItem}</span> de{' '}
-            <span className="font-semibold text-slate-900 dark:text-white">{totalItems}</span> registros
+            <span className="font-semibold text-slate-900 dark:text-white">{totalItems}</span> Canchas
           </p>
 
-          <div className="flex items-center gap-2">
+        {/*   <div className="flex items-center gap-2 justify-center sm:justify-start">
             <label className="text-sm text-slate-600 dark:text-gray-300">Mostrar:</label>
             <CustomSelect
               options={[
@@ -75,14 +75,14 @@ const Pagination = ({
               }}
               direction="up"
             />
-          </div>
+          </div> */}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center gap-2 sm:gap-3 w-full lg:w-auto overflow-x-auto no-scrollbar py-2">
           <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
+            className="shrink-0 px-3 sm:px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -90,14 +90,14 @@ const Pagination = ({
           <div className="flex items-center gap-1">
             {getPageNumbers().map((page, idx) =>
               page === '...' ? (
-                <span key={`ellipsis-${idx}`} className="px-2 text-slate-500 dark:text-gray-400">
+                <span key={`ellipsis-${idx}`} className="px-1 sm:px-2 text-slate-500 dark:text-gray-400">
                   ...
                 </span>
               ) : (
                 <button
                   key={page}
                   onClick={() => goToPage(page)}
-                  className={`w-10 h-10 rounded-lg text-sm font-medium transition-all duration-150 ${
+                  className={`shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-xs sm:text-sm font-medium transition-all duration-150 ${
                     currentPage === page
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
                       : 'text-slate-700 hover:bg-slate-100 dark:text-white dark:hover:bg-gray-600'
@@ -112,7 +112,7 @@ const Pagination = ({
           <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
+            className="shrink-0 px-3 sm:px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
           >
             <ChevronRight className="w-4 h-4" />
           </button>

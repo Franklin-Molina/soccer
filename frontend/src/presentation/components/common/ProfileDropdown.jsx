@@ -24,11 +24,11 @@ const ProfileDropdown = () => {
       <ul className="py-2">
         <li>
           <Link
-            to={user.is_staff ? "/dashboard/perfil" : "/client/profile"}
+            to={user.is_staff ? "/dashboard/" : "/client/"}
             className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors"
           >
             <User className="w-4 h-4" />
-            <span>Mi Perfil</span>
+            <span className=" text-green-700">Dashboard</span>
           </Link>
         </li>
 
