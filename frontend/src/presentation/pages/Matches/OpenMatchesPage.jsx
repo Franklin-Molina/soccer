@@ -70,9 +70,9 @@ const OpenMatchesPage = () => {
 
   return (
     <div className="
-      px-6 py-10 min-h-screen transition-colors duration-300
-      bg-gray-50 text-gray-900
-      dark:bg-slate-900 dark:text-gray-100
+      px-3 sm:px-6 py-6 sm:py-24 min-h-screen transition-colors duration-300
+      bg-slate-50 text-slate-900
+      dark:bg-slate-950 dark:text-slate-100
     ">
       {isModalOpen && (
         <CreateMatchForm
@@ -83,24 +83,24 @@ const OpenMatchesPage = () => {
       )}
 
       {/* Header */}
-      <header className="flex justify-between items-start mb-10">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pt-16 sm:pt-4">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Encuentra tu Partido
+          <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">
+            Partidos Abiertos
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Únete a partidos abiertos o gestiona tus inscripciones
+          <p className="text-xs sm:text-base text-slate-500 dark:text-slate-400 font-medium">
+            Únete a la comunidad y juega hoy
           </p>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
           className="
-            flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold
-            bg-blue-600 text-white
-            hover:bg-blue-700 active:scale-95
-            shadow-lg shadow-blue-600/20
-            transition-all
+            flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-sm
+            bg-indigo-600 text-white
+            hover:bg-indigo-700 active:scale-95
+            shadow-lg shadow-indigo-600/20
+            transition-all duration-300
           "
         >
           <Plus className="w-5 h-5" />
@@ -109,9 +109,9 @@ const OpenMatchesPage = () => {
       </header>
 
       {/* Tabs */}
-      <div className="flex items-center gap-8 mb-8 border-b border-gray-200 dark:border-slate-700">
+      <div className="flex items-center gap-2 sm:gap-8 mb-6 overflow-x-auto no-scrollbar border-b border-slate-200 dark:border-slate-800">
         {[
-          { key: "available", label: "Partidos Disponibles", count: availableMatches.length },
+          { key: "available", label: "Disponibles", count: availableMatches.length },
           { key: "mine", label: "Mis Partidos", count: upcomingMatches.length },
         ].map((tab) => (
           <button
@@ -121,23 +121,23 @@ const OpenMatchesPage = () => {
               setSelectedCategory("Todos");
             }}
             className={`
-              relative pb-4 text-sm font-medium transition-colors
+              relative pb-3 px-2 text-xs sm:text-sm font-bold transition-all whitespace-nowrap
               ${
                 activeTab === tab.key
-                  ? "text-blue-600 dark:text-blue-500"
-                  : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+                  ? "text-indigo-600 dark:text-indigo-400"
+                  : "text-slate-400 hover:text-slate-900 dark:text-slate-500 dark:hover:text-slate-300"
               }
             `}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               {tab.label}
               <span
                 className={`
-                  px-2 py-0.5 rounded-md text-xs
+                  px-1.5 py-0.5 rounded-md text-[10px] font-black
                   ${
                     activeTab === tab.key
-                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-500"
-                      : "bg-gray-200 text-gray-600 dark:bg-slate-800 dark:text-gray-400"
+                      ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                      : "bg-slate-100 text-slate-400 dark:bg-slate-900 dark:text-slate-500"
                   }
                 `}
               >
@@ -146,28 +146,27 @@ const OpenMatchesPage = () => {
             </div>
 
             {activeTab === tab.key && (
-              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 rounded-full" />
+              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 rounded-full" />
             )}
           </button>
         ))}
       </div>
 
       {/* Categorías */}
-      <div className="flex flex-wrap gap-3 mb-10">
+      <div className="flex items-center gap-2 mb-6 overflow-x-auto no-scrollbar pb-1">
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
             className={`
-              px-6 py-2 rounded-xl text-sm font-medium transition-all
+              px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap border
               ${
                 selectedCategory === cat
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                  ? "bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-600/30"
                   : `
-                    bg-gray-100 text-gray-600 hover:bg-gray-200
-                    dark:bg-slate-800 dark:text-gray-400
-                    dark:hover:bg-slate-700 dark:hover:text-gray-200
-                    border border-gray-200 dark:border-slate-700
+                    bg-white text-slate-500 border-slate-200 hover:border-slate-300
+                    dark:bg-slate-900 dark:text-slate-500
+                    dark:border-slate-800 dark:hover:border-slate-700
                   `
               }
             `}
@@ -179,7 +178,7 @@ const OpenMatchesPage = () => {
 
       {/* Grid */}
       {filteredMatches.length > 0 ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {filteredMatches.map((match) => (
             <MatchCard
               key={match.id}
@@ -197,18 +196,24 @@ const OpenMatchesPage = () => {
         </div>
       ) : (
         <div className="
-          flex flex-col items-center justify-center py-20 rounded-3xl border border-dashed
-          bg-gray-100 border-gray-300 text-gray-600
-          dark:bg-slate-800/40 dark:border-slate-700 dark:text-gray-400
+          flex flex-col items-center justify-center py-12 sm:py-24 rounded-3xl border border-dashed
+          bg-white dark:bg-slate-900/30 border-slate-200 dark:border-slate-800 text-slate-500
+          animate-in fade-in zoom-in duration-500
         ">
-          <p className="text-lg">No hay partidos en esta sección.</p>
+          <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-4">
+             <Plus className="w-8 h-8 text-slate-300" />
+          </div>
+          <p className="text-lg font-bold text-slate-900 dark:text-white mb-1">No hay partidos</p>
+          <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-6 px-6 text-center">
+            Prueba cambiando los filtros o crea uno nuevo.
+          </p>
 
           {activeTab === "available" && (
             <button
               onClick={() => setIsModalOpen(true)}
-              className="mt-4 text-blue-600 dark:text-blue-500 hover:underline"
+              className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-xs shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
             >
-              ¿Por qué no creas uno?
+              Crear Partido Ahora
             </button>
           )}
         </div>

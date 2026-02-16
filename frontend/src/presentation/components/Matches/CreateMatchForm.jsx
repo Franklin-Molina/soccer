@@ -3,9 +3,9 @@ import api from '../../../infrastructure/api/api';
 import { toast } from 'react-toastify';
 import CustomSelect from '../common/CustomSelect';
 import WeeklyAvailabilityCalendar from '../../pages/courts/WeeklyAvailabilityCalendar';
-import { format, addDays, startOfWeek, setHours, setMinutes, parseISO } from 'date-fns';
+import { format, addDays, startOfWeek, setHours, setMinutes, parseISO, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { X } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatPrice } from '../../utils/formatters';
 
 const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
@@ -29,6 +29,10 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
   const [showConfirmBooking, setShowConfirmBooking] = useState(false);
   const [paymentPercentage, setPaymentPercentage] = useState(100);
   const [isBooking, setIsBooking] = useState(false);
+  const [currentWeekStartDate, setCurrentWeekStartDate] = useState(startOfWeek(new Date(), { locale: es, weekStartsOn: 1 }));
+
+  const handlePreviousWeek = () => setCurrentWeekStartDate(prev => subDays(prev, 7));
+  const handleNextWeek = () => setCurrentWeekStartDate(prev => addDays(prev, 7));
 
   const daysOfWeek = useMemo(() => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'], []);
   const hoursOfDay = useMemo(() => {
@@ -45,8 +49,6 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
     }
     return hours;
   }, []);
-
-  const monday = useMemo(() => startOfWeek(new Date(), { locale: es, weekStartsOn: 1 }), []); // Lunes de la semana actual
 
   useEffect(() => {
     const fetchData = async () => {
@@ -95,10 +97,10 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
         setLoadingWeeklyAvailability(true);
         setWeeklyAvailabilityError(null);
         try {
-          const sunday = addDays(monday, 6); // Calcular el domingo
+          const sunday = addDays(currentWeekStartDate, 6); // Calcular el domingo
           const response = await api.get(`/api/courts/${selectedCourtId}/weekly-availability/`, {
             params: {
-              start_date: format(monday, 'yyyy-MM-dd'),
+              start_date: format(currentWeekStartDate, 'yyyy-MM-dd'),
               end_date: format(sunday, 'yyyy-MM-dd'),
             },
           });
@@ -117,7 +119,7 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
       setWeeklyAvailability({});
       setWeeklyAvailabilityError(null);
     }
-  }, [selectedCourtId, monday]); // Añadir monday como dependencia
+  }, [selectedCourtId, currentWeekStartDate]); // Añadir currentWeekStartDate como dependencia
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -438,26 +440,68 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-5xl border border-gray-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
             {/* Header del Modal del Calendario */}
-            <div className="p-6 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center sticky top-0 bg-white dark:bg-slate-900 z-10">
-              <div>
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  Selecciona Fecha y Hora
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
-                  Elige un horario disponible para tu partidos
-                </p>
+            <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 bg-white dark:bg-slate-900 z-10">
+              <div className="flex justify-between items-center w-full sm:w-auto">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    Selecciona Fecha y Hora
+                  </h2>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mt-1">
+                    Elige un horario disponible para tu partido
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowCalendar(false)}
+                  className="sm:hidden p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
+                >
+                  <X className="w-6 h-6 text-gray-500 dark:text-slate-400" />
+                </button>
               </div>
-              
-              <button
-                onClick={() => setShowCalendar(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
-              >
-                <X className="w-6 h-6 text-gray-500 dark:text-slate-400" />
-              </button>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                <div className="flex items-center gap-2">
+                  <button 
+                    type="button"
+                    onClick={handlePreviousWeek} 
+                    className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all active:scale-95"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={handleNextWeek} 
+                    className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all active:scale-95"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="text-right hidden xs:block">
+                  <p className="text-sm font-bold text-slate-800 dark:text-white capitalize">
+                    {format(currentWeekStartDate, 'MMMM yyyy', { locale: es })}
+                  </p>
+                  <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    {format(currentWeekStartDate, 'dd MMM')} - {format(addDays(currentWeekStartDate, 6), 'dd MMM')}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowCalendar(false)}
+                  className="hidden sm:block p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
+                >
+                  <X className="w-6 h-6 text-gray-500 dark:text-slate-400" />
+                </button>
+              </div>
             </div>
 
             {/* Contenido del Calendario */}
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
+              <div className="xs:hidden text-center mb-4 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                <p className="text-sm font-bold text-slate-800 dark:text-white capitalize">
+                  {format(currentWeekStartDate, 'MMMM yyyy', { locale: es })}
+                </p>
+                <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  {format(currentWeekStartDate, 'dd MMM')} - {format(addDays(currentWeekStartDate, 6), 'dd MMM')}
+                </p>
+              </div>
               <WeeklyAvailabilityCalendar
                 weeklyAvailability={weeklyAvailability}
                 loadingWeeklyAvailability={loadingWeeklyAvailability}
@@ -465,7 +509,7 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
                 onTimeSlotClick={handleTimeSlotClick}
                 daysOfWeek={daysOfWeek}
                 hoursOfDay={hoursOfDay}
-                monday={monday}
+                monday={currentWeekStartDate}
                 selectedSlot={selectedSlot}
               />
             </div>

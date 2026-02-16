@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import MatchChat from "./MatchChat";
-import { MessageCircle, LogOut } from "lucide-react";
+import { MessageCircle, LogOut, Calendar, Clock, Users, User, ShieldCheck, X } from "lucide-react";
 import { toast } from 'react-toastify';
 
 const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, currentUser, hasNewMessage, onOpenChat }) => {
@@ -22,159 +22,159 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
     (p) => p.user.id === currentUser?.id
   );
 
+  const startTime = new Date(match.start_time);
+  const endTime = new Date(match.end_time);
+
   return (
     <div
-      className={`p-5 rounded-xl border shadow-sm transition-all duration-300 ${
+      className={`relative overflow-hidden p-4 sm:p-6 rounded-2xl border transition-all duration-300 ${
         match.status === "CANCELLED"
-          ? "bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700"
+          ? "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800/50"
           : isFull
-          ? "bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700"
-          : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:shadow-md"
+          ? "bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800"
+          : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/10"
       }`}
     >
-      <h4 className="text-lg font-semibold text-indigo-600 dark:text-indigo-400 mb-2">
+      {/* Estado Badge */}
+      <div className="absolute top-0 right-0">
+        <div className={`px-3 py-1 rounded-bl-xl text-[9px] font-black uppercase tracking-widest ${
+          match.status === "CANCELLED" 
+            ? "bg-red-500 text-white" 
+            : isFull 
+            ? "bg-slate-500 text-white" 
+            : "bg-indigo-600 text-white"
+        }`}>
+          {match.status === "CANCELLED" ? "Cancelado" : isFull ? "Completo" : "Abierto"}
+        </div>
+      </div>
+
+      <h4 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white mb-3 pr-14 leading-tight">
         {match.court}
       </h4>
 
-      <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-        <p>
-          <span className="font-medium">Inicio:</span>{" "}
-          {new Date(match.start_time).toLocaleString()}
-        </p>
-        <p>
-          <span className="font-medium">Fin:</span>{" "}
-          {new Date(match.end_time).toLocaleString()}
-        </p>
-        <p>
-          <span className="font-medium">Jugadores:</span>{" "}
-          {match.participants.length} / {match.players_needed + 1}
-        </p>
-        <p>
-          <span className="font-medium">Creador:</span> {match.creator.username}
-        </p>
-        <p>
-          <span className="font-medium">Estado:</span>{" "}
-          {match.status === "CANCELLED"
-            ? "Cancelado"
-            : isFull
-            ? "Cerrado"
-            : "Abierto"}
-        </p>
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+          <Calendar className="w-4 h-4 text-indigo-500" />
+          <span className="text-xs font-bold">{startTime.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span>
+        </div>
+        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+          <Clock className="w-4 h-4 text-indigo-500" />
+          <span className="text-xs font-bold">{startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+          <Users className="w-4 h-4 text-indigo-500" />
+          <span className="text-xs font-bold">{match.participants.length} / {match.players_needed + 1}</span>
+        </div>
+        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+          <User className="w-4 h-4 text-indigo-500" />
+          <span className="text-xs font-bold truncate">{match.creator.username}</span>
+        </div>
       </div>
 
-      {/* Participantes */}
-      <div className="mt-4">
+      {/* Participantes Section */}
+      <div className="mb-4">
         <button
           onClick={() => setShowParticipants(!showParticipants)}
-          className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+          className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-colors"
         >
-          {showParticipants ? "Ocultar" : "Ver"} Participantes (
-          {match.participants.length})
+          <ShieldCheck className="w-3.5 h-3.5" />
+          {showParticipants ? "Ocultar" : "Jugadores"}
         </button>
 
         {showParticipants && (
-          <ul className="mt-2 bg-gray-50 dark:bg-gray-800 p-2 rounded-lg space-y-1">
+          <div className="mt-2 grid gap-1.5">
             {match.participants.map((p) => (
-              <li
+              <div
                 key={p.user.id}
-                className="flex justify-between items-center text-sm"
+                className="flex justify-between items-center p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50 text-[10px] font-bold"
               >
-                {p.user.username}
+                <div className="flex items-center gap-1.5">
+                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                   <span className="truncate max-w-[80px]">{p.user.username}</span>
+                   {p.user.id === match.creator.id && <span className="text-[8px] bg-indigo-500/10 text-indigo-500 px-1 py-0.5 rounded-md">Host</span>}
+                </div>
                 {isCreator && p.user.id !== currentUser.id && (
                   <button
-                    className="text-red-500 hover:text-red-700 font-bold"
+                    className="p-1 hover:bg-red-500/10 text-red-500 transition-colors rounded-lg"
                     onClick={() => onRemove(match.id, p.user.id)}
                   >
-                    ✕
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 )}
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
 
       {/* Acciones */}
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="flex flex-col gap-1.5">
         {match.status === "CANCELLED" ? (
-          <div className="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg text-sm font-medium">
-            ❌ Partido Cancelado
+          <div className="w-full py-2 bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl text-[10px] font-black text-center uppercase tracking-widest border border-red-500/20">
+            Partido Cancelado
           </div>
         ) : (
-          <>
-            {/* Botones para usuarios no creadores */}
+          <div className="grid grid-cols-1 gap-1.5">
             {!isCreator && (
               <>
                 {isParticipant ? (
                   <button
                     onClick={() => onLeave(match.id)}
-                    className="px-4 py-2 bg-transparent border border-red-500 text-red-500 
-                              hover:bg-red-500 hover:text-white rounded-lg text-sm 
-                              font-medium transition-all flex items-center gap-2"
+                    className="w-full py-2.5 rounded-xl font-bold text-xs bg-slate-100 dark:bg-slate-800 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-1.5"
                   >
-                    <LogOut className="w-4 h-4" /> Salir del partido
+                    <LogOut className="w-3.5 h-3.5" /> Salir
                   </button>
                 ) : (
                   <button
                     onClick={() => onJoin(match.id)}
                     disabled={isFull}
-                    className={`px-4 py-2 rounded-lg text-white text-sm font-medium transition-all flex items-center gap-2 ${
+                    className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 shadow-lg ${
                       isFull
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-green-600 hover:bg-green-700"
+                        ? "bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed shadow-none"
+                        : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-600/20 active:scale-95"
                     }`}
                   >
-                    {isFull ? (
-                      <>
-                        <span>🔒</span> Partido Completo
-                      </>
-                    ) : (
-                      <>
-                        <span>⚽</span> Unirse al Partido
-                      </>
-                    )}
+                    {isFull ? "Cerrado" : "Unirse"}
                   </button>
                 )}
               </>
             )}
 
-            {/* Botones para el creador */}
             {isCreator && (
-              <>
+              <div className="grid grid-cols-2 gap-1.5">
                 <button
                   onClick={() => onEdit(match)}
-                  className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+                  className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20"
                 >
-                  <span>✏️</span> Editar
+                  Editar
                 </button>
                 <button
                   onClick={() => onCancel(match.id)}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+                  className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-red-600/20"
                 >
-                  <span>❌</span> Cancelar Partido
+                  Cancelar
                 </button>
-              </>
+              </div>
             )}
 
-            {/* Chat del partido - Solo visible si está lleno y el usuario es participante */}
             {isFull && isParticipant && (
               <button
                 onClick={handleToggleChat}
-                className={`px-4 py-2 rounded-lg text-white text-sm font-medium transition-all flex items-center gap-2 relative ${
-                  showChat ? "bg-indigo-700" : "bg-indigo-600 hover:bg-indigo-700"
+                className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 relative shadow-lg ${
+                  showChat ? "bg-slate-800 text-white" : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20"
                 }`}
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>Chat del Grupo</span>
+                <span>Chat Grupal</span>
                 {hasNewMessage && !showChat && (
-                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  <span className="absolute top-1 right-2 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                   </span>
                 )}
               </button>
             )}
-          </>
+          </div>
         )}
       </div>
 
