@@ -230,7 +230,7 @@ export const useCourtDetailLogic = () => {
 
   const handleCloseLoginModal = () => {
     setShowLoginModal(false);
-    navigate('/login');
+    navigate('/');
   };
 
   const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];

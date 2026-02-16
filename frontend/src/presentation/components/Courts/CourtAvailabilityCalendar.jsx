@@ -27,22 +27,7 @@ function CourtAvailabilityCalendar({
             <h2 className="text-xl font-bold text-slate-800 dark:text-white">Calendario de Disponibilidad</h2>
           </div>
 
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <button 
-              onClick={handlePreviousWeek} 
-              className="p-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl transition-all active:scale-95"
-              title="Semana anterior"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={handleNextWeek} 
-              className="p-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl transition-all active:scale-95"
-              title="Siguiente semana"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
+        
         </div>
 
         <div className="flex flex-wrap gap-3 sm:gap-6 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
