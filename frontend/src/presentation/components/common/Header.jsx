@@ -46,7 +46,7 @@ function Header({ openAuthModal, onToggleSidebar }) {
 
       {/* --- NAVIGATION --- */}
       <nav className="flex items-center gap-2 sm:gap-4">
-        <div className="hidden xs:block">
+        <div className="flex items-center">
           <DarkModeSwitch />
         </div>
 

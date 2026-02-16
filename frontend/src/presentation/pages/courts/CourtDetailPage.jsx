@@ -117,7 +117,7 @@ function CourtDetailPage({ openAuthModal }) {
     totalSlots > 0 ? Math.round((stats.occupiedSlots / totalSlots) * 100) : 0;
 
   return (
-    <div className="min-h-screen pt-20 bg-gray-100 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-gray-800 dark:text-white p-6">
+    <div className="min-h-screen pt-20 bg-gray-100 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-gray-800 dark:text-white p-4 sm:p-6">
       <div className="max-w-8xl mx-auto mb-8">
         {/* Header */}
         <CourtHeader court={court} />
@@ -166,125 +166,83 @@ function CourtDetailPage({ openAuthModal }) {
 
       {/* Modal de confirmación de reserva */}
       {showConfirmModal && bookingDetailsToConfirm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700">
-            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-              <h2 className="text-2xl font-bold text-emerald-500 dark:text-emerald-400">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 animate-in slide-in-from-bottom duration-300">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+              <h2 className="text-xl sm:text-2xl font-bold text-emerald-500 dark:text-emerald-400">
                 Confirmar Reserva
               </h2>
+              <button onClick={cancelConfirmation} className="sm:hidden p-2 text-slate-400">
+                <X size={24} />
+              </button>
             </div>
-            <div className="p-6 space-y-4">
-              <p className="text-slate-600 dark:text-slate-300">
-                ¿Estás seguro de que deseas reservar esta cancha?
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              <p className="text-slate-600 dark:text-slate-300 text-sm">
+                Revisa los detalles de tu reserva antes de confirmar.
               </p>
-              <div className="bg-gray-100 dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700 space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-slate-500 dark:text-slate-400">
-                    Cancha:
-                  </span>{" "}
-                  <span className="font-semibold">
+              <div className="bg-gray-100 dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-700 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Cancha</span>
+                  <span className="font-semibold text-slate-900 dark:text-white text-sm">
                     {bookingDetailsToConfirm.courtName}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500 dark:text-slate-400">
-                    Fecha:
-                  </span>{" "}
-                  <span className="font-semibold">
-                    {format(
-                      bookingDetailsToConfirm.startDateTime,
-                      "dd/MM/yyyy",
-                    )}
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Fecha</span>
+                  <span className="font-semibold text-slate-900 dark:text-white text-sm">
+                    {format(bookingDetailsToConfirm.startDateTime, "dd/MM/yyyy")}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500 dark:text-slate-400">
-                    Hora:
-                  </span>{" "}
-                  <span className="font-semibold">
-                    {format(bookingDetailsToConfirm.startDateTime, "h:mm a")} -{" "}
-                    {format(bookingDetailsToConfirm.endDateTime, "h:mm a")}
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Horario</span>
+                  <span className="font-semibold text-slate-900 dark:text-white text-sm">
+                    {format(bookingDetailsToConfirm.startDateTime, "h:mm a")} - {format(bookingDetailsToConfirm.endDateTime, "h:mm a")}
                   </span>
                 </div>
               </div>
-              <div className="bg-gray-100 dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-600 dark:text-slate-300">
-                    Precio por hora:
-                  </span>
-                  <span className="font-semibold">
-                    ${formatPrice(bookingDetailsToConfirm.price)}
-                  </span>
+              
+              <div className="bg-emerald-500/5 dark:bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20">
+                <label className="block text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-3">
+                  ¿Cuánto deseas pagar ahora?
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[10, 50, 100].map((pct) => (
+                    <button
+                      key={pct}
+                      onClick={() => setPaymentPercentage(pct)}
+                      className={`py-3 px-2 rounded-xl text-sm font-bold transition-all border-2 ${
+                        paymentPercentage === pct
+                          ? "bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/30"
+                          : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700"
+                      }`}
+                    >
+                      {pct}%
+                    </button>
+                  ))}
                 </div>
-                <div className="mt-4">
-                  <label className="block text-slate-600 dark:text-slate-300 text-sm font-bold mb-2">
-                    Selecciona el porcentaje a pagar:
-                  </label>
-                  <div className="flex space-x-4 mt-2">
-                    <label className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        className="form-radio text-emerald-500"
-                        name="paymentOption"
-                        value="100"
-                        checked={paymentPercentage === 100}
-                        onChange={() => setPaymentPercentage(100)}
-                      />
-                      <span className="ml-2 text-slate-700 dark:text-slate-200">
-                        100%
-                      </span>
-                    </label>
-                    <label className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        className="form-radio text-emerald-500"
-                        name="paymentOption"
-                        value="50"
-                        checked={paymentPercentage === 50}
-                        onChange={() => setPaymentPercentage(50)}
-                      />
-                      <span className="ml-2 text-slate-700 dark:text-slate-200">
-                        50%
-                      </span>
-                    </label>
-                    <label className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        className="form-radio text-emerald-500"
-                        name="paymentOption"
-                        value="10"
-                        checked={paymentPercentage === 10}
-                        onChange={() => setPaymentPercentage(10)}
-                      />
-                      <span className="ml-2 text-slate-700 dark:text-slate-200">
-                        10%
-                      </span>
-                    </label>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-300 dark:border-slate-600">
-                  <span className="text-slate-600 dark:text-slate-300">
-                    Total a Pagar ({paymentPercentage}%):
+                <div className="flex justify-between items-center mt-5 pt-4 border-t border-emerald-500/20">
+                  <span className="text-slate-600 dark:text-slate-300 text-sm">
+                    Total a Pagar:
                   </span>
-                  <span className="text-2xl font-bold text-emerald-500 dark:text-emerald-400">
+                  <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
                     ${formatPrice(priceToPay)}
                   </span>
                 </div>
               </div>
             </div>
-            <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex gap-3">
+            <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex gap-3 pb-8 sm:pb-6">
               <button
                 onClick={cancelConfirmation}
-                className="flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-gray-800 dark:text-white px-6 py-3 rounded-lg transition-colors"
+                className="flex-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-white px-6 py-4 rounded-xl font-bold transition-colors"
               >
-                Cancelar
+                Cerrar
               </button>
               <button
                 onClick={() => confirmBooking(paymentPercentage)}
                 disabled={isBooking}
-                className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 dark:from-emerald-600 dark:to-teal-600 dark:hover:from-emerald-700 dark:hover:to-teal-700 text-white px-6 py-3 rounded-lg transition-all shadow-lg disabled:opacity-50"
+                className="flex-[2] bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-6 py-4 rounded-xl font-bold transition-all shadow-xl shadow-emerald-500/20 disabled:opacity-50 active:scale-95"
               >
-                {isBooking ? "Procesando..." : "Confirmar"}
+                {isBooking ? "Procesando..." : "Confirmar Reserva"}
               </button>
             </div>
           </div>
@@ -293,29 +251,37 @@ function CourtDetailPage({ openAuthModal }) {
 
       {/* Modal para solicitar inicio de sesión */}
       {showLoginModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700">
-            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-              <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 animate-in slide-in-from-bottom duration-300">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+              <h2 className="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">
                 Acceso Requerido
               </h2>
+              <button onClick={handleCloseLoginModal} className="sm:hidden p-2 text-slate-400">
+                <X size={24} />
+              </button>
             </div>
-            <div className="p-6 space-y-4">
-              <p className="text-slate-600 dark:text-slate-300">
-                Para reservar una cancha, debes estar registrado e iniciar
-                sesión.
+            <div className="p-8 space-y-4 text-center">
+              <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <p className="text-slate-600 dark:text-slate-300 font-medium">
+                Para reservar una cancha, debes estar registrado e iniciar sesión.
               </p>
             </div>
-            <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex justify-between">
+            <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex flex-col gap-3 pb-10 sm:pb-6">
               <button
                 onClick={openAuthModal}
-                className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 dark:from-emerald-600 dark:to-teal-600 dark:hover:from-emerald-700 dark:hover:to-teal-700 text-white px-6 py-3 rounded-lg transition-colors shadow-lg"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-4 rounded-xl font-bold transition-all shadow-lg active:scale-95"
               >
                 Iniciar Sesión
               </button>
-              <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg transition-colors shadow-lg">
-                <Link to="/register">Registrarse</Link>
-              </button>
+              <Link 
+                to="/register"
+                className="w-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-white px-6 py-4 rounded-xl font-bold transition-all text-center active:scale-95"
+              >
+                Crear una Cuenta
+              </Link>
             </div>
           </div>
         </div>

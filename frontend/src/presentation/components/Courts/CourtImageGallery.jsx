@@ -54,18 +54,23 @@ function CourtImageGallery({
   return (
     <>
       {court.images && court.images.length > 0 && (
-        <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl p-6 mb-6 shadow-sm">
-          <h3 className="text-xl font-bold text-emerald-500 dark:text-emerald-400 mb-4">
-            Galería
-          </h3>
+        <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl p-5 sm:p-6 mb-8 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-emerald-500/10 p-2 rounded-lg">
+              <Eye className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white">
+              Galería de Fotos
+            </h3>
+          </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             {court.images.map((image, index) => (
               <SmoothImageCard
                 key={image.id}
                 image={image.image}
                 courtName={court.name}
-                openModal={() => openModal(image.image)} // Aquí se pasa la URL de la imagen directamente
+                openModal={() => openModal(image.image)}
                 index={index}
               />
             ))}
