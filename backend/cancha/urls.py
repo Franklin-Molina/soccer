@@ -40,10 +40,12 @@ from users import views as users_views # Importar vistas de la app users
 from django.conf import settings # Importar settings
 from django.conf.urls.static import static # Importar static
 from django.shortcuts import redirect # Importar redirect
+import os
 
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 def password_reset_confirm_redirect(request, uidb64, token):
-    return redirect(f"http://localhost:5173/password/reset/confirm/{uidb64}/{token}")
+    return redirect(f"{settings.FRONTEND_URL}/password/reset/confirm/{uidb64}/{token}")
 
 
 urlpatterns = [
