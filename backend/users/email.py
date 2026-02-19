@@ -17,8 +17,8 @@ class PasswordResetEmail(email.PasswordResetEmail):
     def send(self, to, *args, **kwargs):
         # 1. Obtener el contexto que Djoser ya preparó (incluye user, domain, protocol, uid, token)
         context = self.get_context_data()
-        # context['site_name'] = 'Sintetíca Iris',
-        # context['domain'] = 'localhost:5173'
+        context['site_name'] = 'Sintetíca Iris',
+        context['domain'] = 'localhost:5173'
         
         
         # 2. Renderizar el HTML usando la plantilla profesional
@@ -56,8 +56,8 @@ class PasswordChangedConfirmationEmail(email.PasswordChangedConfirmationEmail):
 
     def send(self, to, *args, **kwargs):
         context = self.get_context_data()
-        # context['site_name'] = 'Sintetíca Iris'
-        # context['domain'] = 'localhost:5173'
+        context['site_name'] = 'Sintetíca Iris'
+        context['domain'] = 'localhost:5173'
         
         html_content = render_to_string(self.template_name, context)
         text_content = strip_tags(html_content)
