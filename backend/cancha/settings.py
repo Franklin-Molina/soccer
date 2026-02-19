@@ -252,9 +252,9 @@ DJOSER = {
     "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
     "ACTIVATION_URL": "activate/{uid}/{token}",
     "SEND_ACTIVATION_EMAIL": True,
-    "DOMAIN": os.getenv("DOMAIN", "localhost:5173"),
+    "DOMAIN": os.getenv("DOMAIN", "soccer-jet.vercel.app"),
     "SITE_NAME": os.getenv("SITE_NAME", "Sintética Iris"),
-    "PROTOCOL": os.getenv("PROTOCOL", "http"),
+    "PROTOCOL": os.getenv("PROTOCOL", "https"),
     "SERIALIZERS": {
         "user_create": "users.serializers.UserCreateSerializer",
         "user": "users.serializers.UserSerializer",
