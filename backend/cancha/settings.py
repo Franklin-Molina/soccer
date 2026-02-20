@@ -211,6 +211,7 @@ SOCIALACCOUNT_PROVIDERS = {
 EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 ANYMAIL = {
     "BREVO_API_KEY": os.getenv("ANYMAIL_BREVO_API_KEY"),
+    "IGNORE_RECIPIENT_STATUS": True,
 }
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "digitaldxz1@gmail.com")
 
@@ -372,6 +373,11 @@ LOGGING = {
             "propagate": False,
         },
         "djoser": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "anymail": {
             "handlers": ["console"],
             "level": "DEBUG",
             "propagate": False,
