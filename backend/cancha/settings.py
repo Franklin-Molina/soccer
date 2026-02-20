@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     "django_filters",  # Añadir django_filters
     "channels",
     "djoser",
+    "anymail",
 ]
 
 # ASGI Configuration
@@ -206,19 +207,12 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 
-# Configuración de Correo (SMTP con Brevo)
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp-relay.brevo.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
-EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False").lower() == "true"
-EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", 10))  # Timeout para conexiones SMTP
+# Configuración de Correo (Brevo vía Anymail API)
+EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+ANYMAIL = {
+    "BREVO_API_KEY": os.getenv("ANYMAIL_BREVO_API_KEY"),
+}
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "digitaldxz1@gmail.com")
-
-print("EMAIL_HOST_USER:", EMAIL_HOST_USER)
-print("EMAIL_HOST_PASSWORD:", EMAIL_HOST_PASSWORD)
 
 DATABASES = {
     "default": dj_database_url.config(
