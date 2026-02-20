@@ -12,7 +12,7 @@ def test_email():
             'Prueba de Anymail Brevo',
             'Este es un correo de prueba para verificar la configuración de Anymail y Brevo.',
             None, # Usa DEFAULT_FROM_EMAIL
-            ['frtin93@gmail.com'], # Cambia por tu correo de prueba si es necesario
+            ['mantizvt@gmail.com'], # Cambia por tu correo de prueba si es necesario
             fail_silently=False,
         )
         print(f"Resultado del envío: {sent}")

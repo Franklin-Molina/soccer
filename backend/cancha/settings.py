@@ -13,16 +13,22 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 import dj_database_url
-from datetime import timedelta
-from dotenv import load_dotenv
+
+from dotenv import load_dotenv  # Importar load_dotenv
 
 # Cargar variables de entorno desde .env
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 dotenv_path = BASE_DIR / ".env"
 load_dotenv(dotenv_path)
 
+
+# Imprimir para depuración
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -30,12 +36,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
 
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"  # Convertir a booleano
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,192.168.100.117").split(",")
 
+
 # Application definition
+
 INSTALLED_APPS = [
     "daphne",
     "django.contrib.admin",
@@ -44,15 +53,18 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django.contrib.sites",
+    "django.contrib.sites",  # Añadir la app sites
     "rest_framework",
     "rest_framework_simplejwt",
-    "rest_framework.authtoken",
+    "rest_framework.authtoken",  # Añadir rest_framework.authtoken
+    # Añadir corsheaders
     "corsheaders",
+    # Apps de django-allauth
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
-    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.google",  # Proveedor de Google
+    # Mis Apps (asegúrate de que estén aquí si no lo están ya)
     "users",
     "courts",
     "bookings",
@@ -60,7 +72,7 @@ INSTALLED_APPS = [
     "plans",
     "matches",
     "chat",
-    "django_filters",
+    "django_filters",  # Añadir django_filters
     "channels",
     "djoser",
     "anymail",
@@ -93,16 +105,19 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
+    # Añadir CorsMiddleware
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",  ###
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    # Middleware de django-allauth (añadir después de AuthenticationMiddleware)
+    # 'allauth.account.middleware.AccountMiddleware', # Este middleware no existe en allauth 0.54.0
 ]
 
 ROOT_URLCONF = "cancha.urls"
@@ -129,20 +144,38 @@ AUTH_USER_MODEL = "users.User"
 
 # Configuración de django-allauth
 AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
     "django.contrib.auth.backends.ModelBackend",
+    # `allauth` specific authentication methods, such as login by email
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-SITE_ID = int(os.getenv("SITE_ID", 1))
+SITE_ID = int(os.getenv("SITE_ID", 1))  # django-allauth requiere un SITE_ID
 
-# Configuraciones adicionales de allauth
-ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "optional")
-ACCOUNT_SIGNUP_FIELDS = ["username", "email", "password", "first_name", "last_name"]
-ACCOUNT_AUTHENTICATION_METHOD = os.getenv("ACCOUNT_AUTHENTICATION_METHOD", "username")
-ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
-LOGIN_REDIRECT_URL = os.getenv("LOGIN_REDIRECT_URL", "/")
-LOGOUT_REDIRECT_URL = os.getenv("LOGOUT_REDIRECT_URL", "/")
+# Configuraciones adicionales de allauth (ajustar según necesidad)
+ACCOUNT_EMAIL_VERIFICATION = os.getenv(
+    "ACCOUNT_EMAIL_VERIFICATION", "optional"
+)  # Puede ser 'mandatory', 'optional', o 'none'
+ACCOUNT_SIGNUP_FIELDS = [
+    "username",
+    "email",
+    "password",
+    "first_name",
+    "last_name",
+]  # Campos requeridos para el registro
+ACCOUNT_AUTHENTICATION_METHOD = os.getenv(
+    "ACCOUNT_AUTHENTICATION_METHOD", "username"
+)  # Usar username como método de autenticación principal para allauth 0.54.0
+ACCOUNT_USERNAME_REQUIRED = True  # Requerido para allauth 0.54.0
+ACCOUNT_USER_MODEL_USERNAME_FIELD = (
+    "username"  # Especificar el campo de username del modelo de usuario
+)
+LOGIN_REDIRECT_URL = os.getenv(
+    "LOGIN_REDIRECT_URL", "/"
+)  # URL a la que redirigir después del login
+LOGOUT_REDIRECT_URL = os.getenv(
+    "LOGOUT_REDIRECT_URL", "/"
+)  # URL a la que redirigir después del logout
 
 # Configuración de dj-rest-auth para usar JWT y allauth
 REST_AUTH = {
@@ -155,10 +188,13 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 # Configuración del proveedor social (Google en este caso)
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
+        # For each OAuth based provider, either add a ``SocialApp``
+        # (``socialaccount`` app) containing the required client
+        # credentials, or list them here:
         "APP": {
             "client_id": os.getenv("GOOGLE_CLIENT_ID"),
             "secret": os.getenv("GOOGLE_CLIENT_SECRET"),
-            "key": "",
+            "key": "",  # No se usa generalmente para Google OAuth2
         },
         "SCOPE": [
             "profile",
@@ -170,6 +206,7 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+
 # Configuración de Correo (Brevo vía Anymail API)
 EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 ANYMAIL = {
@@ -178,7 +215,6 @@ ANYMAIL = {
 }
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "digitaldxz1@gmail.com")
 
-# Database
 DATABASES = {
     "default": dj_database_url.config(
         default=os.getenv("DATABASE_URL"),
@@ -186,6 +222,21 @@ DATABASES = {
         ssl_require=True
     )
 }
+ 
+""" 
+DATABASES = {
+    "default": {
+        "ENGINE": os.environ.get("DB_ENGINE", "django.db.backends.postgresql"),
+        "NAME": os.environ.get("DB_NAME"),
+        "USER": os.environ.get("DB_USER"),
+        "PASSWORD": os.environ.get("DB_PASSWORD"),
+        "HOST": os.environ.get("DB_HOST", "db"),  # This will now be 'db'
+        "PORT": os.environ.get("DB_PORT"),
+    }
+} """
+
+
+
 
 # Configuración de Djoser
 DJOSER = {
@@ -198,9 +249,9 @@ DJOSER = {
     "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
     "ACTIVATION_URL": "activate/{uid}/{token}",
     "SEND_ACTIVATION_EMAIL": True,
-    "DOMAIN": os.getenv("DOMAIN", "soccer-jet.vercel.app"),
-    "SITE_NAME": os.getenv("SITE_NAME", "Sintética Iris"),
-    "PROTOCOL": os.getenv("PROTOCOL", "https"),
+    "DOMAIN": os.getenv("DOMAIN"),
+    "SITE_NAME": os.getenv("SITE_NAME"),
+    "PROTOCOL": os.getenv("PROTOCOL"),
     "SERIALIZERS": {
         "user_create": "users.serializers.UserCreateSerializer",
         "user": "users.serializers.UserSerializer",
@@ -214,15 +265,34 @@ DJOSER = {
     "PASSWORD_RESET_CONFIRM_RETYPE": True,
 }
 
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
+
+
+
+if os.getenv("DATABASE_URL"):
+    DATABASES["default"] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 # Password validation
+# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
 ]
 
 # Configuración de Password Hashers
+# Se prioriza Argon2, con fallback a los otros para contraseñas existentes.
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",
     "django.contrib.auth.hashers.PBKDF2PasswordHasher",
@@ -231,16 +301,28 @@ PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.ScryptPasswordHasher",
 ]
 
+
 # Internationalization
+# https://docs.djangoproject.com/en/5.2/topics/i18n/
+
 LANGUAGE_CODE = "es"
-TIME_ZONE = os.getenv("TIME_ZONE", "America/Bogota")
+
+TIME_ZONE = os.getenv("TIME_ZONE")  # Cambiar a la zona horaria local
+
 USE_I18N = True
+
 USE_TZ = True
 
+
+import os  # Importar os
+
 # Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.0/howto/static-files/
+
 STATIC_URL = os.getenv("STATIC_URL", "static/")
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
+# Configuración de WhiteNoise para servir archivos estáticos comprimidos
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -250,10 +332,19 @@ STORAGES = {
     },
 }
 
+# Configuración para archivos multimedia (imágenes subidas por usuarios)
 MEDIA_URL = os.getenv("MEDIA_URL", "/media/")
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = os.path.join(
+    BASE_DIR, "media"
+)  # Directorio donde se guardarán los archivos subidos
 
-DEFAULT_AUTO_FIELD = os.getenv("DEFAULT_AUTO_FIELD", "django.db.models.BigAutoField")
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = os.getenv(
+    "DEFAULT_AUTO_FIELD",
+)
 
 # Configuración de Logging
 LOGGING = {
@@ -274,9 +365,11 @@ LOGGING = {
             "level": os.getenv("LOGGING_DJANGO_LEVEL", "INFO"),
             "propagate": False,
         },
-        "users": {
+        "users": {  # Añadir logger para la app users
             "handlers": ["console"],
-            "level": os.getenv("LOGGING_USERS_LEVEL", "DEBUG"),
+            "level": os.getenv(
+                "LOGGING_USERS_LEVEL", "DEBUG"
+            ),  # Usar DEBUG para ver logs más detallados
             "propagate": False,
         },
         "djoser": {
@@ -292,7 +385,10 @@ LOGGING = {
     },
 }
 
-# Configuración de Simple JWT
+
+# Configuración de Simple JWT para usar username como campo de autenticación
+from datetime import timedelta
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -305,16 +401,28 @@ SIMPLE_JWT = {
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
+   # "USERNAME_FIELD": os.getenv("SIMPLE_JWT_USERNAME_FIELD"),
 }
 
-# Configuración de CORS
-CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", "False").lower() == "true"
+# Configuración de CORS para permitir solicitudes desde el frontend durante el desarrollo
+CORS_ALLOW_ALL_ORIGINS = (
+    os.getenv("CORS_ALLOW_ALL_ORIGINS", "False").lower() == "true"
+)  # Deshabilitar para especificar orígenes permitidos
+
 cors_origins = os.getenv("CORS_ALLOWED_ORIGINS")
-CORS_ALLOWED_ORIGINS = cors_origins.split(",") if cors_origins else []
-CORS_ALLOW_CREDENTIALS = True
+if cors_origins:
+    CORS_ALLOWED_ORIGINS = cors_origins.split(",")
+else:
+    CORS_ALLOWED_ORIGINS = []
 
-# Configuración de CSRF
+CORS_ALLOW_CREDENTIALS = True  # Permitir que las solicitudes incluyan credenciales
+
+# Configuración de CSRF para confiar en el origen del frontend
 csrf_origins = os.getenv("CSRF_TRUSTED_ORIGINS")
-CSRF_TRUSTED_ORIGINS = csrf_origins.split(",") if csrf_origins else []
+if csrf_origins:
+    CSRF_TRUSTED_ORIGINS = csrf_origins.split(",")
+else:
+    CSRF_TRUSTED_ORIGINS = []
 
+# Cross-Origin Opener Policy para mitigar advertencias de COOP en navegadores
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
