@@ -17,9 +17,9 @@ class PasswordResetEmail(email.PasswordResetEmail):
     def send(self, to, *args, **kwargs):
         # 1. Obtener el contexto que Djoser ya preparó (incluye user, domain, protocol, uid, token)
         context = self.get_context_data()
-        context['site_name'] = settings.DJOSER.get('SITE_NAME', 'Sintética Iris')
-        context['domain'] = settings.DJOSER.get('DOMAIN', 'soccer-jet.vercel.app')
-        context['protocol'] = settings.DJOSER.get('PROTOCOL', 'https')
+        context['site_name'] = settings.DJOSER.get('SITE_NAME')
+        context['domain'] = settings.DJOSER.get('DOMAIN')
+        context['protocol'] = settings.DJOSER.get('PROTOCOL')
         
         
         # 2. Renderizar el HTML usando la plantilla profesional
@@ -57,9 +57,9 @@ class PasswordChangedConfirmationEmail(email.PasswordChangedConfirmationEmail):
 
     def send(self, to, *args, **kwargs):
         context = self.get_context_data()
-        context['site_name'] = settings.DJOSER.get('SITE_NAME', 'Sintética Iris')
-        context['domain'] = settings.DJOSER.get('DOMAIN', 'soccer-jet.vercel.app')
-        context['protocol'] = settings.DJOSER.get('PROTOCOL', 'https')
+        context['site_name'] = settings.DJOSER.get('SITE_NAME')
+        context['domain'] = settings.DJOSER.get('DOMAIN')
+        context['protocol'] = settings.DJOSER.get('PROTOCOL')
         
         html_content = render_to_string(self.template_name, context)
         text_content = strip_tags(html_content)
