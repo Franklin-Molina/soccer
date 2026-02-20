@@ -217,7 +217,8 @@ EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False").lower() == "true"
 EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", 10))  # Timeout para conexiones SMTP
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "digitaldxz1@gmail.com")
 
-
+print("EMAIL_HOST_USER:", EMAIL_HOST_USER)
+print("EMAIL_HOST_PASSWORD:", EMAIL_HOST_PASSWORD)
 
 DATABASES = {
     "default": dj_database_url.config(
