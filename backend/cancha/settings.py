@@ -219,14 +219,14 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "digitaldxz1@gmail.com")
 
 
 
-""" """ DATABASES = {
+DATABASES = {
     "default": dj_database_url.config(
         default=os.getenv("DATABASE_URL"),
         conn_max_age=600,
         ssl_require=True
     )
-} """
- """
+}
+ 
 """ 
 DATABASES = {
     "default": {
