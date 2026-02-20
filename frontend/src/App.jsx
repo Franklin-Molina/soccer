@@ -34,6 +34,7 @@ import MyBookingsPage from './presentation/pages/bookings/MyBookingsPage.jsx'; /
 import OpenMatchesPage from './presentation/pages/Matches/OpenMatchesPage.jsx';
 import { AuthProvider, useAuth } from './presentation/context/AuthContext.jsx'; // Importar AuthProvider y useAuth
 import Spinner from './presentation/components/common/Spinner.jsx'; // Importar Spinner
+import NotFound from './presentation/components/common/NotFound.jsx'; // Importar NotFound
 
 function App() {
   return (
@@ -197,6 +198,9 @@ function AuthContent() {
         </Route>
         <Route path="profile" element={<DashboardProfilePage />} />
       </Route>
+
+      {/* Ruta catch-all para 404 */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

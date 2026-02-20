@@ -33,10 +33,8 @@ const ProtectedRoute = ({ children }) => {
 
   // Si es una ruta de administrador y el usuario no es staff (asumiendo que is_staff indica admin)
   if (isAdminRoute && (!user || !user.is_staff)) {
-    // Redirigir a una página diferente, por ejemplo, la página de inicio o una página de error
-    // Podríamos añadir un mensaje de error o redirigir a una página de "Acceso Denegado"
-    console.warn(`Acceso denegado a ruta de administrador: ${location.pathname}. Usuario no es staff.`);
-    return <Navigate to="/" replace />; // Redirigir a la página de inicio
+    console.warn(`Acceso denegado a ruta de administrador: ${location.pathname}. Usuario no es staff. Redirigiendo al home.`);
+    return <Navigate to="/" replace />;
   }
 
   // Verificar si la ruta actual es para adminglobal
@@ -44,8 +42,8 @@ const ProtectedRoute = ({ children }) => {
 
   // Si es una ruta de adminglobal y el usuario no tiene role='adminglobal'
   if (isAdminglobalRoute && (!user || user.role !== 'adminglobal')) {
-    console.warn(`Acceso denegado a ruta de adminglobal: ${location.pathname}. Usuario no tiene rol 'adminglobal'.`);
-    return <Navigate to="/" replace />; // Redirigir a la página de inicio
+    console.warn(`Acceso denegado a ruta de adminglobal: ${location.pathname}. Usuario no tiene rol 'adminglobal'. Redirigiendo al home.`);
+    return <Navigate to="/" replace />;
   }
 
   // Si está autenticado y autorizado para la ruta, renderizar los componentes hijos

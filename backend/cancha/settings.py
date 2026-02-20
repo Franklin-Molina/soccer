@@ -101,12 +101,16 @@ else:
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
 }
 
 MIDDLEWARE = [
     # Añadir CorsMiddleware
     "corsheaders.middleware.CorsMiddleware",
+    "users.middleware.RedirectUnauthorizedMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -170,6 +174,7 @@ ACCOUNT_USERNAME_REQUIRED = True  # Requerido para allauth 0.54.0
 ACCOUNT_USER_MODEL_USERNAME_FIELD = (
     "username"  # Especificar el campo de username del modelo de usuario
 )
+LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = os.getenv(
     "LOGIN_REDIRECT_URL", "/"
 )  # URL a la que redirigir después del login

@@ -49,3 +49,23 @@ class JWTAuthMiddleware:
             scope['user'] = AnonymousUser()
 
         return await self.app(scope, receive, send)
+
+from django.shortcuts import redirect
+
+class RedirectUnauthorizedMiddleware:
+    """
+    Middleware para redirigir respuestas de no autorizado (401, 403) al home (/).
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        
+        # Si la respuesta es 401 (Unauthorized) o 403 (Forbidden)
+        if response.status_code in [401, 403]:
+            # Evitar redirección infinita si ya estamos en /
+            if request.path != '/':
+                return redirect('/')
+                
+        return response
