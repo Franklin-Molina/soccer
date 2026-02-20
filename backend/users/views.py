@@ -1,8 +1,6 @@
 from rest_framework import permissions, viewsets, status, views # Añadir status y views
 from rest_framework.response import Response
 from asgiref.sync import async_to_sync # Importar async_to_sync
-from django.core.mail import send_mail
-from django.http import HttpResponse
 from .serializers import RegisterSerializer, UserSerializer, PerfilSocialSerializer, AdminRegisterSerializer
 from django.contrib.auth.models import Group, Permission
 from rest_framework.permissions import IsAdminUser, IsAuthenticated # Importar IsAuthenticated
@@ -548,14 +546,3 @@ class ChangePasswordView(views.APIView):
         except Exception as e:
             print(f"Error interno al cambiar la contraseña: {e}")
             return Response({"error": "Error interno del servidor al cambiar la contraseña."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-def test_smtp(request):
-    send_mail(
-        "Prueba SMTP Render",
-        "Si ves esto, funciona",
-        "frtin93@gmail.com",
-        ["frtin93@gmail.com"],
-        fail_silently=False,
-    )
-    return HttpResponse("Intentado enviar")
