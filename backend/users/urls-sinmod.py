@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from .views import RegisterView, UserViewSet, GroupViewSet, PermissionViewSet, GoogleLogin, AdminRegisterView, AdminManagementViewSet, UserProfileUpdateView, ChangePasswordView, LoginView, UserStatsView, test_smtp # Añadir LoginView y UserStatsView
+from .views import RegisterView, UserViewSet, GroupViewSet, PermissionViewSet, GoogleLogin, AdminRegisterView, AdminManagementViewSet, UserProfileUpdateView, ChangePasswordView, LoginView, UserStatsView # Añadir LoginView y UserStatsView
 from rest_framework import routers
 from .models import User
 from django.urls import path
@@ -34,9 +34,6 @@ urlpatterns = [
     
     # Ruta para obtener estadísticas de usuarios
     path('stats/', UserStatsView.as_view(), name='user_stats'),
-
-    # Ruta temporal para probar SMTP
-    path('test_smtp/', test_smtp, name='test_smtp'),
 
     path('', include(router.urls)),
 ]
