@@ -465,6 +465,31 @@ from rest_framework.generics import RetrieveUpdateAPIView # Importar RetrieveUpd
 from .serializers import UserProfileUpdateSerializer # Importar el nuevo serializador
 from django.utils import timezone
 from datetime import timedelta
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+
+class ValidatePasswordResetTokenView(views.APIView):
+    """
+    Vista para validar el token de restablecimiento de contraseña sin cambiarla.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        uid = request.data.get('uid')
+        token = request.data.get('token')
+
+        if not uid or not token:
+            return Response({"detail": "UID y token son requeridos."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            id = urlsafe_base64_decode(uid).decode()
+            user = User.objects.get(pk=id)
+            if default_token_generator.check_token(user, token):
+                return Response({"detail": "El token es válido."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"detail": "El token es inválido o ha expirado."}, status=status.HTTP_400_BAD_REQUEST)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({"detail": "El token es inválido o ha expirado."}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserStatsView(views.APIView):
     """

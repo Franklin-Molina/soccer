@@ -85,5 +85,15 @@ export class IAuthRepository {
     throw new Error('Method not implemented.');
   }
 
+  /**
+   * Valida si un token de restablecimiento de contraseña es válido.
+   * @param {string} uid - El UID del usuario.
+   * @param {string} token - El token de restablecimiento.
+   * @returns {Promise<boolean>} Una promesa que resuelve a true si el token es válido, false en caso contrario.
+   */
+  async validatePasswordResetToken(uid, token) {
+    throw new Error('Method not implemented.');
+  }
+
   // TODO: Añadir métodos para refrescar tokens, registrar usuario, etc. si son necesarios
 }

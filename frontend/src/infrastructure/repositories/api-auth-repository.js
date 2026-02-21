@@ -152,5 +152,18 @@ export class ApiAuthRepository extends IAuthRepository {
     }
   }
 
+  async validatePasswordResetToken(uid, token) {
+    try {
+      await api.post('/api/users/auth/users/reset_password_confirm/validate_token/', {
+        uid,
+        token
+      });
+      return true;
+    } catch (error) {
+      // Si el backend responde 400, el token es inválido
+      return false;
+    }
+  }
+
   // TODO: Implementar métodos para refrescar tokens, registrar usuario, etc.
 }

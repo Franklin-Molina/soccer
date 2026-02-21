@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Lock, Eye, EyeOff } from 'lucide-react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 function ResetPasswordConfirm() {
@@ -9,8 +9,17 @@ function ResetPasswordConfirm() {
   const [reNewPassword, setReNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { resetPasswordConfirm } = useAuth();
+  const [validToken, setValidToken] = useState(null); // null = validando, true = válido, false = inválido
+  const { resetPasswordConfirm, validatePasswordResetToken } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkToken = async () => {
+      const isValid = await validatePasswordResetToken(uid, token);
+      setValidToken(isValid);
+    };
+    checkToken();
+  }, [uid, token, validatePasswordResetToken]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,11 +31,44 @@ function ResetPasswordConfirm() {
     try {
       await resetPasswordConfirm(uid, token, newPassword, reNewPassword);
     } catch (error) {
+      // Si el backend responde 400, el token es inválido
+      if (error.response && error.response.status === 400) {
+        setValidToken(false);
+      }
       console.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (validToken === null) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+        <p className="text-gray-600 dark:text-gray-400 font-medium">Validando enlace...</p>
+      </div>
+    );
+  }
+
+  if (validToken === false) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 px-4">
+        <div className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-700 rounded-2xl w-full max-w-md p-8 shadow-xl text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Enlace inválido o expirado</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            El enlace para restablecer tu contraseña ya no es válido o ha caducado.
+          </p>
+          <Link
+            to="/forgot-password"
+            className="inline-block w-full py-3 px-4 rounded-lg font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-md transition-all"
+          >
+            Solicitar nuevo enlace
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 px-4">

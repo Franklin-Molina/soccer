@@ -232,7 +232,8 @@ export const AuthProvider = ({ children }) => {
       fetchUser, 
       updateUser,
       resetPassword,
-      resetPasswordConfirm
+      resetPasswordConfirm,
+      validatePasswordResetToken: (uid, token) => authRepository.validatePasswordResetToken(uid, token)
     }}>
       {children}
     </AuthContext.Provider>
