@@ -77,15 +77,22 @@ api.interceptors.response.use(
       }
     }
 
-    // CASO 2: Error 401 (Token expirado)
-    if (error.response && error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    // CASO 2: Error 401 (Token expirado o inválido)
+    if (error.response && error.response.status === 401) {
+      if (!originalRequest._retry) {
+        originalRequest._retry = true;
 
-      const newAccessToken = await refreshToken();
-      if (newAccessToken) {
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return api(originalRequest);
+        const newAccessToken = await refreshToken();
+        if (newAccessToken) {
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return api(originalRequest);
+        }
       }
+
+      // Si el refresco falla o ya se intentó, limpiar y redirigir
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      window.location.href = '/';
     }
 
     return Promise.reject(error);
