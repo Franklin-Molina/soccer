@@ -22,7 +22,7 @@ function HomePage({ openAuthModal }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:to-gray-800">
        <Spinner/>
       </div>
     );
@@ -30,28 +30,28 @@ function HomePage({ openAuthModal }) {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-screen text-red-500 text-lg font-semibold bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="flex justify-center items-center h-screen text-red-500 text-lg font-semibold bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:to-gray-800">
         Error al cargar canchas: {error.message}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 pt-16 sm:pt-20">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 pt-16 sm:pt-20">
       {/* HERO */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-700 dark:via-purple-700 dark:to-pink-700">
-        <div className="absolute inset-0 bg-black/20"></div>
-       
+      <section className="relative overflow-hidden bg-gradient-to-r from-[#16A34A] via-[#0F172A] to-[#16A34A] dark:from-[#16A34A] dark:via-[#0F172A] dark:to-[#16A34A]">
+        <div className="absolute inset-0 bg-black/30"></div>
+        <div className="absolute inset-0 bg-center bg-cover opacity-30" style={{backgroundImage: 'url(/logo2.jpg)'}}></div>
 
         <div className="relative max-w-8xl mx-auto px-4 sm:px-6 py-16 sm:py-32 flex flex-col items-center text-center">
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-6 text-white text-xs sm:text-sm font-medium">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+            <span className="w-2 h-2 bg-[#FACC15] rounded-full animate-pulse"></span>
             Reserva disponible 24/7
           </div>
 
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white mb-6 tracking-tight leading-[1.1]">
             Reserva tu cancha
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#FACC15] to-[#FACC15]">
               ahora mismo
             </span>
           </h1>
@@ -66,9 +66,9 @@ function HomePage({ openAuthModal }) {
               <input
                 type="text"
                 placeholder="Buscar cancha o deporte..."
-                className="w-full px-6 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-gray-900 placeholder-gray-500 shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:ring-purple-700 transition-all"
+                className="w-full px-6 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-gray-900 placeholder-gray-500 shadow-xl focus:outline-none focus:ring-4 focus:ring-[#16A34A] dark:focus:ring-[#FACC15] transition-all"
               />
-              <button className="sm:absolute sm:right-2 sm:top-1/2 sm:-translate-y-1/2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-4 sm:py-2.5 rounded-2xl sm:rounded-xl font-bold sm:font-semibold shadow-lg transition-all w-full sm:w-auto">
+              <button className="sm:absolute sm:right-2 sm:top-1/2 sm:-translate-y-1/2 bg-gradient-to-r from-[#16A34A] to-[#0F172A] hover:from-[#16A34A] hover:to-[#0F172A] text-white px-8 py-4 sm:py-2.5 rounded-2xl sm:rounded-xl font-bold sm:font-semibold shadow-lg transition-all w-full sm:w-auto">
                 Buscar
               </button>
             </div>
@@ -80,9 +80,9 @@ function HomePage({ openAuthModal }) {
       <section className="max-w-8xl mx-auto px-4 sm:px-6 -mt-8 sm:-mt-14 relative z-10">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           {[
-            { label: 'Canchas', value: 'Disponibles', color: 'from-blue-500 to-blue-600', icon: courts.length },
-            { label: 'Reserva', value: 'Instantánea', color: 'from-green-500 to-green-600', icon: '⚡' },
-            { label: 'Calificación', value: '4.9/5.0', color: 'from-purple-500 to-purple-600', icon: '★' },
+            { label: 'Canchas', value: 'Disponibles', color: 'from-[#16A34A] to-[#0F172A]', icon: courts.length },
+           /*  { label: 'Reserva', value: 'Instantánea', color: 'from-[#FACC15] to-[#16A34A]', icon: '⚡' },
+            { label: 'Calificación', value: '4.9/5.0', color: 'from-[#0F172A] to-[#16A34A]', icon: '★' }, */
           ].map((item, i) => (
             <div
               key={i}
@@ -117,7 +117,7 @@ function HomePage({ openAuthModal }) {
               <button
                 key={i}
                 className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap text-sm sm:text-base ${i === 0
-                    ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                    ? 'bg-[#16A34A] text-white hover:bg-[#0F172A]'
                     : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
               >
@@ -151,7 +151,7 @@ function HomePage({ openAuthModal }) {
                       <h3 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">{court.name}</h3>
                       <div className="flex items-center justify-between">
                         <p className="text-white text-lg sm:text-xl font-semibold">${(court.price / 1000).toFixed(0)}K</p>
-                        <span className="bg-white/20 backdrop-blur-md text-yellow-400 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold border border-white/10">
+                        <span className="bg-white/20 backdrop-blur-md text-[#FACC15] px-3 py-1 rounded-full text-xs sm:text-sm font-semibold border border-white/10">
                           ★ 4.9
                         </span>
                       </div>
@@ -166,7 +166,7 @@ function HomePage({ openAuthModal }) {
 
                   <Link
                     to={`/courts/${court.id}`}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3.5 sm:py-3 rounded-xl block text-center transition-all duration-300 shadow-md hover:shadow-xl transform active:scale-95 sm:hover:-translate-y-1"
+                    className="w-full bg-gradient-to-r from-[#16A34A] to-[#0F172A] hover:from-[#16A34A] hover:to-[#0F172A] text-white font-bold py-3.5 sm:py-3 rounded-xl block text-center transition-all duration-300 shadow-md hover:shadow-xl transform active:scale-95 sm:hover:-translate-y-1"
                   >
                     Reservar Ahora
                   </Link>
@@ -193,13 +193,13 @@ function HomePage({ openAuthModal }) {
       {/* CTA */}
       {!isAuthenticated && (
         <section className="max-w-8xl mx-auto px-4 sm:px-6 pb-12 sm:pb-20">
-          <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-700 dark:via-purple-700 dark:to-pink-700 rounded-3xl p-8 sm:p-12 text-center relative overflow-hidden shadow-2xl">
+          <div className="bg-gradient-to-r from-[#16A34A] via-[#0F172A] to-[#16A34A] dark:from-[#16A34A] dark:via-[#0F172A] dark:to-[#16A34A] rounded-3xl p-8 sm:p-12 text-center relative overflow-hidden shadow-2xl">
             <div className="relative z-10">
               <h2 className="text-2xl sm:text-4xl font-black text-white mb-4">¿No tienes cuenta?</h2>
               <p className="text-base sm:text-lg text-white/90 mb-6 sm:mb-8 max-w-2xl mx-auto">
                 Únete a nuestra plataforma y comienza a reservar un espacio deportivo en segundos.
               </p>
-              <button className="bg-white text-indigo-600 font-bold px-8 py-4 rounded-xl transition-all shadow-xl hover:shadow-2xl animate-float animate-pulse-glow">
+              <button className="bg-white text-[#16A34A] font-bold px-8 py-4 rounded-xl transition-all shadow-xl hover:shadow-2xl animate-float animate-pulse-glow">
                 <Link to="/register">
                   Registrarse
                 </Link>
