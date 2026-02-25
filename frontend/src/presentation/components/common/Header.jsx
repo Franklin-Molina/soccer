@@ -23,7 +23,7 @@ function Header({ openAuthModal, onToggleSidebar }) {
   }, []);
 
   return (
-      <header className="flex items-center justify-between w-full px-4 sm:px-6 py-3 sm:py-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg text-gray-900 dark:text-white shadow-sm transition-colors duration-300 fixed top-0 left-0 z-40">
+      <header className="flex items-center justify-between w-full px-4 sm:px-6 py-3 sm:py-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg text-gray-900 dark:text-white transition-colors duration-300 fixed top-0 left-0 z-40">
       <div className="flex items-center gap-2 sm:gap-4">
         {/* --- Botón hamburguesa (solo móvil) --- */}
         {onToggleSidebar && (

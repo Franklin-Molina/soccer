@@ -37,13 +37,13 @@ function HomePage({ openAuthModal }) {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 pt-16 sm:pt-20">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 pt-0 sm:pt-0">
       {/* HERO */}
       <section className="relative overflow-hidden bg-gradient-to-r from-[#16A34A] via-[#0F172A] to-[#16A34A] dark:from-[#16A34A] dark:via-[#0F172A] dark:to-[#16A34A]">
         <div className="absolute inset-0 bg-black/30"></div>
         <div className="absolute inset-0 bg-center bg-cover opacity-30" style={{backgroundImage: 'url(/logo2.jpg)'}}></div>
 
-        <div className="relative max-w-8xl mx-auto px-4 sm:px-6 py-16 sm:py-32 flex flex-col items-center text-center">
+        <div className="relative max-w-8xl mx-auto px-4 sm:px-6 py-16 sm:py-32  flex flex-col items-center text-center ">
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-6 text-white text-xs sm:text-sm font-medium">
             <span className="w-2 h-2 bg-[#FACC15] rounded-full animate-pulse"></span>
             Reserva disponible 24/7
