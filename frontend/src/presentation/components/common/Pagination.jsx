@@ -99,7 +99,7 @@ const Pagination = ({
                   onClick={() => goToPage(page)}
                   className={`shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-xs sm:text-sm font-medium transition-all duration-150 ${
                     currentPage === page
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
+                      ? 'bg-gradient-to-r from-[#16A34A] via-[#0F172A] to-[#16A34A] dark:from-[#16A34A]'
                       : 'text-slate-700 hover:bg-slate-100 dark:text-white dark:hover:bg-gray-600'
                   }`}
                 >
