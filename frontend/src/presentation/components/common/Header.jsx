@@ -23,11 +23,11 @@ function Header({ openAuthModal, onToggleSidebar }) {
   }, []);
 
   return (
-      <header className="flex items-center justify-between w-full px-4 sm:px-6 py-3 sm:py-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg text-gray-900 dark:text-white transition-colors duration-300 fixed top-0 left-0 z-40">
+    <header className="flex items-center justify-between w-full px-4 sm:px-6 py-3 sm:py-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg text-gray-900 dark:text-white transition-colors duration-300 fixed top-0 left-0 z-40">
       <div className="flex items-center gap-2 sm:gap-4">
         {/* --- Botón hamburguesa (solo móvil) --- */}
         {onToggleSidebar && (
-        <button
+          <button
             onClick={onToggleSidebar}
             className="md:hidden p-2 text-[#16A34A] dark:text-[#FACC15] hover:bg-[#16A34A]/10 dark:hover:bg-[#0F172A] rounded-lg transition"
           >
@@ -36,7 +36,7 @@ function Header({ openAuthModal, onToggleSidebar }) {
         )}
 
         {/* --- LOGO --- */}
-      <Link
+        <Link
           to="/"
           className="text-lg sm:text-2xl font-bold tracking-tight whitespace-nowrap"
         >
@@ -46,7 +46,7 @@ function Header({ openAuthModal, onToggleSidebar }) {
           <span className="text-gray-900 dark:text-white">
             God
           </span>
-      </Link>
+        </Link>
       </div>
 
       {/* --- NAVIGATION --- */}
@@ -60,24 +60,24 @@ function Header({ openAuthModal, onToggleSidebar }) {
             <button
               onClick={openAuthModal}
               className="px-3 sm:px-4 py-2 
-bg-emerald-600 hover:bg-emerald-700 
-text-white rounded-xl 
-text-sm sm:text-base font-medium 
-transition-all shadow-md hover:shadow-lg whitespace-nowrap"
+              text-white rounded-xl 
+              bg-emerald-600 hover:bg-emerald-700 
+              text-sm sm:text-base font-medium 
+              transition-all shadow-md hover:shadow-lg whitespace-nowrap"
             >
               Iniciar Sesion
             </button>
             <Link
               to="/register"
               className="hidden sm:block px-4 py-2 
-border border-emerald-600 
-text-emerald-600 
-dark:text-emerald-400 
-dark:border-emerald-400
-rounded-xl font-medium 
-hover:bg-emerald-50 
-dark:hover:bg-emerald-900/30
-transition-all shadow-sm whitespace-nowrap"
+              border border-emerald-600 
+              text-emerald-600 
+              dark:text-emerald-400 
+              dark:border-emerald-400
+              rounded-xl font-medium 
+              hover:bg-emerald-50 
+              dark:hover:bg-emerald-900/30
+              transition-all shadow-sm whitespace-nowrap"
             >
               Registrarse
             </Link>
@@ -88,17 +88,17 @@ transition-all shadow-sm whitespace-nowrap"
             ref={dropdownRef}
           >
             {user?.is_staff ? (
-                <Link
-                  to="/dashboard"
-                  className="hidden sm:block text-sm sm:text-base text-gray-700 dark:text-gray-200 hover:text-[#16A34A] transition"
-                >
+              <Link
+                to="/dashboard"
+                className="hidden sm:block text-sm sm:text-base text-gray-700 dark:text-gray-200 hover:text-[#16A34A] transition"
+              >
                 Dashboard
               </Link>
             ) : (
-                <Link
-                  to="/client"
-                  className="hidden sm:block text-sm sm:text-base text-gray-700 dark:text-gray-200 hover:text-[#16A34A] transition"
-                >
+              <Link
+                to="/client"
+                className="hidden sm:block text-sm sm:text-base text-gray-700 dark:text-gray-200 hover:text-[#16A34A] transition"
+              >
                 Mi Cuenta
               </Link>
             )}

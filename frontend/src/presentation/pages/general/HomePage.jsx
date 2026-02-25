@@ -43,7 +43,7 @@ function HomePage({ openAuthModal }) {
         <div className="absolute inset-0 bg-black/30"></div>
         <div className="absolute inset-0 bg-center bg-cover opacity-30" style={{backgroundImage: 'url(/logo2.jpg)'}}></div>
 
-        <div className="relative max-w-8xl mx-auto px-4 sm:px-6 py-16 sm:py-32  flex flex-col items-center text-center ">
+        <div className="relative max-w-8xl mx-auto px-4 sm:px-6 py-20 sm:py-32  flex flex-col items-center text-center ">
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-6 text-white text-xs sm:text-sm font-medium">
             <span className="w-2 h-2 bg-[#FACC15] rounded-full animate-pulse"></span>
             Reserva disponible 24/7
