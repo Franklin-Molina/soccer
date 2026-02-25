@@ -36,12 +36,17 @@ function Header({ openAuthModal, onToggleSidebar }) {
         )}
 
         {/* --- LOGO --- */}
-        <Link
+      <Link
           to="/"
-          className="text-lg sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-[#16A34A] to-[#0F172A] bg-clip-text text-transparent whitespace-nowrap"
+          className="text-lg sm:text-2xl font-bold tracking-tight whitespace-nowrap"
         >
-          Sintética God
-        </Link>
+          <span className="text-emerald-600 dark:text-emerald-400">
+            Sintética
+          </span>{" "}
+          <span className="text-gray-900 dark:text-white">
+            God
+          </span>
+      </Link>
       </div>
 
       {/* --- NAVIGATION --- */}
@@ -54,13 +59,25 @@ function Header({ openAuthModal, onToggleSidebar }) {
           <div className="flex items-center gap-2">
             <button
               onClick={openAuthModal}
-              className="px-3 sm:px-4 py-2 bg-[#16A34A] hover:bg-[#0F172A] text-white rounded-xl text-sm sm:text-base font-medium transition-all shadow-md hover:shadow-lg whitespace-nowrap"
+              className="px-3 sm:px-4 py-2 
+bg-emerald-600 hover:bg-emerald-700 
+text-white rounded-xl 
+text-sm sm:text-base font-medium 
+transition-all shadow-md hover:shadow-lg whitespace-nowrap"
             >
               Iniciar Sesion
             </button>
             <Link
               to="/register"
-              className="hidden sm:block px-4 py-2 border border-[#16A34A] text-[#16A34A] dark:text-[#FACC15] rounded-xl font-medium hover:bg-[#16A34A] hover:text-white transition-all shadow-sm whitespace-nowrap"
+              className="hidden sm:block px-4 py-2 
+border border-emerald-600 
+text-emerald-600 
+dark:text-emerald-400 
+dark:border-emerald-400
+rounded-xl font-medium 
+hover:bg-emerald-50 
+dark:hover:bg-emerald-900/30
+transition-all shadow-sm whitespace-nowrap"
             >
               Registrarse
             </Link>
