@@ -118,7 +118,8 @@ function CourtDetailPage({ openAuthModal }) {
     totalSlots > 0 ? Math.round((stats.occupiedSlots / totalSlots) * 100) : 0;
 
   return (
-    <div className="min-h-screen pt-20 lg:pt-28 xl:pt-32bg-gray-100 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-gray-800 dark:text-white p-4 sm:p-6">
+    <div className="min-h-screen pt-20 sm:pt-24 md:pt-28 lg:pt-32 bg-gray-100 dark:bg-gradient-to-br dark:from-slate-900 
+                    dark:via-slate-800 dark:to-slate-900 text-gray-800 dark:text-white p-4 sm:p-6">
       <div className="max-w-8xl mx-auto mb-8  ">
         {/* Header */}
         <CourtHeader court={court} />
