@@ -66,7 +66,10 @@ function HomePage({ openAuthModal }) {
               <input
                 type="text"
                 placeholder="Buscar cancha o deporte..."
-                className="w-full px-6 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-gray-900 placeholder-gray-500 shadow-xl focus:outline-none focus:ring-4 focus:ring-[#16A34A] dark:focus:ring-[#FACC15] transition-all"
+                className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-zinc-800 
+                border border-zinc-200 dark:border-zinc-700
+                focus:ring-2 focus:ring-emerald-500 
+                focus:outline-none"
               />
               <button className="sm:absolute sm:right-2 sm:top-1/2 sm:-translate-y-1/2 bg-gradient-to-r from-[#16A34A] to-[#0F172A] hover:from-[#16A34A] hover:to-[#0F172A] text-white px-8 py-4 sm:py-2.5 rounded-2xl sm:rounded-xl font-bold sm:font-semibold shadow-lg transition-all w-full sm:w-auto">
                 Buscar
