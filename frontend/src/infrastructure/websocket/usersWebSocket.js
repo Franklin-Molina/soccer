@@ -8,7 +8,16 @@ class UsersWebSocket {
     this.isConnecting = false;
   }
 
-  connect(token) {
+  connect() {
+    // 1. Obtención de tokens frescos
+    const token = localStorage.getItem('accessToken');
+
+    // 2. Validación de tokens
+    if (!token) {
+      console.warn('⚠️ No se encontró un token válido para Users WebSocket. Abortando.');
+      return;
+    }
+
     if (this.ws?.readyState === WebSocket.OPEN || this.ws?.readyState === WebSocket.CONNECTING) return;
     if (this.isConnecting) return;
 
@@ -18,11 +27,12 @@ class UsersWebSocket {
     const wsUrl = `${wsProtocol}//${host}/ws/users/`;
 
     try {
+      console.log(`🔌 Conectando a Users WebSocket (intento ${this.reconnectAttempts + 1})...`);
       this.isConnecting = true;
       this.ws = new WebSocket(wsUrl, [token]);
 
       this.ws.onopen = () => {
-        // console.log('✅ Users WebSocket connected');
+        console.log('✅ Users WebSocket conectado');
         this.reconnectAttempts = 0;
         this.isConnecting = false;
       };
@@ -30,39 +40,44 @@ class UsersWebSocket {
       this.ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-        //  console.log('📨 Users WebSocket message:', data);
           this.listeners.forEach(callback => callback(data));
         } catch (error) {
-          console.error('Error parsing Users WebSocket message:', error);
+          console.error('❌ Error parseando mensaje de Users WebSocket:', error);
         }
       };
 
       this.ws.onerror = (error) => {
-        // console.error('❌ Users WebSocket error:', error);
+        console.error('❌ Error en Users WebSocket:', error);
         this.isConnecting = false;
       };
 
       this.ws.onclose = (event) => {
         this.isConnecting = false;
-        // console.log('🔌 Users WebSocket disconnected:', event.code);
+        console.log(`🔌 Users WebSocket desconectado (Código: ${event.code})`);
         if (event.code !== 1000 && event.code !== 1001) {
-          this.handleReconnect(token);
+          this.handleReconnect();
         }
       };
     } catch (error) {
       this.isConnecting = false;
-      this.handleReconnect(token);
+      console.error('❌ Excepción al conectar Users WebSocket:', error);
+      this.handleReconnect();
     }
   }
 
-  handleReconnect(token) {
+  handleReconnect() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       // Backoff exponencial: 3s, 6s, 12s, 24s, 48s
       const delay = this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
-      setTimeout(() => this.connect(token), delay);
+      console.log(`⏳ Reintentando conexión a Users en ${delay}ms...`);
+      setTimeout(() => this.connect(), delay);
     } else {
-      console.warn('⚠️ Users WebSocket: Max reconnect attempts reached.');
+      // 3 & 4. Limpieza de tokens y Fuerza de nuevo inicio de sesión
+      console.error('❌ Máximos intentos de reconexión Users alcanzados. Limpiando tokens...');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      window.location.href = '/';
     }
   }
 

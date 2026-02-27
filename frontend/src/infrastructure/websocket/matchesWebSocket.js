@@ -8,67 +8,70 @@ class MatchesWebSocket {
     this.reconnectDelay = 3000;
   }
 
-  connect(token) {
-    if (this.ws?.readyState === WebSocket.OPEN) {
-     // console.log('WebSocket already connected');
+  connect() {
+    // 1. Obtención de tokens frescos
+    const token = localStorage.getItem('accessToken');
+
+    // 2. Validación de tokens
+    if (!token) {
+    //  console.warn('⚠️ No se encontró un token válido para Matches WebSocket. Abortando.');
       return;
     }
 
-    // Construir URL del WebSocket dinámicamente usando la IP de red si está configurada
+    if (this.ws?.readyState === WebSocket.OPEN || this.ws?.readyState === WebSocket.CONNECTING) {
+      return;
+    }
+
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     const host = apiUrl.replace(/^https?:\/\//, '');
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${wsProtocol}//${host}/ws/matches/`;
 
     try {
-      // Pasamos el token como un "subprotocolo" (Sec-WebSocket-Protocol)
-      // para evitar exponerlo en la URL.
+     // console.log(`🔌 Conectando a Matches WebSocket (intento ${this.reconnectAttempts + 1})...`);
       this.ws = new WebSocket(wsUrl, [token]);
 
       this.ws.onopen = () => {
-       // console.log('✅ WebSocket connected to matches');
+      //  console.log('✅ Matches WebSocket conectado');
         this.reconnectAttempts = 0;
       };
 
       this.ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-         // console.log('📨 WebSocket message received:', data);
-          
-          // Notificar a todos los listeners
           this.listeners.forEach(callback => callback(data));
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+          console.error('❌ Error parseando mensaje de Matches WebSocket:', error);
         }
       };
 
       this.ws.onerror = (error) => {
-       // console.error('❌ WebSocket error:', error);
+        console.error('❌ Error en Matches WebSocket:', error);
       };
 
       this.ws.onclose = (event) => {
-     //   console.log('🔌 WebSocket disconnected:', event.code, event.reason);
-        // Evitar reconexión infinita si se cerró intencionalmente
+        console.log(`🔌 Matches WebSocket desconectado (Código: ${event.code})`);
         if (event.code !== 1000 && event.code !== 1001) {
-          this.handleReconnect(token);
+          this.handleReconnect();
         }
       };
     } catch (error) {
-     // console.error('Error creating WebSocket:', error);
-      this.handleReconnect(token);
+      console.error('❌ Excepción al conectar Matches WebSocket:', error);
+      this.handleReconnect();
     }
   }
 
-  handleReconnect(token) {
+  handleReconnect() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(`🔄 Reconnecting... Attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
-      
-      setTimeout(() => {
-        this.connect(token);
-      }, this.reconnectDelay);
+      console.log(`⏳ Reintentando conexión a Matches en ${this.reconnectDelay}ms...`);
+      setTimeout(() => this.connect(), this.reconnectDelay);
     } else {
-      console.error('❌ Max reconnection attempts reached');
+      // 3 & 4. Limpieza de tokens y Fuerza de nuevo inicio de sesión
+      console.error('❌ Máximos intentos de reconexión Matches alcanzados. Limpiando tokens...');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      window.location.href = '/';
     }
   }
 

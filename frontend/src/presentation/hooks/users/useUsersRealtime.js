@@ -7,14 +7,7 @@ import { usersWebSocket } from '../../../infrastructure/websocket/usersWebSocket
  */
 export const useUsersRealtime = (onUpdate) => {
   useEffect(() => {
-    const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || localStorage.getItem('access_token');
-    
-    if (!token) {
-      console.warn('No token found for Users WebSocket');
-      return;
-    }
-
-    usersWebSocket.connect(token);
+    usersWebSocket.connect();
 
     const unsubscribe = usersWebSocket.subscribe((data) => {
       if (onUpdate) {

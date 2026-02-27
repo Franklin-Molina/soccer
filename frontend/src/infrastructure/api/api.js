@@ -17,12 +17,18 @@ const api = axios.create({
 // Función auxiliar para refrescar el token con reintentos para manejar el "cold start" de Render
 export const refreshToken = async (retries = 3, delay = 5000) => {
   const refresh = localStorage.getItem('refreshToken');
-  if (!refresh) return null;
+  if (!refresh) {
+    console.warn('❌ No hay refreshToken disponible en localStorage');
+    return null;
+  }
   
   for (let i = 0; i < retries; i++) {
     try {
+      console.log(`🔄 Intentando refrescar token (intento ${i + 1}/${retries})...`);
       const response = await axios.post(`${API_BASE_URL}/api/users/login/refresh/`, { refresh });
       const { access } = response.data;
+      
+      console.log('✅ Token refrescado exitosamente');
       localStorage.setItem('accessToken', access);
       return access;
     } catch (error) {
@@ -36,9 +42,16 @@ export const refreshToken = async (retries = 3, delay = 5000) => {
         continue;
       }
 
-      // Si hay una respuesta de error real (ej: 401, 400) o agotamos reintentos, limpiar y salir
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+      // 1. Manejo selectivo de limpieza de tokens: Solo limpiar si hay error real
+      // Si el error es una respuesta del servidor (ej: 401, 400), el token de refresco ya no es válido
+      if (error.response) {
+        console.error('❌ Error real del servidor al refrescar token. Limpiando credenciales:', error.response.status, error.response.data);
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+      } else if (isLastAttempt) {
+        console.error('❌ Se agotaron los reintentos y el servidor sigue sin responder.');
+      }
+
       return null;
     }
   }

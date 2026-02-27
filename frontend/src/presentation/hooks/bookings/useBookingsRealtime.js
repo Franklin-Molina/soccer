@@ -7,14 +7,7 @@ import { bookingsWebSocket } from '../../../infrastructure/websocket/bookingsWeb
  */
 export const useBookingsRealtime = (onUpdate) => {
   useEffect(() => {
-    const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || localStorage.getItem('access_token');
-    
-    if (!token) {
-    //  console.warn('No token found for Bookings WebSocket');
-      return;
-    }
-
-    bookingsWebSocket.connect(token);
+    bookingsWebSocket.connect();
 
     const unsubscribe = bookingsWebSocket.subscribe((data) => {
       if (onUpdate) {
