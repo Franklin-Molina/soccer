@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import api from '../../../infrastructure/api/api';
 import { toast } from 'react-toastify';
 import CustomSelect from '../common/CustomSelect';
@@ -6,6 +6,7 @@ import WeeklyAvailabilityCalendar from '../../pages/courts/WeeklyAvailabilityCal
 import { format, addDays, startOfWeek, setHours, setMinutes, parseISO, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useBookingsRealtime } from '../../hooks/bookings/useBookingsRealtime';
 import { formatPrice } from '../../utils/formatters';
 
 const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
@@ -36,18 +37,13 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
 
   const daysOfWeek = useMemo(() => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'], []);
   const hoursOfDay = useMemo(() => {
-    const hours = [];
-    for (let i = 6; i <= 22; i++) { // Horario de 6 AM a 10 PM
-      const startHour = i;
-      const endHour = i + 1;
-      const formatHour = (h) => {
-        const period = h < 12 ? 'AM' : 'PM';
-        const hour = h % 12 === 0 ? 12 : h % 12;
-        return `${hour}:00 ${period}`;
-      };
-      hours.push(`${formatHour(startHour)} - ${formatHour(endHour)}`);
-    }
-    return hours;
+    return Array.from({ length: 18 }, (_, i) => {
+      const startHour24 = i + 6;
+      const endHour24 = startHour24 + 1;
+      const tempStartDate = setMinutes(setHours(new Date(), startHour24), 0);
+      const tempEndDate = setMinutes(setHours(new Date(), endHour24), 0);
+      return `${format(tempStartDate, 'h:mm a')} - ${format(tempEndDate, 'h:mm a')}`;
+    });
   }, []);
 
   useEffect(() => {
@@ -91,35 +87,47 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
     }
   }, [isEditing, match]);
 
-  useEffect(() => {
-    if (selectedCourtId) {
-      const fetchWeeklyAvailability = async () => {
-        setLoadingWeeklyAvailability(true);
-        setWeeklyAvailabilityError(null);
-        try {
-          const sunday = addDays(currentWeekStartDate, 6); // Calcular el domingo
-          const response = await api.get(`/api/courts/${selectedCourtId}/weekly-availability/`, {
-            params: {
-              start_date: format(currentWeekStartDate, 'yyyy-MM-dd'),
-              end_date: format(sunday, 'yyyy-MM-dd'),
-            },
-          });
-          setWeeklyAvailability(response.data);
-        } catch (error) {
-       //   console.error("Error fetching weekly availability:", error);
-          toast.error("No se pudo cargar la disponibilidad semanal de la cancha.");
-          setWeeklyAvailabilityError("No se pudo cargar la disponibilidad semanal de la cancha.");
-          setWeeklyAvailability({});
-        } finally {
-          setLoadingWeeklyAvailability(false);
-        }
-      };
-      fetchWeeklyAvailability();
-    } else {
+  const fetchWeeklyAvailability = useCallback(async () => {
+    if (!selectedCourtId) {
       setWeeklyAvailability({});
-      setWeeklyAvailabilityError(null);
+      return;
     }
-  }, [selectedCourtId, currentWeekStartDate]); // Añadir currentWeekStartDate como dependencia
+
+    setLoadingWeeklyAvailability(true);
+    setWeeklyAvailabilityError(null);
+
+    const sunday = addDays(currentWeekStartDate, 6);
+    const endOfSunday = setMinutes(setHours(sunday, 23), 59);
+
+    const formattedStartTime = currentWeekStartDate.toISOString();
+    const formattedEndTime = endOfSunday.toISOString();
+
+    try {
+      const response = await api.get(`/api/courts/${selectedCourtId}/weekly-availability/`, {
+        params: {
+          start_date: formattedStartTime,
+          end_date: formattedEndTime,
+        },
+      });
+      setWeeklyAvailability(response.data);
+    } catch (error) {
+      toast.error("No se pudo cargar la disponibilidad semanal de la cancha.");
+      setWeeklyAvailabilityError("No se pudo cargar la disponibilidad semanal de la cancha.");
+      setWeeklyAvailability({});
+    } finally {
+      setLoadingWeeklyAvailability(false);
+    }
+  }, [selectedCourtId, currentWeekStartDate]);
+
+  useEffect(() => {
+    fetchWeeklyAvailability();
+  }, [fetchWeeklyAvailability]);
+
+  // Actualización en tiempo real vía WebSocket para la disponibilidad
+  useBookingsRealtime(useCallback((event) => {
+    // console.log('Real-time booking update for match form:', event);
+    fetchWeeklyAvailability();
+  }, [fetchWeeklyAvailability]));
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -140,16 +148,13 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
     const newSelectedSlot = { date, hour };
     setSelectedSlot(newSelectedSlot);
 
-    //console.log("Slot seleccionado:", newSelectedSlot);
-    //console.log("Índice para hoursOfDay:", hour - 6);
-    //console.log("Valor de hoursOfDay en el índice:", hoursOfDay[hour - 6]);
+    // Separar la fecha para crear una instancia de Date local robusta
+    const [year, month, day] = date.split('-').map(Number);
+    const baseDate = new Date(year, month - 1, day);
 
-    // Construir las fechas y horas de inicio y fin
-    let startTime = setHours(parseISO(date), hour);
-    startTime = setMinutes(startTime, 0);
-    let endTime = addDays(startTime, 0); // Mismo día
-    endTime = setHours(endTime, hour + 1); // Una hora después
-    endTime = setMinutes(endTime, 0);
+    // Construir las fechas y horas de inicio y fin en tiempo local
+    let startTime = setMinutes(setHours(baseDate, hour), 0);
+    let endTime = setMinutes(setHours(baseDate, hour + 1), 0);
 
     setFormData(prev => ({
       ...prev,
