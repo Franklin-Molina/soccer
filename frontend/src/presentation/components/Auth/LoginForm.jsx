@@ -77,9 +77,9 @@ function LoginForm({ username, password, error, setUsername, setPassword, setErr
             type="submit"
             disabled={isSubmitting}
             className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-all ${
-              isSubmitting
+              isSubmitting 
                 ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-md hover:shadow-lg'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-sm sm:text-base font-medium transition-all shadow-md hover:shadow-lg whitespace-nowrap'
             }`}
           >
             {isSubmitting ? 'Entrando...' : 'Entrar'}

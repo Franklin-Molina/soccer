@@ -58,7 +58,7 @@ const Pagination = ({
             <span className="font-semibold text-slate-900 dark:text-white">{totalItems}</span> Canchas
           </p>
 
-        {/*   <div className="flex items-center gap-2 justify-center sm:justify-start">
+          {/*   <div className="flex items-center gap-2 justify-center sm:justify-start">
             <label className="text-sm text-slate-600 dark:text-gray-300">Mostrar:</label>
             <CustomSelect
               options={[
@@ -82,7 +82,7 @@ const Pagination = ({
           <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1}
-            className="shrink-0 px-3 sm:px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
+            className="shrink-0 px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-gray-500 shadow-sm"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -90,18 +90,20 @@ const Pagination = ({
           <div className="flex items-center gap-1">
             {getPageNumbers().map((page, idx) =>
               page === '...' ? (
-                <span key={`ellipsis-${idx}`} className="px-1 sm:px-2 text-slate-500 dark:text-gray-400">
+                <span
+                  key={`ellipsis-${idx}`}
+                  className="px-1 sm:px-2 text-gray-500 dark:text-gray-400 font-medium"
+                >
                   ...
                 </span>
               ) : (
                 <button
                   key={page}
                   onClick={() => goToPage(page)}
-                  className={`shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-xs sm:text-sm font-medium transition-all duration-150 ${
-                    currentPage === page
-                      ? 'bg-gradient-to-r from-[#16A34A] via-[#0F172A] to-[#16A34A] dark:from-[#16A34A]'
-                      : 'text-slate-700 hover:bg-slate-100 dark:text-white dark:hover:bg-gray-600'
-                  }`}
+                  className={`shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 ${currentPage === page
+                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 dark:from-emerald-600 dark:to-emerald-700 dark:shadow-emerald-600/30'
+                      : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-gray-500 shadow-sm'
+                    }`}
                 >
                   {page}
                 </button>
@@ -112,7 +114,7 @@ const Pagination = ({
           <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="shrink-0 px-3 sm:px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
+            className="shrink-0 px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-gray-500 shadow-sm"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
