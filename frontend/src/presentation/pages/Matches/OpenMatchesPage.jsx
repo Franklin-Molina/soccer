@@ -97,9 +97,9 @@ const OpenMatchesPage = () => {
           onClick={() => setIsModalOpen(true)}
           className="
             flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-sm
-            bg-indigo-600 text-white
-            hover:bg-indigo-700 active:scale-95
-            shadow-lg shadow-indigo-600/20
+            bg-emerald-600 text-white
+            hover:bg-emerald-700 active:scale-95
+            shadow-lg shadow-emerald-600/20
             transition-all duration-300
           "
         >
@@ -162,7 +162,7 @@ const OpenMatchesPage = () => {
               px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap border
               ${
                 selectedCategory === cat
-                  ? "bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                  ? "bg-emerald-600 border-emerald-600 hover:emerald-500 text-white shadow-md shadow-emerald-600/30"
                   : `
                     bg-white text-slate-500 border-slate-200 hover:border-slate-300
                     dark:bg-slate-900 dark:text-slate-500
@@ -211,7 +211,7 @@ const OpenMatchesPage = () => {
           {activeTab === "available" && (
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-xs shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
+              className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-black text-xs shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
             >
               Crear Partido Ahora
             </button>

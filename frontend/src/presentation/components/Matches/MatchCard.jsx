@@ -32,7 +32,7 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
           ? "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800/50"
           : isFull
           ? "bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800"
-          : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/10"
+          : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/10"
       }`}
     >
       {/* Estado Badge */}
@@ -42,7 +42,7 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
             ? "bg-red-500 text-white" 
             : isFull 
             ? "bg-slate-500 text-white" 
-            : "bg-indigo-600 text-white"
+            : "bg-emerald-600 text-white"
         }`}>
           {match.status === "CANCELLED" ? "Cancelado" : isFull ? "Completo" : "Abierto"}
         </div>
@@ -54,19 +54,19 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
 
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-          <Calendar className="w-4 h-4 text-indigo-500" />
+          <Calendar className="w-4 h-4 text-emerald-500" />
           <span className="text-xs font-bold">{startTime.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span>
         </div>
         <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-          <Clock className="w-4 h-4 text-indigo-500" />
+          <Clock className="w-4 h-4 text-emerald-500" />
           <span className="text-xs font-bold">{startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
         </div>
         <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-          <Users className="w-4 h-4 text-indigo-500" />
+          <Users className="w-4 h-4 text-emerald-500" />
           <span className="text-xs font-bold">{match.participants.length} / {match.players_needed + 1}</span>
         </div>
         <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-          <User className="w-4 h-4 text-indigo-500" />
+          <User className="w-4 h-4 text-emerald-500" />
           <span className="text-xs font-bold truncate">{match.creator.username}</span>
         </div>
       </div>
@@ -75,7 +75,7 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
       <div className="mb-4">
         <button
           onClick={() => setShowParticipants(!showParticipants)}
-          className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-colors"
+          className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition-colors"
         >
           <ShieldCheck className="w-3.5 h-3.5" />
           {showParticipants ? "Ocultar" : "Jugadores"}
@@ -91,7 +91,7 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
                 <div className="flex items-center gap-1.5">
                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                    <span className="truncate max-w-[80px]">{p.user.username}</span>
-                   {p.user.id === match.creator.id && <span className="text-[8px] bg-indigo-500/10 text-indigo-500 px-1 py-0.5 rounded-md">Host</span>}
+                   {p.user.id === match.creator.id && <span className="text-[8px] bg-emerald-500/10 text-emerald-500 px-1 py-0.5 rounded-md">Host</span>}
                 </div>
                 {isCreator && p.user.id !== currentUser.id && (
                   <button
@@ -131,7 +131,7 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
                     className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 shadow-lg ${
                       isFull
                         ? "bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed shadow-none"
-                        : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-600/20 active:scale-95"
+                        : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20 active:scale-95"
                     }`}
                   >
                     {isFull ? "Cerrado" : "Unirse"}
@@ -144,7 +144,7 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
               <div className="grid grid-cols-2 gap-1.5">
                 <button
                   onClick={() => onEdit(match)}
-                  className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20"
+                  className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-blue-500/20"
                 >
                   Editar
                 </button>

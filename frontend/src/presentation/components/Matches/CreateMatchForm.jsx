@@ -241,7 +241,7 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
           <div className="p-6 border-b border-gray-200 dark:border-slate-700">
-            <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
               {isEditing ? 'Editar Partido' : 'Crear Nuevo Partido'}
             </h2>
           </div>
@@ -295,12 +295,12 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
               )}
 
               {selectedCourtId && !selectedSlot && (
-                <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-400 px-4 py-3 rounded-lg text-center">
+                <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 px-4 py-3 rounded-lg text-center">
                   <p className="text-sm mb-2">Por favor, selecciona una fecha y hora</p>
                   <button
                     type="button"
                     onClick={() => setShowCalendar(true)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition"
                   >
                     Abrir Calendario
                   </button>
@@ -320,7 +320,7 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
                 value={formData.players_needed}
                 onChange={handleChange}
                 required
-                className="w-full rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100 p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100 p-2 focus:ring-2 focus:ring-emerald-500 outline-none"
               />
             </div>
 
@@ -340,7 +340,7 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
                 className={`px-5 py-2 rounded-lg text-white font-semibold transition ${
                   !formData.court_id || !formData.category_id || !formData.start_time || !formData.end_time
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700'
+                    : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700'
                 }`}
               >
                 {isEditing ? 'Actualizar' : 'Crear'}
@@ -448,7 +448,7 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
             <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 bg-white dark:bg-slate-900 z-10">
               <div className="flex justify-between items-center w-full sm:w-auto">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                     Selecciona Fecha y Hora
                   </h2>
                   <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mt-1">

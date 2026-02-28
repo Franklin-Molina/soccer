@@ -121,7 +121,7 @@ function WeeklyAvailabilityCalendar({
                           case 'expired': 
                             return 'bg-slate-200/60 border-slate-300/70 opacity-50 dark:bg-gray-500/10 dark:border-gray-600/20 dark:opacity-40';
                           case 'selected': 
-                            return 'bg-blue-400/50 border-blue-500/80 ring-2 ring-blue-500 dark:bg-blue-500/30 dark:border-blue-500/50 dark:ring-2 dark:ring-blue-400';
+                            return 'bg-emerald-400/50 border-emerald-500/80 ring-2 ring-emerald-500 dark:bg-emerald-500/30 dark:border-emerald-500/50 dark:ring-2 dark:ring-emerald-400';
                           default: 
                             return 'bg-slate-200/50 border-slate-300/60 dark:bg-gray-500/10 dark:border-gray-500/20';
                         }

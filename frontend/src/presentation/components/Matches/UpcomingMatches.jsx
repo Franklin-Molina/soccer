@@ -8,7 +8,7 @@ const UpcomingMatches = ({ matches, onJoin, onCancel, onRemove, onEdit, onLeave,
 
   return (
     <section className="mb-10">
-      <h2 className="text-2xl font-bold text-center mb-4 text-indigo-600 dark:text-indigo-400">
+      <h2 className="text-2xl font-bold text-center mb-4 text-emerald-600 dark:text-emerald-400">
         Mis Próximos Partidos
       </h2>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
