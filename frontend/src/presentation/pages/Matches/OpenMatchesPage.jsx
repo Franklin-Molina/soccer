@@ -124,7 +124,7 @@ const OpenMatchesPage = () => {
               relative pb-3 px-2 text-xs sm:text-sm font-bold transition-all whitespace-nowrap
               ${
                 activeTab === tab.key
-                  ? "text-indigo-600 dark:text-indigo-400"
+                  ? "text-emerald-600 dark:text-emerald-400"
                   : "text-slate-400 hover:text-slate-900 dark:text-slate-500 dark:hover:text-slate-300"
               }
             `}
@@ -136,7 +136,7 @@ const OpenMatchesPage = () => {
                   px-1.5 py-0.5 rounded-md text-[10px] font-black
                   ${
                     activeTab === tab.key
-                      ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                       : "bg-slate-100 text-slate-400 dark:bg-slate-900 dark:text-slate-500"
                   }
                 `}
@@ -146,7 +146,7 @@ const OpenMatchesPage = () => {
             </div>
 
             {activeTab === tab.key && (
-              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 rounded-full" />
+              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-emerald-500 rounded-full" />
             )}
           </button>
         ))}
@@ -162,7 +162,7 @@ const OpenMatchesPage = () => {
               px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap border
               ${
                 selectedCategory === cat
-                  ? "bg-emerald-600 border-emerald-600 hover:emerald-500 text-white shadow-md shadow-emerald-600/30"
+                  ? "bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-500/30"
                   : `
                     bg-white text-slate-500 border-slate-200 hover:border-slate-300
                     dark:bg-slate-900 dark:text-slate-500
@@ -211,7 +211,7 @@ const OpenMatchesPage = () => {
           {activeTab === "available" && (
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-black text-xs shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
+              className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-black text-xs shadow-lg shadow-emerald-600/20 active:scale-95 transition-all"
             >
               Crear Partido Ahora
             </button>

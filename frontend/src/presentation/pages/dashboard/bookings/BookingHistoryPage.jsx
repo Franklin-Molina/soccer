@@ -3,6 +3,7 @@ import Spinner from '../../../components/common/Spinner';
 import BookingTable from '../../../components/Bookings/BookingTable';
 import { useFetchBookings } from '../../../hooks/bookings/useFetchBookings';
 import CustomSelect from '../../../components/common/CustomSelect';
+import { Filter } from 'lucide-react';
 
 function BookingHistoryPage() {
   const [selectedYear, setSelectedYear] = useState(-1); // -1 para todos los años
@@ -56,7 +57,7 @@ function BookingHistoryPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-full">
+      <div className="flex justify-center items-center min-h-[400px]">
         <Spinner />
       </div>
     );
@@ -71,69 +72,97 @@ function BookingHistoryPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
-          Historial de Reservas
-        </h1>
-        <div className="flex items-center space-x-3 w-3/5">
-          <div className="w-1/3">
-            <CustomSelect
-              options={yearOptions}
-              value={selectedYear}
-              onChange={(value) => {
-                setSelectedYear(value);
-                if (value === -1) {
-                  setSelectedMonth(-1);
-                  setSelectedWeek(0);
-                }
-              }}
-            />
-          </div>
-          <div className={`w-1/3 ${selectedYear === -1 ? 'opacity-50 pointer-events-none' : ''}`}>
-            <CustomSelect
-              options={monthOptions}
-              value={selectedMonth}
-              onChange={(value) => {
-                setSelectedMonth(value);
-                if (value === -1) {
-                  setSelectedWeek(0);
-                }
-              }}
-            />
-          </div>
-          <div className={`w-1/3 ${selectedMonth === -1 ? 'opacity-50 pointer-events-none' : ''}`}>
-            <CustomSelect
-              options={weekOptions}
-              value={selectedWeek}
-              onChange={setSelectedWeek}
-            />
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+        <div className="text-center sm:text-left">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+            Historial de Reservas
+          </h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Gestiona y revisa tus reservas pasadas
+          </p>
+        </div>
+        
+        <div className="w-full lg:w-auto bg-white dark:bg-gray-900/50 p-3 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+           <div className="hidden lg:flex items-center gap-2 text-gray-500 dark:text-gray-400 mr-2">
+  <Filter size={18} />
+  <span className="text-xs font-medium uppercase tracking-wider whitespace-nowrap">
+    Filtrar:
+  </span>
+</div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto">
+              <div className="min-w-[140px]">
+                <CustomSelect
+                  options={yearOptions}
+                  value={selectedYear}
+                  onChange={(value) => {
+                    setSelectedYear(value);
+                    if (value === -1) {
+                      setSelectedMonth(-1);
+                      setSelectedWeek(0);
+                    }
+                  }}
+                />
+              </div>
+              <div className={`min-w-[140px] ${selectedYear === -1 ? 'opacity-50 pointer-events-none' : ''}`}>
+                <CustomSelect
+                  options={monthOptions}
+                  value={selectedMonth}
+                  onChange={(value) => {
+                    setSelectedMonth(value);
+                    if (value === -1) {
+                      setSelectedWeek(0);
+                    }
+                  }}
+                />
+              </div>
+              <div className={`min-w-[140px] ${selectedMonth === -1 ? 'opacity-50 pointer-events-none' : ''}`}>
+                <CustomSelect
+                  options={weekOptions}
+                  value={selectedWeek}
+                  onChange={setSelectedWeek}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {totalBookings === 0 ? (
-        <div className="text-center text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-          No hay reservas finalizadas en el historial.
+        <div className="text-center py-16 px-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700">
+          <div className="max-w-xs mx-auto">
+            <p className="text-gray-600 dark:text-gray-400 font-medium">
+              No hay reservas finalizadas en el historial.
+            </p>
+            <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">
+              Las reservas completadas aparecerán aquí una vez que finalicen.
+            </p>
+          </div>
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-medium text-gray-800 dark:text-gray-100">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden transition-all">
+          <div className="px-4 py-4 sm:px-6 border-b border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
               Reservas Finalizadas
             </h2>
+            <span className="inline-flex items-center bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-3 py-1 rounded-full text-xs font-medium w-fit">
+              {totalBookings} {totalBookings === 1 ? 'reserva' : 'reservas'}
+            </span>
           </div>
-          <BookingTable
-            bookings={bookings} // Usar directamente las reservas paginadas del hook
-            currentPage={currentPage}
-            totalPages={totalPages} // Usar totalPages del hook
-            setCurrentPage={setCurrentPage}
-            itemsPerPage={itemsPerPage}
-            setItemsPerPage={setItemsPerPage}
-            totalBookings={totalBookings} // Usar totalBookings del hook
-            deleteBooking={deleteBooking}
-            getRowNumber={getRowNumber}
-          />
+          <div className="p-0 sm:p-2">
+            <BookingTable
+              bookings={bookings}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              setItemsPerPage={setItemsPerPage}
+              totalBookings={totalBookings}
+              deleteBooking={deleteBooking}
+              getRowNumber={getRowNumber}
+            />
+          </div>
         </div>
       )}
     </div>

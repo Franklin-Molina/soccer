@@ -74,13 +74,13 @@ const NoResults = () => (
 // Componentes para la tabla y las tarjetas
 const BookingTableRow = ({ booking, index, handleCancelBooking }) => (
     <tr className="hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors">
-        <td className="px-4 py-3 text-sm font-medium text-slate-500 dark:text-slate-400">{index}</td>
-        <td className="px-4 py-3 text-sm text-slate-800 dark:text-white font-semibold">{booking.court_details.name}</td>
-        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{`${booking.user_details.first_name} ${booking.user_details.last_name}`}</td>
-        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{formatDate(booking.start_time)}</td>
-        <td className="px-4 py-3"><BookingStatus status={booking.status} /></td>
-        <td className="px-4 py-3"><PaymentStatus status={booking.payment_status} /></td>
-        <td className="px-4 py-3 text-right">
+        <td className="px-3 md:px-2 lg:px-4 py-3 text-sm font-medium text-slate-500 dark:text-slate-400">{index}</td>
+        <td className="px-3 md:px-2 lg:px-4 py-3 text-sm text-slate-800 dark:text-white font-semibold">{booking.court_details.name}</td>
+        <td className="hidden lg:table-cell px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{`${booking.user_details.first_name} ${booking.user_details.last_name}`}</td>
+        <td className="px-3 md:px-2 lg:px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{formatDate(booking.start_time)}</td>
+        <td className="px-3 md:px-2 lg:px-4 py-3"><BookingStatus status={booking.status} /></td>
+        <td className="px-3 md:px-2 lg:px-4 py-3"><PaymentStatus status={booking.payment_status} /></td>
+        <td className="px-3 md:px-2 lg:px-4 py-3 text-right">
             <ActionButton onClick={() => handleCancelBooking(booking.id)} icon={Trash2} title="Cancelar Reserva" className="hover:text-red-500" />
         </td>
     </tr>
@@ -159,17 +159,20 @@ const BookingTable = ({ bookings, currentPage, totalPages, setCurrentPage, items
             </div>
 
              {/* Vista de tabla para escritorio */}
-            <div className="hidden md:block">
+            <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-slate-100/50 dark:bg-slate-800/50">
                         <tr>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">#</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cancha</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Usuario</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Fecha y Hora</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estado</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pago</th>
-                            <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Acciones</th>
+                            <th className="px-3 md:px-2 lg:px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">#</th>
+                            <th className="px-3 md:px-2 lg:px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cancha</th>
+                            <th className="hidden lg:table-cell px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Usuario</th>
+                            <th className="px-3 md:px-2 lg:px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <span className="md:hidden lg:inline">Fecha y Hora</span>
+                                <span className="hidden md:inline lg:hidden">Fecha/Hora</span>
+                            </th>
+                            <th className="px-3 md:px-2 lg:px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estado</th>
+                            <th className="px-3 md:px-2 lg:px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pago</th>
+                            <th className="px-3 md:px-2 lg:px-4 py-3 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Acciones</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-800">

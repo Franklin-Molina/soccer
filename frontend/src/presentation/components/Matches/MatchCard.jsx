@@ -144,7 +144,7 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
               <div className="grid grid-cols-2 gap-1.5">
                 <button
                   onClick={() => onEdit(match)}
-                  className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-blue-500/20"
+                  className="w-full py-2.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl text-xs font-bold transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-yellow-500/20"
                 >
                   Editar
                 </button>
