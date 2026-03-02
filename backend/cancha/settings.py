@@ -220,14 +220,14 @@ ANYMAIL = {
 }
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "digitaldxz1@gmail.com")
 
-""" DATABASES = {
+DATABASES = {
     "default": dj_database_url.config(
         default=os.getenv("DATABASE_URL"),
         conn_max_age=600,
         ssl_require=True
     )
 }
-  """
+ 
 
 DATABASES = {
     "default": {
@@ -395,7 +395,7 @@ LOGGING = {
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,

@@ -17,7 +17,13 @@ const api = axios.create({
 let refreshTokenPromise = null;
 
 // Función auxiliar para refrescar el token con reintentos para manejar el "cold start" de Render
-export const refreshToken = async (retries = 3, delay = 5000) => {
+export const refreshToken = async (failedToken = null, retries = 3, delay = 5000) => {
+  // Si el token en localStorage ya es diferente al que falló, significa que otra petición ya lo refrescó
+  const currentToken = localStorage.getItem('accessToken');
+  if (failedToken && currentToken !== failedToken && currentToken !== null) {
+    return currentToken;
+  }
+
   // Si ya hay un refresco en curso, retornar esa misma promesa
   if (refreshTokenPromise) {
     return refreshTokenPromise;
@@ -32,11 +38,11 @@ export const refreshToken = async (retries = 3, delay = 5000) => {
   refreshTokenPromise = (async () => {
     for (let i = 0; i < retries; i++) {
     try {
-      console.log(`🔄 Intentando refrescar token (intento ${i + 1}/${retries})...`);
+      // console.log(`🔄 Intentando refrescar token (intento ${i + 1}/${retries})...`);
       const response = await axios.post(`${API_BASE_URL}/api/users/login/refresh/`, { refresh });
       const { access } = response.data;
       
-      console.log('✅ Token refrescado exitosamente');
+      // console.log('✅ Token refrescado exitosamente');
       localStorage.setItem('accessToken', access);
       refreshTokenPromise = null;
       return access;
@@ -99,7 +105,8 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       console.warn("⚠️ El servidor no responde. Intentando despertar backend...");
       
-      const newAccessToken = await refreshToken();
+      const currentToken = localStorage.getItem('accessToken');
+      const newAccessToken = await refreshToken(currentToken);
       if (newAccessToken) {
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
@@ -111,7 +118,11 @@ api.interceptors.response.use(
       if (!originalRequest._retry) {
         originalRequest._retry = true;
 
-        const newAccessToken = await refreshToken();
+        // Extraer el token que falló de los headers de la petición original
+        const authHeader = originalRequest.headers.Authorization;
+        const failedToken = authHeader ? authHeader.split(' ')[1] : null;
+
+        const newAccessToken = await refreshToken(failedToken);
         if (newAccessToken) {
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return api(originalRequest);
