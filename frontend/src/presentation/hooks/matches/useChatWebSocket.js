@@ -69,15 +69,18 @@ class ChatWebSocket {
     //  console.error('❌ Error Chat WebSocket:', error);
     };
 
-    this.ws.onclose = (event) => {
+    this.ws.onclose = async (event) => {
       this.connecting = false;
      // console.log(`🔌 Chat WebSocket desconectado del match ${matchId}. Código: ${event.code}`);
       
       // Si el código es 4001 (No valid user) o similar, forzar refresco total antes de reintentar
       if (event.code === 4001 || event.code === 4002) {
-        // console.log('🔑 Token inválido detectado. Intentando refrescar y reconectar...');
-        setTimeout(() => this.connect(matchId), 2000);
-        return;
+        console.log('🔑 Token expirado o inválido (4001/4002). Intentando refrescar y reconectar chat...');
+        const newToken = await refreshToken();
+        if (newToken) {
+          this.connect(matchId);
+          return;
+        }
       }
 
       if (event.code !== 1000 && event.code < 4000) {

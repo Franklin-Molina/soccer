@@ -13,7 +13,8 @@ class BookingConsumer(AsyncWebsocketConsumer):
         user = self.scope.get('user')
 
         if not user or user.is_anonymous:
-            await self.close()
+            # Enviamos código 4001 para indicar fallo de autenticación
+            await self.close(code=4001)
             return
 
         self.room_group_name = 'bookings'

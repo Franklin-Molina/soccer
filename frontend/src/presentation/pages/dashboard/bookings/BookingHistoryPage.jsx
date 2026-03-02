@@ -85,12 +85,10 @@ function BookingHistoryPage() {
         
         <div className="w-full lg:w-auto bg-white dark:bg-gray-900/50 p-3 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
           <div className="flex flex-col sm:flex-row items-center gap-3">
-           <div className="hidden lg:flex items-center gap-2 text-gray-500 dark:text-gray-400 mr-2">
-  <Filter size={18} />
-  <span className="text-xs font-medium uppercase tracking-wider whitespace-nowrap">
-    Filtrar:
-  </span>
-</div>
+            {/* <div className="hidden sm:flex  items-center gap-2 text-gray-500 dark:text-gray-400 mr-2">
+              <Filter size={18} />
+              <span className="text-xs font-medium uppercase tracking-wider whitespace-nowrap">Filtrar:</span>
+            </div> */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto">
               <div className="min-w-[140px]">
                 <CustomSelect

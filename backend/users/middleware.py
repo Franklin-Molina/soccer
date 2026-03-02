@@ -64,6 +64,10 @@ class RedirectUnauthorizedMiddleware:
         
         # Si la respuesta es 401 (Unauthorized) o 403 (Forbidden)
         if response.status_code in [401, 403]:
+            # NO redirigir si es una petición a la API
+            if request.path.startswith('/api/'):
+                return response
+                
             # Evitar redirección infinita si ya estamos en /
             if request.path != '/':
                 return redirect('/')

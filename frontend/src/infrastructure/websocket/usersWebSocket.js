@@ -1,3 +1,5 @@
+import { refreshToken } from '../api/api';
+
 class UsersWebSocket {
   constructor() {
     this.ws = null;
@@ -8,11 +10,16 @@ class UsersWebSocket {
     this.isConnecting = false;
   }
 
-  connect() {
-    // 1. Obtención de tokens frescos
-    const token = localStorage.getItem('accessToken');
+  async connect() {
+    // 1. Obtención de tokens frescos: Siempre intentamos refrescar/obtener el más reciente
+    let token = await refreshToken();
+    
+    // Si no hay token después del refresh, intentamos el de localStorage como respaldo
+    if (!token) {
+      token = localStorage.getItem('accessToken');
+    }
 
-    // 2. Validación de tokens
+    // 2. Validación de tokens: Verificar que exista un token válido antes de conectar
     if (!token) {
       console.warn('⚠️ No se encontró un token válido para Users WebSocket. Abortando.');
       return;
@@ -51,9 +58,21 @@ class UsersWebSocket {
         this.isConnecting = false;
       };
 
-      this.ws.onclose = (event) => {
+      this.ws.onclose = async (event) => {
         this.isConnecting = false;
         console.log(`🔌 Users WebSocket desconectado (Código: ${event.code})`);
+        
+        // Si el código es 4001, el token probablemente expiró
+        if (event.code === 4001) {
+          console.log('🔑 Token expirado (4001). Intentando refrescar y reconectar a Users...');
+          const newToken = await refreshToken();
+          if (newToken) {
+            this.reconnectAttempts = 0;
+            this.connect();
+            return;
+          }
+        }
+
         if (event.code !== 1000 && event.code !== 1001) {
           this.handleReconnect();
         }

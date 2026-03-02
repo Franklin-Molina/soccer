@@ -14,15 +14,23 @@ const api = axios.create({
   withCredentials: true, // Importante para enviar cookies a través de dominios/puertos
 });
 
+let refreshTokenPromise = null;
+
 // Función auxiliar para refrescar el token con reintentos para manejar el "cold start" de Render
 export const refreshToken = async (retries = 3, delay = 5000) => {
+  // Si ya hay un refresco en curso, retornar esa misma promesa
+  if (refreshTokenPromise) {
+    return refreshTokenPromise;
+  }
+
   const refresh = localStorage.getItem('refreshToken');
   if (!refresh) {
     console.warn('❌ No hay refreshToken disponible en localStorage');
     return null;
   }
-  
-  for (let i = 0; i < retries; i++) {
+
+  refreshTokenPromise = (async () => {
+    for (let i = 0; i < retries; i++) {
     try {
       console.log(`🔄 Intentando refrescar token (intento ${i + 1}/${retries})...`);
       const response = await axios.post(`${API_BASE_URL}/api/users/login/refresh/`, { refresh });
@@ -30,6 +38,7 @@ export const refreshToken = async (retries = 3, delay = 5000) => {
       
       console.log('✅ Token refrescado exitosamente');
       localStorage.setItem('accessToken', access);
+      refreshTokenPromise = null;
       return access;
     } catch (error) {
       const isLastAttempt = i === retries - 1;
@@ -52,10 +61,17 @@ export const refreshToken = async (retries = 3, delay = 5000) => {
         console.error('❌ Se agotaron los reintentos y el servidor sigue sin responder.');
       }
 
+      if (isLastAttempt) {
+        refreshTokenPromise = null;
+      }
       return null;
     }
   }
+  refreshTokenPromise = null;
   return null;
+  })();
+
+  return refreshTokenPromise;
 };
 
 api.interceptors.request.use(

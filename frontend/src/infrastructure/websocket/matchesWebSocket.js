@@ -1,4 +1,6 @@
 // src/infrastructure/websocket/matchesWebSocket.js
+import { refreshToken } from '../api/api';
+
 class MatchesWebSocket {
   constructor() {
     this.ws = null;
@@ -8,11 +10,16 @@ class MatchesWebSocket {
     this.reconnectDelay = 3000;
   }
 
-  connect() {
-    // 1. Obtención de tokens frescos
-    const token = localStorage.getItem('accessToken');
+  async connect() {
+    // 1. Obtención de tokens frescos: Siempre intentamos refrescar/obtener el más reciente
+    let token = await refreshToken();
+    
+    // Si no hay token después del refresh, intentamos el de localStorage como respaldo
+    if (!token) {
+      token = localStorage.getItem('accessToken');
+    }
 
-    // 2. Validación de tokens
+    // 2. Validación de tokens: Verificar que exista un token válido antes de conectar
     if (!token) {
     //  console.warn('⚠️ No se encontró un token válido para Matches WebSocket. Abortando.');
       return;
@@ -49,8 +56,20 @@ class MatchesWebSocket {
         console.error('❌ Error en Matches WebSocket:', error);
       };
 
-      this.ws.onclose = (event) => {
+      this.ws.onclose = async (event) => {
         console.log(`🔌 Matches WebSocket desconectado (Código: ${event.code})`);
+        
+        // Si el código es 4001, el token probablemente expiró
+        if (event.code === 4001) {
+          console.log('🔑 Token expirado (4001). Intentando refrescar y reconectar a Matches...');
+          const newToken = await refreshToken();
+          if (newToken) {
+            this.reconnectAttempts = 0;
+            this.connect();
+            return;
+          }
+        }
+
         if (event.code !== 1000 && event.code !== 1001) {
           this.handleReconnect();
         }

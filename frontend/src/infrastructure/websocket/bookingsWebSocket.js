@@ -1,3 +1,5 @@
+import { refreshToken } from '../api/api';
+
 class BookingsWebSocket {
   constructor() {
     this.ws = null;
@@ -7,9 +9,14 @@ class BookingsWebSocket {
     this.reconnectDelay = 3000;
   }
 
-  connect() {
-    // 1. Obtención de tokens frescos: Siempre obtenemos el token más reciente
-    const token = localStorage.getItem('accessToken');
+  async connect() {
+    // 1. Obtención de tokens frescos: Siempre intentamos refrescar/obtener el más reciente
+    let token = await refreshToken();
+    
+    // Si no hay token después del refresh, intentamos el de localStorage como respaldo
+    if (!token) {
+      token = localStorage.getItem('accessToken');
+    }
 
     // 2. Validación de tokens: Verificar que exista un token válido antes de conectar
     if (!token) {
@@ -46,8 +53,20 @@ class BookingsWebSocket {
         console.error('❌ Error en Booking WebSocket:', error);
       };
 
-      this.ws.onclose = (event) => {
+      this.ws.onclose = async (event) => {
         console.log(`🔌 Booking WebSocket desconectado (Código: ${event.code})`);
+        
+        // Si el código es 4001, el token probablemente expiró
+        if (event.code === 4001) {
+          console.log('🔑 Token expirado (4001). Intentando refrescar y reconectar...');
+          const newToken = await refreshToken();
+          if (newToken) {
+            this.reconnectAttempts = 0;
+            this.connect();
+            return;
+          }
+        }
+
         // No reintentar si el cierre fue normal
         if (event.code !== 1000 && event.code !== 1001) {
           this.handleReconnect();
