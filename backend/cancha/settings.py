@@ -228,7 +228,7 @@ DATABASES = {
     )
 }
  
-
+""" 
 DATABASES = {
     "default": {
         "ENGINE": os.environ.get("DB_ENGINE", "django.db.backends.postgresql"),
@@ -240,7 +240,7 @@ DATABASES = {
     }
 }
 
-
+ """
 
 
 # Configuración de Djoser
