@@ -22,22 +22,22 @@ class Court(models.Model):
         if self.price is not None and self.price < 0:
             raise ValidationError({'price': 'El precio no puede ser negativo.'})
 
+from utils.supabase_storage import supabase_storage
+
 class CourtImage(models.Model):
     """
-    Modelo para representar una imagen asociada a una cancha.
+    Modelo para representar una imagen asociada a una cancha (Almacenada en Supabase).
     """
-    court = models.ForeignKey(Court, related_name='images', on_delete=models.CASCADE) # Relación con el modelo Court
-    image = models.ImageField(upload_to='courts/images/') # Campo para la imagen
+    court = models.ForeignKey(Court, related_name='images', on_delete=models.CASCADE)
+    image_url = models.URLField(max_length=1000, default='')
 
     def __str__(self):
         return f"Image for {self.court.name}"
 
     def delete(self, *args, **kwargs):
         """
-        Sobrescribe el método delete para eliminar el archivo de imagen asociado
-        cuando se elimina el objeto CourtImage.
+        Al eliminar el registro, también eliminamos la imagen de Supabase.
         """
-        if self.image:
-            if os.path.isfile(self.image.path):
-                os.remove(self.image.path)
+        if self.image_url:
+            supabase_storage.delete_image(self.image_url)
         super().delete(*args, **kwargs)

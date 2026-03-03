@@ -14,4 +14,4 @@ class CourtAdmin(admin.ModelAdmin):
 
 @admin.register(CourtImage)
 class CourtImageAdmin(admin.ModelAdmin):
-    list_display = ('id', 'court', 'image')
+    list_display = ('id', 'court', 'image_url')

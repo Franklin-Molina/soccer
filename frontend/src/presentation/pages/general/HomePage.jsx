@@ -144,9 +144,9 @@ function HomePage({ openAuthModal }) {
                 {court.images?.length > 0 && (
                   <div className="relative h-60 sm:h-72 overflow-hidden">
                     <img
-                      src={court.images[0].image}
+                      src={court.images[0].image_url || court.images[0].image}
                       alt={court.name}
-                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
 

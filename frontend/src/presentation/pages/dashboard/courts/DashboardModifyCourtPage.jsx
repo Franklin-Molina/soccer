@@ -124,7 +124,7 @@ function DashboardModifyCourtPage() {
                     src={
                       image instanceof File
                         ? URL.createObjectURL(image)
-                        : image.image
+                        : image.image_url || image.image
                     }
                     alt={`Preview ${index}`}
                     className="w-full h-full object-cover"

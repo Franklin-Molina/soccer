@@ -4,7 +4,7 @@ from .models import Court, CourtImage # Importar CourtImage
 class CourtImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourtImage
-        fields = ['id', 'image'] # Campos del serializador de imagen
+        fields = ['id', 'image_url'] # Campos del serializador de imagen
 
 class CourtSerializer(serializers.ModelSerializer):
     images = CourtImageSerializer(many=True, read_only=True) # Campo para las imágenes, read_only para la representación

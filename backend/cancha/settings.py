@@ -431,3 +431,8 @@ else:
 
 # Cross-Origin Opener Policy para mitigar advertencias de COOP en navegadores
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
+
+# Configuración de Supabase Storage
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "images")

@@ -65,15 +65,18 @@ function CourtImageGallery({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-            {court.images.map((image, index) => (
-              <SmoothImageCard
-                key={image.id}
-                image={image.image}
-                courtName={court.name}
-                openModal={() => openModal(image.image)}
-                index={index}
-              />
-            ))}
+            {court.images.map((image, index) => {
+              const imgSource = image.image_url || image.image;
+              return (
+                <SmoothImageCard
+                  key={image.id}
+                  image={imgSource}
+                  courtName={court.name}
+                  openModal={() => openModal(imgSource)}
+                  index={index}
+                />
+              );
+            })}
           </div>
         </div>
       )}
@@ -165,28 +168,27 @@ function CourtImageGallery({
               {/* Thumbnails */}
               {hasMultipleImages && (
                 <div className="flex gap-2 justify-center overflow-x-auto pb-2">
-                  {court.images.map((image, index) => (
-                    <img
-                      key={image.id}
-                      src={image.image}
-                      alt={`Miniatura ${index + 1}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // openModal(image.image); // Ya se pasa la imagen, no es necesario cambiar el modal, se espera que el openModal de useCourtDetailLogic actualice currentImageIndex y selectedImage
-                        openModal(image.image); // Cambiado a openModal(image.image) para que coincida con la lógica de useCourtDetailLogic
-                        // Lo correcto sería pasar el índice aquí para que useCourtDetailLogic lo gestione
-                        // Sin embargo, para no modificar la firma de openModal en useCourtDetailLogic,
-                        // asumimos que el openModal recibe la URL de la imagen y actualiza el índice internamente
-                      }}
+                  {court.images.map((image, index) => {
+                    const imgSource = image.image_url || image.image;
+                    return (
+                      <img
+                        key={image.id}
+                        src={imgSource}
+                        alt={`Miniatura ${index + 1}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openModal(imgSource);
+                        }}
                       className={`h-16 w-24 object-cover rounded-lg cursor-pointer transition-all ${
                         index === currentImageIndex
                           ? ''
                           : 'opacity-60 hover:opacity-100 hover:scale-105'
                       }`}
                     />
-                  ))}
-                </div>
-              )}
+                  );
+                })}
+              </div>
+            )}
             </div>
           </div>
         </div>
@@ -208,7 +210,7 @@ function SmoothImageCard({ image, courtName, openModal, index }) {
         <div className="absolute inset-0 animate-pulse bg-slate-300 dark:bg-slate-700" />
       )}
 
-      <img
+     <img
         src={image}
         alt={`Imagen de ${courtName}`}
         onLoad={() => setLoaded(true)}

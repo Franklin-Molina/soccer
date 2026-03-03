@@ -7,6 +7,7 @@ from ...filters import CourtFilter # Asumiendo que CourtFilter está en backend/
 from django.utils import timezone # Para check_availability
 from django.db.models import Q # Para queries complejas en check_availability
 from datetime import datetime, timedelta # Importar datetime y timedelta
+from utils.supabase_storage import supabase_storage
 
 class DjangoCourtRepository(ICourtRepository):
     """
@@ -53,7 +54,9 @@ class DjangoCourtRepository(ICourtRepository):
         court = Court.objects.create(**court_data)
         if images_to_create:
             for image_file in images_to_create:
-                CourtImage.objects.create(court=court, image=image_file)
+                # Subir imagen a Supabase y guardar la URL
+                url = supabase_storage.upload_image(image_file)
+                CourtImage.objects.create(court=court, image_url=url)
         return court
 
     async def create(self, court_data: Dict[str, Any], images_data: Optional[List[Any]] = None) -> Court:
@@ -65,8 +68,10 @@ class DjangoCourtRepository(ICourtRepository):
         images_to_create = court_data.pop('images', images_data or [])
         
         # Eliminar imágenes existentes si se proporcionan IDs
+        # El método delete() de CourtImage se encargará de borrar de Supabase
         if images_to_delete:
-            CourtImage.objects.filter(id__in=images_to_delete).delete()
+            for img in CourtImage.objects.filter(id__in=images_to_delete):
+                img.delete()
 
         for key, value in court_data.items():
             setattr(court, key, value)
@@ -74,7 +79,9 @@ class DjangoCourtRepository(ICourtRepository):
 
         if images_to_create:
             for image_file in images_to_create:
-                CourtImage.objects.create(court=court, image=image_file)
+                # Subir imagen a Supabase y guardar la URL
+                url = supabase_storage.upload_image(image_file)
+                CourtImage.objects.create(court=court, image_url=url)
         return court
 
     async def update(self, court_id: int, court_data: Dict[str, Any], images_data: Optional[List[Any]] = None, images_to_delete: Optional[List[int]] = None) -> Optional[Court]:

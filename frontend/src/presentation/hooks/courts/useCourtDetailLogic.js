@@ -257,12 +257,12 @@ export const useCourtDetailLogic = () => {
       if (typeof imageIdentifier === 'number') {
         index = imageIdentifier;
       } else if (typeof imageIdentifier === 'string') {
-        index = court.images.findIndex(img => img.image === imageIdentifier);
+        index = court.images.findIndex(img => (img.image_url || img.image) === imageIdentifier);
       }
       
       if (index !== -1 && index < court.images.length) {
         setCurrentImageIndex(index);
-        setSelectedImage(court.images[index].image);
+        setSelectedImage(court.images[index].image_url || court.images[index].image);
         setZoom(1); // Reiniciar zoom al abrir
       }
     }
@@ -272,7 +272,7 @@ export const useCourtDetailLogic = () => {
     if (court && court.images && currentImageIndex !== null) {
       const newIndex = (currentImageIndex - 1 + court.images.length) % court.images.length;
       setCurrentImageIndex(newIndex);
-      setSelectedImage(court.images[newIndex].image);
+      setSelectedImage(court.images[newIndex].image_url || court.images[newIndex].image);
       setZoom(1); // Reiniciar zoom al cambiar de imagen
     }
   };
@@ -281,7 +281,7 @@ export const useCourtDetailLogic = () => {
     if (court && court.images && currentImageIndex !== null) {
       const newIndex = (currentImageIndex + 1) % court.images.length;
       setCurrentImageIndex(newIndex);
-      setSelectedImage(court.images[newIndex].image);
+      setSelectedImage(court.images[newIndex].image_url || court.images[newIndex].image);
       setZoom(1); // Reiniciar zoom al cambiar de imagen
     }
   };
