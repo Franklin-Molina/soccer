@@ -1,6 +1,7 @@
 import React from "react";
 import { useCourtForm } from "../../hooks/courts/useCourtForm";
 import {
+  CheckCircle2,
   Upload,
   X,
   Camera,
@@ -20,20 +21,37 @@ function CourtForm() {
   } = useCourtForm();
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="w-full mx-auto p-6">
       <div className="bg-white dark:bg-gray-900 shadow-lg rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center gap-3 bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4">
-          <MapPin className="text-white w-6 h-6" />
-          <div>
-            <h2 className="text-lg font-semibold text-white">
-              Crear Nueva Cancha
-            </h2>
-            <p className="text-sm text-gray-200">
-              Completa la información para registrar tu cancha deportiva
-            </p>
+        <div className="relative h-48 sm:h-64 overflow-hidden">
+          <img
+            src="/img.jpg"
+            alt="Cancha Background"
+            className="w-full h-full object-cover"
+          />
+
+          <div className="absolute inset-0 bg-black/50 flex flex-col justify-center px-8 sm:px-12">
+            <div className="flex items-center gap-4">
+             <div className="flex items-center">
+                <img
+                  src="/balon.png"
+                  alt="Balón"
+                  className="w-15 h-10 object-contain"
+                />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">
+                  Registrar Nueva Cancha
+                </h1>
+                <p className="text-gray-200 text-sm sm:text-lg font-medium opacity-90 mt-1">
+                  Configura tu espacio deportivo profesional
+                </p>
+              </div>
+            </div>
           </div>
         </div>
+
 
         {/* Formulario */}
         <form
@@ -48,7 +66,7 @@ function CourtForm() {
                 htmlFor="name"
                 className="flex items-center gap-2 text-sm font-medium mb-2"
               >
-                <MapPin className="w-4 h-4 text-blue-500" />
+                <MapPin className="w-4 h-4 text-emerald-500" />
                 Nombre de la Cancha
               </label>
               <input
@@ -59,7 +77,7 @@ function CourtForm() {
                 onChange={handleChange}
                 required
                 placeholder="Ej: Cancha de Fútbol El Campeón"
-                className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 outline-none transition"
+                className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 outline-none transition"
               />
             </div>
 
@@ -69,7 +87,7 @@ function CourtForm() {
                 htmlFor="price"
                 className="flex items-center gap-2 text-sm font-medium mb-2"
               >
-                <DollarSign className="w-4 h-4 text-green-500" />
+                <DollarSign className="w-4 h-4 text-emerald-500" />
                 Precio por Hora
               </label>
               <input
@@ -82,7 +100,7 @@ function CourtForm() {
                 pattern="[0-9]*\.?[0-9]*"
                 inputMode="decimal"
                 placeholder="$ 0.00"
-                className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 focus:ring-2 focus:ring-green-500 dark:bg-gray-800 outline-none transition"
+                className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 outline-none transition"
               />
             </div>
           </div>
@@ -93,7 +111,7 @@ function CourtForm() {
               htmlFor="description"
               className="flex items-center gap-2 text-sm font-medium mb-2"
             >
-              <FileText className="w-4 h-4 text-purple-500" />
+              <FileText className="w-4 h-4 text-emerald-500" />
               Descripción
             </label>
             <textarea
@@ -102,7 +120,7 @@ function CourtForm() {
               value={formData.description}
               onChange={handleChange}
               placeholder="Describe las características de tu cancha, servicios incluidos, ubicación, etc."
-              className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 focus:ring-2 focus:ring-purple-500 dark:bg-gray-800 outline-none transition min-h-[120px]"
+              className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 outline-none transition min-h-[120px]"
             ></textarea>
           </div>
 

@@ -220,6 +220,8 @@ ANYMAIL = {
 }
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "digitaldxz1@gmail.com")
 
+
+
 DATABASES = {
     "default": dj_database_url.config(
         default=os.getenv("DATABASE_URL"),
@@ -239,8 +241,8 @@ DATABASES = {
         "PORT": os.environ.get("DB_PORT"),
     }
 }
-
  """
+
 
 
 # Configuración de Djoser

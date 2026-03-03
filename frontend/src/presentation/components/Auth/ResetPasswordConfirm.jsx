@@ -122,7 +122,7 @@ function ResetPasswordConfirm() {
             className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-all ${
               isSubmitting
                 ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-md hover:shadow-lg'
+                : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-md hover:shadow-lg'
             }`}
           >
             {isSubmitting ? 'Restableciendo...' : 'Restablecer Contraseña'}

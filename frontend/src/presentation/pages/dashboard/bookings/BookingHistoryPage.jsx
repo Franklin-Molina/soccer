@@ -72,7 +72,7 @@ function BookingHistoryPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 w-full mx-auto">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
         <div className="text-center sm:text-left">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">

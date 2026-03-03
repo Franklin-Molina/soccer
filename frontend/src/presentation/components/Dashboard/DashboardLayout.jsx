@@ -51,7 +51,7 @@ const DashboardLayout = () => {
         <li>
           <button
             onClick={() => toggleSubmenu(index)}
-            className={`flex items-center justify-between w-full gap-3 px-4 py-2 rounded-xl font-normal transition-all ${isActive ? 'bg-red-600 text-white shadow-md' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            className={`flex items-center justify-between w-full gap-3 px-4 py-2 rounded-xl font-normal transition-all ${isActive ? 'bg-emerald-600 text-white shadow-md' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
           >
             <div className="flex items-center gap-3">
@@ -70,7 +70,7 @@ const DashboardLayout = () => {
                       to={subItem.to}
                       onClick={() => setIsSidebarOpen(false)}
                       className={`flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm transition-all ${isSubActive
-                          ? 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300'
+                          ? 'bg-emerald-500/20 text-gray-700 dark:text-gray-300'
                           : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                         }`}
                     >
