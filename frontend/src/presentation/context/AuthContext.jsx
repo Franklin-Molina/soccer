@@ -55,16 +55,6 @@ export const AuthProvider = ({ children }) => {
       if (authenticatedUser) {
         setUser(authenticatedUser);
         setIsAuthenticated(true);
-
-        // Redirigir después de obtener la información del usuario según el rol
-        if (authenticatedUser.role === 'adminglobal') {
-            navigate('/adminglobal'); // Redirigir a adminglobal a su dashboard
-        } else if (authenticatedUser.is_staff) { // Para role='admin' u otros staff
-            navigate('/dashboard'); // Redirigir a administradores de cancha al dashboard
-        } else { // Para role='cliente'
-            navigate('/client'); // Redirigir a usuarios normales al dashboard de cliente
-        }
-
       } else {
         // Si no hay usuario autenticado (ej. no hay tokens o son inválidos)
         setUser(null);
