@@ -56,9 +56,9 @@ function HomePage({ openAuthModal }) {
             </span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto mb-8 leading-relaxed">
+       {/*    <p className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto mb-8 leading-relaxed">
             Las mejores canchas deportivas a tu alcance. Reserva en segundos y disfruta del juego.
-          </p>
+          </p> */}
 
           {/* Search */}
           <div className="max-w-2xl w-full px-2 sm:px-0">
@@ -71,7 +71,7 @@ function HomePage({ openAuthModal }) {
                 focus:ring-2 focus:ring-emerald-500 
                 focus:outline-none"
               />
-              <button className="sm:absolute sm:right-2 sm:top-1/2 sm:-translate-y-1/2 bg-gradient-to-r from-[#16A34A] to-[#0F172A] hover:from-[#16A34A] hover:to-[#0F172A] text-white px-8 py-4 sm:py-2.5 rounded-2xl sm:rounded-xl font-bold sm:font-semibold shadow-lg transition-all w-full sm:w-auto">
+              <button className="sm:absolute sm:right-2 sm:top-1/2 sm:-translate-y-1/2 bg-emerald-600 hover:from-[#16A34A] hover:to-[#0F172A] text-white px-8 py-4 sm:py-2.5 rounded-2xl sm:rounded-xl font-bold sm:font-semibold shadow-lg transition-all w-full sm:w-auto">
                 Buscar
               </button>
             </div>

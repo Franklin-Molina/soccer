@@ -221,7 +221,7 @@ ANYMAIL = {
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "digitaldxz1@gmail.com")
 
 
-
+""" 
 DATABASES = {
     "default": dj_database_url.config(
         default=os.getenv("DATABASE_URL"),
@@ -229,9 +229,9 @@ DATABASES = {
         ssl_require=True
     )
 }
- 
+  """
 
-""" DATABASES = {
+DATABASES = {
     "default": {
         "ENGINE": os.environ.get("DB_ENGINE", "django.db.backends.postgresql"),
         "NAME": os.environ.get("DB_NAME"),
@@ -241,7 +241,7 @@ DATABASES = {
         "PORT": os.environ.get("DB_PORT"),
     }
 }
- """
+
 
 
 

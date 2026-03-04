@@ -15,7 +15,7 @@ const MyBookingsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 px-6 py-10">
-      <div className="max-w-4xl mx-auto">
+      <div className="w-full-4xl mx-auto">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-8 text-center">
           Mis Reservas
         </h2>

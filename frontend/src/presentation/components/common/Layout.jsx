@@ -28,19 +28,15 @@ function Layout({ children }) {
   const childrenWithProps = React.cloneElement(children, { openAuthModal });
 
   return (
-    <div>
-      {/* Pasar la función openAuthModal al Header */}
-      <Header openAuthModal={openAuthModal} />
-      <div className="">
-        {childrenWithProps}
-      </div>
+    <Header openAuthModal={openAuthModal}>
+      {childrenWithProps}
       {/* Aquí se podría añadir un componente Footer si es necesario */}
 
       {/* Modal de Autenticación */}
       <Modal show={showAuthModal} onClose={closeAuthModal}>
         <AuthPage />
       </Modal>
-    </div>
+    </Header>
   );
 }
 

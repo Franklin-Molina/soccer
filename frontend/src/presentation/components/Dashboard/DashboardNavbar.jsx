@@ -29,7 +29,7 @@ function DashboardNavbar({ toggleSidebar }) {
       {/* Logo o título */}
       <div className="flex items-center gap-2">
         <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-          Administración
+          Administración XD
         </h2>
       </div>
 
