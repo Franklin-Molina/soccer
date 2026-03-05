@@ -36,7 +36,7 @@ function LoginForm({ username, password, error, setUsername, setPassword, setErr
                   setError('');
                 }}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400
-                           focus:outline-none focus:border-indigo-400 focus:shadow-[0_0_4px_rgba(102,126,234,0.5)]
+                           focus:outline-none focus:border-emerald-500 focus:shadow-[0_0_4px_rgba(102,126,234,0.5)]
                            transition-[border-color,box-shadow] duration-300"
                 required
               />
@@ -58,7 +58,7 @@ function LoginForm({ username, password, error, setUsername, setPassword, setErr
                   setError('');
                 }}
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400
-                           focus:outline-none focus:border-indigo-400 focus:shadow-[0_0_4px_rgba(102,126,234,0.5)]
+                           focus:outline-none focus:border-emerald-500 focus:shadow-[0_0_4px_rgba(102,126,234,0.5)]
                            transition-[border-color,box-shadow] duration-300"
                 required
               />
@@ -87,7 +87,7 @@ function LoginForm({ username, password, error, setUsername, setPassword, setErr
 
           {/* Olvidé mi contraseña */}
           <div className="text-right">
-            <a href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition">
+            <a href="/forgot-password" className="text-sm text-emerald-500 hover:text-emerald-700 dark:text-emerald-300 dark:hover:text-emerald-300 transition">
               ¿Olvidaste tu contraseña?
             </a>
           </div>
@@ -106,7 +106,7 @@ function LoginForm({ username, password, error, setUsername, setPassword, setErr
         {/* Registro */}
         <div className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
           ¿No tienes una cuenta?{' '}
-          <a href="/register" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium  ">
+          <a href="/register" className="text-emerald-500 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium animate-float animate-pulse-glow ">
             Regístrate aquí
           </a>
         </div>
