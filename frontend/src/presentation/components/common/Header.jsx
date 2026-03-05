@@ -3,7 +3,9 @@ import { Link, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import DarkModeSwitch from "./DarkModeSwitch.jsx";
 import { Menu, X, LogOut } from "lucide-react";
-import { useHeaderLogic } from "../../hooks/useHeaderLogic";
+import { useHeaderLogic } from "../../hooks//general/useHeaderLogic.js";
+
+
 import NavItem from "./NavItem";
 
 function Header({ children, openAuthModal, onToggleSidebar }) {
