@@ -3,9 +3,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAdminUser
 import django_filters.rest_framework
 from asgiref.sync import async_to_sync # Importar async_to_sync
-from .models import Court, CourtImage # Importar CourtImage
+from .models import Court, CourtImage, Category # Importar Category
 from bookings.models import Booking # Necesario para CourtAvailabilityView si no se refactoriza completamente
-from .serializers import CourtSerializer, CourtImageSerializer # Importar CourtImageSerializer
+from .serializers import CourtSerializer, CourtImageSerializer, CategorySerializer # Importar CategorySerializer
 from .filters import CourtFilter
 from datetime import datetime, timedelta # Importar timedelta también para usarlo en la vista
 from django.utils import timezone # Importar timezone
@@ -59,7 +59,6 @@ class CourtList(views.APIView): # Cambiar a APIView para manejar la lógica manu
             except Exception as e:
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class CourtDetail(views.APIView):
     permission_classes = [IsAdminUser]
@@ -120,10 +119,6 @@ class CourtDetail(views.APIView):
                     except json.JSONDecodeError:
                         return Response({"error": "Formato inválido para images_to_delete."}, status=status.HTTP_400_BAD_REQUEST)
 
-                #print(f"DEBUG: PATCH request.data: {request.data}") # DEBUG
-                #print(f"DEBUG: PATCH validated_data (court_data): {court_data}") # DEBUG
-                #print(f"DEBUG: PATCH images_to_delete: {images_to_delete}") # DEBUG
-
                 court = async_to_sync(update_court_use_case.execute)(
                     court_id=pk, 
                     court_data=court_data, 
@@ -134,7 +129,6 @@ class CourtDetail(views.APIView):
                 return Response(response_serializer.data)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            # print(f"DEBUG: Error en CourtDetail PATCH: {e}") # DEBUG // Eliminado mensaje de consola
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request, pk, *args, **kwargs):
@@ -149,7 +143,6 @@ class CourtDetail(views.APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 from .application.use_cases.get_weekly_availability import GetWeeklyAvailabilityUseCase # Importar el nuevo caso de uso
 
@@ -181,7 +174,6 @@ class CourtAvailabilityView(views.APIView):
             return Response(availability_data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 class CourtWeeklyAvailabilityView(views.APIView):
     """
@@ -231,5 +223,53 @@ class CourtWeeklyAvailabilityView(views.APIView):
             )
             return Response(weekly_availability_data, status=status.HTTP_200_OK)
         except Exception as e:
-            # print(f"Error en CourtWeeklyAvailabilityView: {e}") // Eliminado mensaje de consola
             return Response({"error": "Error al obtener la disponibilidad semanal."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# Category Views
+class CategoryList(views.APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, *args, **kwargs):
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CategoryDetail(views.APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, pk, *args, **kwargs):
+        try:
+            category = Category.objects.get(pk=pk)
+        except Category.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = CategorySerializer(category)
+        return Response(serializer.data)
+
+    def put(self, request, pk, *args, **kwargs):
+        try:
+            category = Category.objects.get(pk=pk)
+        except Category.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = CategorySerializer(category, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, *args, **kwargs):
+        try:
+            category = Category.objects.get(pk=pk)
+        except Category.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        category.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

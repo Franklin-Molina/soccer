@@ -1,5 +1,7 @@
 import React from "react";
 import { useCourtForm } from "../../hooks/courts/useCourtForm";
+import CustomSelect from "../common/CustomSelect";
+
 import {
   CheckCircle2,
   Upload,
@@ -18,7 +20,19 @@ function CourtForm() {
     handleRemoveImage,
     handleSubmit,
     isSubmitting,
+    categories,
+    categoriesLoading,
   } = useCourtForm();
+
+  const handleSelectChange = (name) => (value) => {
+    const event = {
+      target: {
+        name,
+        value,
+      },
+    };
+    handleChange(event);
+  };
 
   return (
     <div className="w-full mx-auto p-6">
@@ -33,7 +47,7 @@ function CourtForm() {
 
           <div className="absolute inset-0 bg-black/50 flex flex-col justify-center px-8 sm:px-12">
             <div className="flex items-center gap-4">
-             <div className="flex items-center">
+              <div className="flex items-center">
                 <img
                   src="/balon.png"
                   alt="Balón"
@@ -51,7 +65,6 @@ function CourtForm() {
             </div>
           </div>
         </div>
-
 
         {/* Formulario */}
         <form
@@ -103,6 +116,25 @@ function CourtForm() {
                 className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 outline-none transition"
               />
             </div>
+
+            {/* Cubierto */}
+            <div>
+              <label
+                htmlFor="covered"
+                className="flex items-center gap-2 text-sm font-medium mb-2"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                ¿Tiene Cubierta?
+              </label>
+              <input
+                type="checkbox"
+                id="covered"
+                name="covered"
+                checked={formData.covered}
+                onChange={handleChange}
+                className="w-4 h-4 accent-emerald-500"
+              />
+            </div>
           </div>
 
           {/* Descripción */}
@@ -122,6 +154,24 @@ function CourtForm() {
               placeholder="Describe las características de tu cancha, servicios incluidos, ubicación, etc."
               className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 outline-none transition min-h-[120px]"
             ></textarea>
+          </div>
+
+          {/* Categoría */}
+          <div>
+            <label
+              htmlFor="category"
+              className="flex items-center gap-2 text-sm font-medium mb-2"
+            >
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              Categoría
+            </label>
+            <CustomSelect
+              options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
+              value={formData.category}
+              onChange={handleSelectChange("category")}
+              placeholder={categoriesLoading ? "Cargando..." : "Seleccione una categoría"}
+              direction="down"
+            />
           </div>
 
           {/* Imágenes */}

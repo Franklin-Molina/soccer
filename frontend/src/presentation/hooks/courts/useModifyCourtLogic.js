@@ -1,61 +1,69 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useUseCases } from '../../context/UseCaseContext.jsx'; // Importar el hook useUseCases
-import { toast } from 'react-toastify'; // Importar toast de react-toastify
+import { useUseCases } from '../../context/UseCaseContext.jsx';
+import { toast } from 'react-toastify';
 
 export function useModifyCourtLogic() {
-  const { getCourtByIdUseCase, updateCourtUseCase } = useUseCases(); // Usar los casos de uso específicos
-  const { id } = useParams(); // Para obtener el ID de la cancha de la URL
+  const { getCourtByIdUseCase, updateCourtUseCase } = useUseCases();
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: '',
     price: 0,
-    description: '', // Usar 'description' en lugar de 'characteristics'
-    images: [], // Aquí se guardan las imágenes (File objects o {id, image} objects)
+    description: '',
+    images: [],
+    covered: false,
+    category: '',
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // NUEVO ESTADO: para guardar los IDs de las imágenes a eliminar
-  const [imagesToDelete, setImagesToDelete] = useState([]); 
+  const [imagesToDelete, setImagesToDelete] = useState([]);
 
   useEffect(() => {
     const fetchCourt = async () => {
       try {
-        const court = await getCourtByIdUseCase.execute(id); // Usar el caso de uso correcto
+        const court = await getCourtByIdUseCase.execute(id);
         if (court) {
           setFormData({
             name: court.name,
             price: court.price,
-            description: court.description || '', // Cargar la descripción
-            images: court.images || [], // Cargar imágenes existentes
+            description: court.description || '',
+            images: court.images || [],
+            covered: court.covered || false,
+            category: court.category ? court.category.id : '',
           });
         } else {
           setError(new Error('Cancha no encontrada.'));
-          toast.error('Cancha no encontrada.'); // Alerta de error
+          toast.error('Cancha no encontrada.');
         }
       } catch (err) {
         setError(err);
-        toast.error('Error al cargar la cancha.'); // Alerta de error
+        toast.error('Error al cargar la cancha.');
       } finally {
         setLoading(false);
       }
     };
     fetchCourt();
-  }, [id, getCourtByIdUseCase]); // Añadir getCourtByIdUseCase a las dependencias
+  }, [id, getCourtByIdUseCase]);
 
   const handleChange = (e) => {
-    if (e.target.name === 'images') {
-      // Manejar la adición de nuevas imágenes
+    const { name, value, type, checked, files } = e.target;
+    if (name === 'images') {
       setFormData(prev => ({
         ...prev,
-        images: [...prev.images, ...Array.from(e.target.files)],
+        images: [...prev.images, ...Array.from(files)],
+      }));
+    } else if (type === 'checkbox') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: checked,
       }));
     } else {
       setFormData(prev => ({
         ...prev,
-        [e.target.name]: e.target.value,
+        [name]: value,
       }));
     }
   };
@@ -64,11 +72,10 @@ export function useModifyCourtLogic() {
     setFormData(prev => {
       const newImages = prev.images.filter((image, index) => {
         if (index === indexToRemove) {
-          // Si la imagen tiene un ID, significa que ya existe en el backend y debe ser eliminada
           if (image.id) {
             setImagesToDelete(prevDelete => [...prevDelete, image.id]);
           }
-          return false; // Eliminar esta imagen del array
+          return false;
         }
         return true;
       });
@@ -79,38 +86,34 @@ export function useModifyCourtLogic() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setError(null); // Eliminar setActionStatus(null);
+    setError(null);
 
     try {
       const dataToUpdate = new FormData();
       dataToUpdate.append('name', formData.name);
       dataToUpdate.append('price', formData.price);
-      dataToUpdate.append('description', formData.description); // Usar 'description'
+      dataToUpdate.append('description', formData.description);
+      if (formData.covered !== undefined) dataToUpdate.append('covered', formData.covered);
+      if (formData.category) dataToUpdate.append('category_id', formData.category);
 
-      // Añadir nuevas imágenes (objetos File)
       formData.images.forEach(image => {
         if (image instanceof File) {
           dataToUpdate.append('images', image);
         }
       });
 
-      // NUEVO: Añadir los IDs de las imágenes a eliminar
       if (imagesToDelete.length > 0) {
-        // Enviar como un array de IDs. El backend necesitará procesar esto.
-        // Para FormData, lo más simple es un string JSON.
         dataToUpdate.append('images_to_delete', JSON.stringify(imagesToDelete));
       }
 
-      await updateCourtUseCase.execute(id, dataToUpdate); // Usar el caso de uso correcto
-      toast.success('Cancha actualizada exitosamente.'); // Alerta de éxito
-      // Redirigir después de un breve retraso para que el usuario vea el mensaje
+      await updateCourtUseCase.execute(id, dataToUpdate);
+      toast.success('Cancha actualizada exitosamente.');
       setTimeout(() => {
-        navigate('/dashboard/canchas/manage'); 
-      }, 2000); // Redirigir después de 2 segundos
+        navigate('/dashboard/canchas/manage');
+      }, 2000);
     } catch (err) {
-      // console.error('Error al actualizar la cancha:', err); // Eliminado mensaje de consola
       setError(err);
-      toast.error(`Error al actualizar la cancha: ${err.message || 'No se pudo actualizar la cancha.'}`); // Alerta de error
+      toast.error(`Error al actualizar la cancha: ${err.message || 'No se pudo actualizar la cancha.'}`);
     } finally {
       setIsSubmitting(false);
     }

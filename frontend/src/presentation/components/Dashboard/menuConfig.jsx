@@ -12,6 +12,7 @@ import {
   PlusCircle,
   Settings,
   Building,
+  List,
 } from 'lucide-react';
 
 export const menuItems = {
@@ -45,6 +46,7 @@ export const menuItems = {
       submenu: [
         { to: '/dashboard/canchas/manage', label: 'Gestionar Canchas', icon: <Settings className="w-5 h-5" /> },
         { to: '/dashboard/canchas/create', label: 'Crear Cancha', icon: <PlusCircle className="w-5 h-5" /> },
+        { to: '/dashboard/canchas/categories', label: 'Gestionar Categorías', icon: <List className="w-5 h-5" /> },
       ],
     },
     { to: '/dashboard/usuarios', label: 'Usuarios', icon: <Users className="w-5 h-5" /> },

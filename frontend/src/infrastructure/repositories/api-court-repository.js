@@ -57,6 +57,8 @@ export class ApiCourtRepository extends ICourtRepository {
       data.append('price', courtData.price);
       if (courtData.description) data.append('description', courtData.description);
       if (courtData.characteristics) data.append('characteristics', courtData.characteristics);
+      if (courtData.covered !== undefined) data.append('covered', courtData.covered);
+      if (courtData.category) data.append('category_id', courtData.category);
 
       // Añadir cada archivo de imagen al FormData
       if (courtData.images && courtData.images.length > 0) {
@@ -177,6 +179,65 @@ export class ApiCourtRepository extends ICourtRepository {
       return new Court(response.data);
     } catch (error) {
       // console.error(`Error updating court ${courtId} via API:`, error); // Eliminado mensaje de consola
+      throw error; // Relanzar el error
+    }
+  }
+
+  /**
+   * Obtiene una lista de todas las categorías desde la API.
+   * @returns {Promise<Array<{id: number, name: string}>>} Una promesa que resuelve con un array de categorías.
+   */
+  async getCategories() {
+    try {
+      const response = await api.get('/api/courts/categories/');
+      return response.data;
+    } catch (error) {
+      // console.error('Error fetching categories from API:', error); // Eliminado mensaje de consola
+      throw error; // Relanzar el error
+    }
+  }
+
+  /**
+   * Crea una nueva categoría a través de la API.
+   * @param {string} name - El nombre de la categoría.
+   * @returns {Promise<object>} Una promesa que resuelve con la categoría creada.
+   */
+  async createCategory(name) {
+    try {
+      const response = await api.post('/api/courts/categories/', { name });
+      return response.data;
+    } catch (error) {
+      // console.error('Error creating category via API:', error); // Eliminado mensaje de consola
+      throw error; // Relanzar el error
+    }
+  }
+
+  /**
+   * Actualiza una categoría existente a través de la API.
+   * @param {number} id - El ID de la categoría a actualizar.
+   * @param {string} name - El nuevo nombre de la categoría.
+   * @returns {Promise<object>} Una promesa que resuelve con la categoría actualizada.
+   */
+  async updateCategory(id, name) {
+    try {
+      const response = await api.put(`/api/courts/categories/${id}/`, { name });
+      return response.data;
+    } catch (error) {
+      // console.error('Error updating category via API:', error); // Eliminado mensaje de consola
+      throw error; // Relanzar el error
+    }
+  }
+
+  /**
+   * Elimina una categoría a través de la API.
+   * @param {number} id - El ID de la categoría a eliminar.
+   * @returns {Promise<void>} Una promesa que resuelve cuando la categoría ha sido eliminada.
+   */
+  async deleteCategory(id) {
+    try {
+      await api.delete(`/api/courts/categories/${id}/`);
+    } catch (error) {
+      // console.error('Error deleting category via API:', error); // Eliminado mensaje de consola
       throw error; // Relanzar el error
     }
   }

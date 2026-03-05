@@ -18,9 +18,11 @@ export class Court {
    * @param {string} [data.description] - La descripción de la cancha.
    * @param {string} [data.characteristics] - Las características de la cancha.
    * @param {boolean} [data.is_active] - Indica si la cancha está activa o suspendida.
+   * @param {boolean} [data.covered] - Indica si la cancha tiene cubierta.
+   * @param {Object} [data.category] - Objeto categoría con {id, name}.
    * @param {CourtImage[]} [data.images] - Las imágenes de la cancha.
    */
-  constructor({ id, name, price, description, characteristics, is_active, images }) {
+  constructor({ id, name, price, description, characteristics, is_active, covered, category, images }) {
     if (id === undefined || name === undefined || price === undefined) {
       throw new Error('Court entity requires id, name, and price.');
     }
@@ -29,7 +31,9 @@ export class Court {
     this.price = price;
     this.description = description;
     this.characteristics = characteristics;
-    this.is_active = is_active; // Asignar la propiedad is_active
+    this.is_active = is_active;
+    this.covered = covered || false;
+    this.category = category || null;
     this.images = images || [];
   }
 }

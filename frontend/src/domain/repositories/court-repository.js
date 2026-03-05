@@ -56,5 +56,13 @@ export class ICourtRepository {
     throw new Error('Method not implemented.');
   }
 
+  /**
+   * Obtiene una lista de todas las categorías.
+   * @returns {Promise<Array<{id: number, name: string}>>} Una promesa que resuelve con un array de categorías.
+   */
+  async getCategories() {
+    throw new Error('Method not implemented.');
+  }
+
   // TODO: Añadir otros métodos relacionados con canchas si son necesarios (ej. updateCourt, deleteCourt)
 }

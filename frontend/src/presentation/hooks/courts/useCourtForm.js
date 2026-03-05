@@ -1,23 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CreateCourtUseCase } from '../../../application/use-cases/courts/create-court';
 import { ApiCourtRepository } from '../../../infrastructure/repositories/api-court-repository';
+import { useCategories } from './useCategories';
 import useButtonDisable from '../general/useButtonDisable.js';
-import { toast } from 'react-toastify'; // Importar toast de react-toastify
+import { toast } from 'react-toastify';
 
 export const useCourtForm = () => {
   const courtRepository = new ApiCourtRepository();
   const createCourtUseCase = new CreateCourtUseCase(courtRepository);
+  
+  const { categories, loading: categoriesLoading } = useCategories();
 
   const [formData, setFormData] = useState({
     name: '',
     price: '',
     description: '',
     images: [],
+    covered: false,
+    category: '',
   });
-  // Eliminamos el estado 'message' ya que react-toastify lo manejará
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
+    const { name, value, files, type, checked } = e.target;
     if (name === 'images') {
       setFormData({
         ...formData,
@@ -31,6 +35,11 @@ export const useCourtForm = () => {
           [name]: value,
         });
       }
+    } else if (type === 'checkbox') {
+      setFormData({
+        ...formData,
+        [name]: checked,
+      });
     } else {
       setFormData({
         ...formData,
@@ -46,7 +55,6 @@ export const useCourtForm = () => {
     });
   };
 
-  // Función para validar los campos del formulario
   const validateForm = () => {
     if (!formData.name.trim()) {
       toast.error('El nombre de la cancha es obligatorio.');
@@ -64,7 +72,10 @@ export const useCourtForm = () => {
       toast.error('La descripción es obligatoria.');
       return false;
     }
-    // Validación para las imágenes
+    if (!formData.category) {
+      toast.error('Debes seleccionar una categoría.');
+      return false;
+    }
     if (formData.images.length === 0) {
       toast.error('Debes subir al menos una imagen para la cancha.');
       return false;
@@ -74,52 +85,52 @@ export const useCourtForm = () => {
 
   const [isSubmitting, handleSubmit] = useButtonDisable(async (e) => {
     e.preventDefault();
-    // No necesitamos limpiar mensajes anteriores con toastify, ya que se gestionan automáticamente
 
-    // Validar el formulario antes de intentar enviar
     if (!validateForm()) {
-      return; // Detener el envío si la validación falla
+      return;
     }
 
     const courtData = {
       name: formData.name,
-      price: parseFloat(formData.price), // Convertir precio a número
+      price: parseFloat(formData.price),
       description: formData.description,
       images: formData.images,
+      covered: formData.covered,
+      category: formData.category,
     };
 
     try {
       const createdCourt = await createCourtUseCase.execute(courtData);
-      // console.log('Cancha creada:', createdCourt); // Eliminado mensaje de consola
-      toast.success('Cancha creada exitosamente!'); // Usar toast.success
+      toast.success('Cancha creada exitosamente!');
       setFormData({
         name: '',
         price: '',
         description: '',
         images: [],
+        covered: false,
+        category: '',
       });
     } catch (error) {
-      // console.error('Error al crear cancha:', error.response ? error.response.data : error.message); // Eliminado mensaje de consola
       if (error.response && error.response.data) {
-        let errorText = 'Error al crear cancha: '; // Eliminado "xd"
+        let errorText = 'Error al crear cancha: ';
         if (typeof error.response.data === 'object' && error.response.data !== null) {
-           try {
-              const errorMessages = Object.entries(error.response.data)
-                .map(([field, messages]) => {
-                   const msgArray = Array.isArray(messages) ? messages : [messages];
-                   return `${field}: ${msgArray.join(', ')}`;
-                })
-                .join('; ');
-              errorText += errorMessages;
-           } catch (formatError) {
-              errorText += JSON.stringify(error.response.data);
-           }
+          try {
+            const errorMessages = Object.entries(error.response.data)
+              .map(([field, messages]) => {
+                const msgArray = Array.isArray(messages) ? messages : [messages];
+                return `${field}: ${msgArray.join(', ')}`;
+              })
+              .join('; ');
+            errorText += errorMessages;
+          } catch (formatError) {
+            errorText += JSON.stringify(error.response.data);
+          }
         } else {
           errorText += error.response.data;
         }
-        toast.error(errorText); // Usar toast.error
+        toast.error(errorText);
       } else {
-        toast.error('Error al crear cancha. Verifica la conexión o los datos.'); // Usar toast.error
+        toast.error('Error al crear cancha. Verifica la conexión o los datos.');
       }
       throw error;
     }
@@ -127,10 +138,11 @@ export const useCourtForm = () => {
 
   return {
     formData,
-    // Eliminamos 'message' del retorno
     handleChange,
     handleRemoveImage,
     handleSubmit,
     isSubmitting,
+    categories,
+    categoriesLoading,
   };
 };

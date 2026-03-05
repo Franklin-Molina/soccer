@@ -4,7 +4,7 @@ import Pagination from '../../components/common/Pagination.jsx';
 import { useHomePageLogic } from '../../hooks/general/useHomePageLogic.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import Spinner from '../../components/common/Spinner.jsx';
-
+import {Sun  } from "lucide-react";
 function HomePage({ openAuthModal }) {
   const { isAuthenticated } = useAuth();
   const {
@@ -158,6 +158,21 @@ function HomePage({ openAuthModal }) {
                           ★ 4.9
                         </span>
                       </div>
+                      <div className="mt-2">
+                        {court.covered ? (
+                          <span className="inline-flex items-center gap-1 bg-amber-500 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                            Techada
+                           
+                          </span>
+                          
+                        ) : (
+                          <span className="inline-flex items-center gap-1 bg-gray-500 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                            <Sun className="w-3 h-3 text-white"/>
+                            Sin cubierta
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -178,6 +193,7 @@ function HomePage({ openAuthModal }) {
             ))}
           </div>
         )}
+
         {/* Paginación */}
         {showPagination && (
           <div className="mt-12">

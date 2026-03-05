@@ -27,6 +27,7 @@ import DashboardUsersPage from './presentation/pages/dashboard/users/DashboardUs
 import DashboardModifyCourtPage from './presentation/pages/dashboard/courts/DashboardModifyCourtPage.jsx'; // Ruta actualizada
 import AdminGlobalDashboardPage from './presentation/pages/dashboard/admin/AdminGlobalDashboardPage.jsx'; // Ruta actualizada
 import ManageAdminsTable from './presentation/components/AdminGlobalDashboard/ManageAdminsTable.jsx';
+import CategoryManagement from './presentation/components/Courts/CategoryManagement.jsx'; // Nueva importación
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ClientDashboardLayout from './presentation/components/Dashboard/ClientDashboardLayout.jsx';
@@ -89,6 +90,7 @@ function AuthContent() {
         <Route index element={<DashboardOverviewPage />} />
         <Route path="canchas/manage" element={<DashboardManageCourtsPage />} />
         <Route path="canchas/create" element={<DashboardCourtsPage />} />
+        <Route path="canchas/categories" element={<CategoryManagement />} />
         <Route path="reservas" element={<DashboardBookingsPage />} />
         <Route path="reservas/historial" element={<BookingHistoryPage />} />
         <Route path="usuarios" element={<DashboardUsersPage />} />

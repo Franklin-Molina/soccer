@@ -1,19 +1,21 @@
 import React from 'react';
 import Spinner from '../../../components/common/Spinner.jsx';
 import { useModifyCourtLogic } from '../../../hooks/courts/useModifyCourtLogic.js';
+import { useCategories } from '../../../hooks/courts/useCategories.js';
 
 function DashboardModifyCourtPage() {
   const {
     formData,
     loading,
     error,
-    actionStatus,
     isSubmitting,
     handleChange,
     handleRemoveImage,
     handleSubmit,
     navigate,
   } = useModifyCourtLogic();
+
+  const { categories, loading: categoriesLoading } = useCategories();
 
   if (loading) return <Spinner />;
   if (error)
@@ -29,15 +31,15 @@ function DashboardModifyCourtPage() {
         Modificar Cancha: {formData.name}
       </h1>
 
-      {actionStatus && (
+      {formData.actionStatus && (
         <div
           className={`mb-4 text-center py-2 rounded-lg ${
-            actionStatus.includes('Error')
+            formData.actionStatus.includes('Error')
               ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200'
               : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200'
           }`}
         >
-          {actionStatus}
+          {formData.actionStatus}
         </div>
       )}
 
@@ -104,6 +106,51 @@ function DashboardModifyCourtPage() {
               rows="3"
               className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          {/* Categoría */}
+          <div>
+            <label
+              htmlFor="category"
+              className="block font-medium mb-1 text-gray-800 dark:text-gray-200"
+            >
+              Categoría:
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              disabled={categoriesLoading}
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              <option value="">
+                {categoriesLoading ? "Cargando..." : "Seleccione una categoría"}
+              </option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Cubierta */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="covered"
+              name="covered"
+              checked={formData.covered}
+              onChange={handleChange}
+              className="w-4 h-4 accent-blue-500"
+            />
+            <label
+              htmlFor="covered"
+              className="font-medium text-gray-800 dark:text-gray-200"
+            >
+              ¿Tiene cubierta?
+            </label>
           </div>
 
           {/* Galería de imágenes */}
