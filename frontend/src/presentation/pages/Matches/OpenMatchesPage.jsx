@@ -59,7 +59,7 @@ const OpenMatchesPage = () => {
       <div className="
         flex justify-center items-center h-screen text-lg
         bg-gray-50 text-gray-600
-        dark:bg-slate-950 dark:text-gray-300
+        dark:bg-gray-900 dark:text-gray-300
       ">
         <div className="animate-pulse">Cargando partidos...</div>
       </div>
@@ -72,7 +72,7 @@ const OpenMatchesPage = () => {
     <div className="
       px-3 sm:px-6 py-6 sm:py-24 min-h-screen transition-colors duration-300
       bg-slate-50 text-slate-900
-      dark:bg-slate-950 dark:text-slate-100
+      dark:bg-gray-900 dark:text-slate-100
     ">
       {isModalOpen && (
         <CreateMatchForm
