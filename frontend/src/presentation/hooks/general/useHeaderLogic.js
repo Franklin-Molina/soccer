@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getMenuItemsForRole, getActiveSubmenuIndexes } from '../../infrastructure/services/menuService';
+import { getMenuItemsForRole, getActiveSubmenuIndexes } from '../../../infrastructure/services/menuService';
 
 /**
  * Hook personalizado para manejar la lógica del Header
