@@ -1,128 +1,41 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import React from "react";
+import { Link, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import DarkModeSwitch from "./DarkModeSwitch.jsx";
-import { Menu, X, ChevronDown, LogOut } from "lucide-react";
-import { menuItems } from "../Dashboard/menuConfig.jsx";
+import { Menu, X, LogOut } from "lucide-react";
+import { useHeaderLogic } from "../../hooks/useHeaderLogic";
+import NavItem from "./NavItem";
 
 function Header({ children, openAuthModal, onToggleSidebar }) {
   const { isAuthenticated, user, logout } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [openSubmenus, setOpenSubmenus] = useState({});
-  const location = useLocation();
 
-  // Determinar rol de usuario
-  const userRole = user?.role || 'cliente';
-  const currentMenuItems = menuItems[userRole] || [];
-
-  // Manejar submenús abiertos
-  useEffect(() => {
-    const activeSubmenus = {};
-    currentMenuItems.forEach((item, index) => {
-      if (item.submenu && item.submenu.some(subItem => location.pathname.startsWith(subItem.to))) {
-        activeSubmenus[index] = true;
-      }
-    });
-    setOpenSubmenus(activeSubmenus);
-  }, [location.pathname, currentMenuItems]);
-
-  const toggleSubmenu = (index) => {
-    setOpenSubmenus(prev => ({ ...prev, [index]: !prev[index] }));
-  };
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-    if (onToggleSidebar) {
-      onToggleSidebar();
-    }
-  };
+  // Usar hook personalizado para manejar lógica del header
+  const {
+    isSidebarOpen,
+    openSubmenus,
+    currentMenuItems,
+    toggleSubmenu,
+    toggleSidebar,
+    closeSidebar
+  } = useHeaderLogic({
+    userRole: user?.role || 'cliente',
+    onToggleSidebar
+  });
 
   const handleLogout = () => {
     logout();
-    setIsSidebarOpen(false);
-  };
-
-  // Componente para elementos de navegación
-  const NavItem = ({ item, index }) => {
-    if (item.type === 'header') {
-      return (
-        <li className="px-4 pt-3 pb-1 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">
-          {item.label}
-        </li>
-      );
-    }
-
-    const isActive = item.submenu
-      ? item.submenu.some(subItem => location.pathname.startsWith(subItem.to))
-      : location.pathname === item.to;
-
-    if (item.submenu) {
-      return (
-        <li>
-          <button
-            onClick={() => toggleSubmenu(index)}
-            className={`flex items-center justify-between w-full gap-3 px-4 py-2 rounded-xl font-normal transition-all ${isActive ? 'bg-emerald-600 text-white shadow-md' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-          >
-            <div className="flex items-center gap-3">
-              {item.icon}
-              <span>{item.label}</span>
-            </div>
-            <ChevronDown className={`w-5 h-5 transition-transform ${openSubmenus[index] ? 'rotate-180' : ''}`} />
-          </button>
-          {openSubmenus[index] && (
-            <ul className="pl-6 pt-1 space-y-1">
-              {item.submenu.map((subItem) => {
-                const isSubActive = location.pathname === subItem.to;
-                return (
-                  <li key={subItem.to}>
-                    <NavLink
-                      to={subItem.to}
-                      onClick={() => setIsSidebarOpen(false)}
-                      className={`flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm transition-all ${isSubActive
-                          ? 'bg-emerald-500/20 text-gray-700 dark:text-gray-300'
-                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                        }`}
-                    >
-                      {subItem.icon}
-                      <span>{subItem.label}</span>
-                    </NavLink>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </li>
-      );
-    }
-
-    return (
-      <li>
-        <NavLink
-          to={item.to}
-          end={item.to === '/' || item.to === '/dashboard' || item.to === '/client' || item.to === '/adminglobal'}
-          onClick={() => setIsSidebarOpen(false)}
-          className={({ isActive: isNavLinkActive }) =>
-            `flex items-center gap-3 px-4 py-2 rounded-xl font-normal transition-all ${isNavLinkActive ? 'bg-emerald-600 text-white shadow-md' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`
-          }
-        >
-          {item.icon}
-          <span>{item.label}</span>
-        </NavLink>
-      </li>
-    );
+    closeSidebar();
   };
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gray-100 dark:bg-gray-900">
       {/* Header Superior - Siempre arriba del todo */}
       {!isAuthenticated ? (
-        <header className="flex-shrink-0 flex items-center justify-between w-full px-4 sm:px-6 py-3 sm:py-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300 border-b border-gray-200 dark:border-gray-700 z-50">
+        <header className="flex h-14 items-center justify-between w-full px-4 sm:px-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 z-50">
           <div className="flex items-center gap-2 sm:gap-4">
             <Link
-              to="/"
-              className="text-lg sm:text-2xl font-bold tracking-tight whitespace-nowrap"
+              to="/"             
+              className="flex text-lg sm:text-2xl font-bold tracking-tight whitespace-nowrap gap-1"
             >
               <span className="text-emerald-600 dark:text-emerald-400">
                 Sintética
@@ -168,7 +81,7 @@ function Header({ children, openAuthModal, onToggleSidebar }) {
         </header>
       ) : (
         /* Header simplificado para usuarios autenticados */
-        <header className="flex-shrink-0 flex items-center justify-between w-full px-4 sm:px-6 py-3 sm:py-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300 border-b border-gray-200 dark:border-gray-700 z-50">
+       <header className="flex h-14 items-center justify-between w-full px-4 sm:px-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 z-50">
           <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={toggleSidebar}
@@ -179,7 +92,7 @@ function Header({ children, openAuthModal, onToggleSidebar }) {
 
             <Link
               to="/"
-              className="text-lg sm:text-2xl font-bold tracking-tight whitespace-nowrap"
+              className="flex text-lg sm:text-2xl font-bold tracking-tight whitespace-nowrap gap-1"
             >
               <span className="text-emerald-600 dark:text-emerald-400">
                 Sintética
@@ -201,7 +114,7 @@ function Header({ children, openAuthModal, onToggleSidebar }) {
         {isSidebarOpen && (
           <div
             className="fixed inset-0 bg-black/40 z-[60] md:hidden backdrop-blur-sm transition-opacity"
-            onClick={() => setIsSidebarOpen(false)}
+            onClick={closeSidebar}
           />
         )}
 
@@ -217,7 +130,7 @@ function Header({ children, openAuthModal, onToggleSidebar }) {
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 md:hidden ">
               <Link
               to="/"
-              className="text-lg sm:text-2xl font-bold tracking-tight whitespace-nowrap"
+              className="flex text-lg sm:text-2xl font-bold tracking-tight whitespace-nowrap gap-1"
             >
               <span className="text-emerald-600 dark:text-emerald-400">
                 Sintética
@@ -227,7 +140,7 @@ function Header({ children, openAuthModal, onToggleSidebar }) {
               </span>
             </Link>
               <button
-                onClick={() => setIsSidebarOpen(false)}
+                onClick={closeSidebar}
                 className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
               >
                 <X className="w-6 h-6" />
@@ -237,7 +150,15 @@ function Header({ children, openAuthModal, onToggleSidebar }) {
             <nav className="flex flex-col justify-between flex-grow p-4 overflow-y-auto">
               <ul className="space-y-1">
                 {currentMenuItems.map((item, index) => (
-                  <NavItem key={item.label || item.to} item={item} index={index} />
+                  <NavItem
+                    key={item.label || item.to}
+                    item={item}
+                    index={index}
+                    isOpen={openSubmenus[index]}
+                    onToggle={toggleSubmenu}
+                    currentPath={location.pathname}
+                    onClick={closeSidebar}
+                  />
                 ))}
               </ul>
 
