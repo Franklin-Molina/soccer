@@ -43,7 +43,7 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
   return (
     <>
       {/* Modal Principal del Formulario */}
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[110] p-4">
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
           <div className="p-6 border-b border-gray-200 dark:border-slate-700">
             <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
@@ -156,7 +156,7 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
 
       {/* Modal de confirmación de reserva (Estilo CourtDetailPage) */}
       {showConfirmBooking && selectedCourt && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[130] p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700">
             <div className="p-6 border-b border-slate-200 dark:border-slate-700">
               <h2 className="text-2xl font-bold text-emerald-500 dark:text-emerald-400">
@@ -246,7 +246,7 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
 
       {/* Modal Separado para el Calendario - Más Amplio */}
       {showCalendar && selectedCourtId && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[120] p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-5xl border border-gray-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
             {/* Header del Modal del Calendario */}
             <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 bg-white dark:bg-slate-900 z-10">
