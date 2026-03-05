@@ -31,6 +31,4 @@ env/
 venv/
 .venv/
 
-
-.agents
-SKILL.md
+.agents/skills/actt/
