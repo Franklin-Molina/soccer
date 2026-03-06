@@ -4,7 +4,10 @@ import Pagination from '../../components/common/Pagination.jsx';
 import { useHomePageLogic } from '../../hooks/general/useHomePageLogic.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import Spinner from '../../components/common/Spinner.jsx';
-import {Sun  } from "lucide-react";
+import {Sun, Layers   } from "lucide-react";
+import { formatPrice } from '../../utils/formatters.js';
+
+
 function HomePage({ openAuthModal }) {
   const { isAuthenticated } = useAuth();
   const {
@@ -153,7 +156,8 @@ function HomePage({ openAuthModal }) {
                     <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
                       <h3 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">{court.name}</h3>
                       <div className="flex items-center justify-between">
-                        <p className="text-white text-lg sm:text-xl font-semibold">${(court.price / 1000).toFixed(0)}K</p>
+                        <p className="text-white text-lg sm:text-xl font-semibold">${formatPrice(court.price)}</p>
+                       
                         <span className="bg-white/20 backdrop-blur-md text-[#FACC15] px-3 py-1 rounded-full text-xs sm:text-sm font-semibold border border-white/10">
                           ★ 4.9
                         </span>
@@ -161,9 +165,8 @@ function HomePage({ openAuthModal }) {
                       <div className="mt-2">
                         {court.covered ? (
                           <span className="inline-flex items-center gap-1 bg-amber-500 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                            Techada
-                           
+                              <Layers className="w-3 h-3 text-white"/>
+                            Techada                           
                           </span>
                           
                         ) : (
