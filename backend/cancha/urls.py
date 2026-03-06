@@ -40,15 +40,24 @@ from users import views as users_views # Importar vistas de la app users
 from django.conf import settings # Importar settings
 from django.conf.urls.static import static # Importar static
 from django.shortcuts import redirect # Importar redirect
+from django.http import JsonResponse # Importar JsonResponse para health check
 import os
 
 FRONTEND_URL = os.getenv("FRONTEND_URL")
+
+def health_check(request):
+    """Endpoint de health check para la ruta raíz"""
+    return JsonResponse({
+        "status": "online",
+        "message": "La API de Soccer esta funcionando correctamente"
+    }, status=200)
 
 def password_reset_confirm_redirect(request, uidb64, token):
     return redirect(f"{settings.FRONTEND_URL}/password/reset/confirm/{uidb64}/{token}")
 
 
 urlpatterns = [
+    path('', health_check, name='health_check'),
     path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
     path('api/auth/', include('djoser.urls')),
