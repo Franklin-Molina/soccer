@@ -247,7 +247,6 @@ DATABASES = {
 } """
 
 
-
 # Configuración de Djoser
 DJOSER = {
     "LOGIN_FIELD": "email",
