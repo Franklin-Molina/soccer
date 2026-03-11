@@ -7,12 +7,12 @@ import FilterPanel from '../../../components/Dashboard/FilterPanel.jsx';
 import StatCards from '../../../components/Dashboard/overview/StatCards.jsx';
 import CourtsManagement from '../../../components/Dashboard/overview/CourtsManagement.jsx';
 import BookingsManagement from '../../../components/Dashboard/overview/BookingsManagement.jsx';
-import SystemStatus from '../../../components/Dashboard/overview/SystemStatus.jsx';
+//import SystemStatus from '../../../components/Dashboard/overview/SystemStatus.jsx';
 
 import { useManageCourtsLogic } from '../../../hooks/courts/useManageCourtsLogic.js';
 import { useFetchBookings } from '../../../hooks/bookings/useFetchBookings.js';
 import { useFetchAllCourts } from '../../../hooks/courts/useFetchAllCourts.js';
-import { useAutoRefresh } from '../../../hooks/bookings/useAutoRefresh.js';
+//import { useAutoRefresh } from '../../../hooks/bookings/useAutoRefresh.js';
 import useUserStats from '../../../hooks/users/useUserStats.js';
 import useBookingStats from '../../../hooks/bookings/useBookingStats.js';
 import { useBookingsRealtime } from '../../../hooks/bookings/useBookingsRealtime';
@@ -79,7 +79,7 @@ function DashboardOverviewPage() {
     if (fetchBookingStats) fetchBookingStats();
   }, [fetchAllBookings, fetchBookingStats]));
 
-  const refreshData = useCallback(() => {
+  /* const refreshData = useCallback(() => {
     activeTab === 'canchas' ? fetchAllCourts() : fetchAllBookings();
   }, [activeTab, fetchAllCourts, fetchAllBookings]);
 
@@ -87,7 +87,7 @@ function DashboardOverviewPage() {
     refreshData,
     100000,
     activeTab === 'canchas' ? courts : bookings
-  );
+  ); */
 
   const paginatedCourts = useMemo(() => {
     const startIndex = (courtsCurrentPage - 1) * courtsItemsPerPage;
@@ -154,7 +154,7 @@ function DashboardOverviewPage() {
       
       <div className="max-w-8xl mx-auto space-y-4 sm:space-y-6">
 
-        <SystemStatus timeSinceLastUpdate={timeSinceLastUpdate} />
+       {/*  <SystemStatus timeSinceLastUpdate={timeSinceLastUpdate} /> */}
 
         <StatCards
           userStats={userStats}

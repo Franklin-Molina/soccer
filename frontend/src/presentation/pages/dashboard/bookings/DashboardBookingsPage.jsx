@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from 'react';
 import Spinner from '../../../components/common/Spinner';
 import BookingTable from '../../../components/Bookings/BookingTable';
 import { useFetchBookings } from '../../../hooks/bookings/useFetchBookings';
-import { useAutoRefresh } from '../../../hooks/bookings/useAutoRefresh';
+
 
 function DashboardBookingsPage() {
   const {
