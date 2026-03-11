@@ -232,7 +232,7 @@ DATABASES = {
         conn_max_age=600,
         ssl_require=True
     )
-} 
+}
 
 
 """ DATABASES = {
@@ -245,7 +245,7 @@ DATABASES = {
         "PORT": os.environ.get("DB_PORT"),
     }
 }
-  """
+ """
 
 
 # Configuración de Djoser
@@ -412,12 +412,12 @@ SIMPLE_JWT = {
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
     # "USERNAME_FIELD": os.getenv("SIMPLE_JWT_USERNAME_FIELD"),
-    "AUTH_COOKIE": "access_token",  # Nombre de la cookie para el token de acceso
-    "AUTH_COOKIE_REFRESH": "refresh_token",  # Nombre de la cookie para el token de refresco
-    "AUTH_COOKIE_SECURE": not DEBUG,  # True en producción (HTTPS)
-    "AUTH_COOKIE_HTTP_ONLY": True,  # Previene acceso vía JavaScript
-    "AUTH_COOKIE_PATH": "/",  # Ruta donde la cookie es válida
-    "AUTH_COOKIE_SAMESITE": "Lax",  # 'Lax' es generalmente recomendado actualizar  a None
+    "AUTH_COOKIE": "access_token",  
+    "AUTH_COOKIE_REFRESH": "refresh_token",  
+    "AUTH_COOKIE_SECURE": not DEBUG,  # True en producción (HTTPS), False en local
+    "AUTH_COOKIE_HTTP_ONLY": True,  
+    "AUTH_COOKIE_PATH": "/",  
+    "AUTH_COOKIE_SAMESITE": os.getenv("AUTH_COOKIE_SAMESITE", "None" if not DEBUG else "Lax"), #Produccion None, local Lax
 }
 
 # Configuración de CORS para permitir solicitudes desde el frontend durante el desarrollo
