@@ -122,7 +122,7 @@ class DjangoUserRepository(IUserRepository):
 
     @sync_to_async
     def get_all(self, filters: Optional[Dict[str, Any]] = None) -> List[User]:
-        queryset = User.objects.all()
+        queryset = User.objects.select_related('role') #perfil social pendiente
         if filters:
             # Aplicar filtros si se proporcionan
             # Si el filtro es por 'role__name', usarlo directamente

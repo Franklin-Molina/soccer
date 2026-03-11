@@ -16,7 +16,7 @@ class DjangoCourtRepository(ICourtRepository):
     """
 
     async def get_all(self, filters: Optional[Dict[str, Any]] = None) -> List[Court]:
-        queryset = Court.objects.all().prefetch_related('images')
+        queryset = Court.objects.select_related('category').prefetch_related('images')
         if filters:
             # Aplicar filtros dinámicamente basados en el diccionario de filtros
             # Esto permite flexibilidad para diferentes criterios de filtrado.
@@ -39,7 +39,7 @@ class DjangoCourtRepository(ICourtRepository):
     async def get_by_id(self, court_id: int) -> Optional[Court]:
         try:
             # Usar sync_to_async para operaciones de base de datos síncronas
-            return await sync_to_async(Court.objects.prefetch_related('images').get)(pk=court_id)
+            return await sync_to_async(Court.objects.select_related('category').prefetch_related('images').get)(pk=court_id)
         except Court.DoesNotExist:
             return None
 

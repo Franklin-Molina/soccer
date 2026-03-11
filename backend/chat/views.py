@@ -39,7 +39,7 @@ class ChatMessageViewSet(viewsets.ReadOnlyModelViewSet):
                 # pero es lo que pide el requerimiento.
                 return ChatMessage.objects.none()
 
-            return ChatMessage.objects.filter(match=match).order_by('created_at')
+            return ChatMessage.objects.filter(match=match).select_related('user').order_by('created_at')
 
         except OpenMatch.DoesNotExist:
             return ChatMessage.objects.none()

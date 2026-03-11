@@ -58,11 +58,20 @@ class OpenMatchViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         """Listar todos los partidos abiertos y futuros"""
         from django.utils import timezone
-        # Solo partidos abiertos y cuya fecha de inicio sea mayor o igual a ahora
-        queryset = self.get_queryset().filter(
+        
+        # 1. OPTIMIZACIÓN N+1: select_related para claves foráneas directas y prefetch_related para las relaciones muchos a muchos o inversas.
+        # Asumo que tus relaciones se llaman 'creator', 'category', 'court' y 'participants' en tu modelo OpenMatch.
+        queryset = self.get_queryset().select_related('creator', 'category', 'court').prefetch_related('participants__user').filter(
             status='OPEN',
             start_time__gte=timezone.now()
         ).order_by('start_time')
+        
+        # 2. Respetar la paginación (Opcional pero muy recomendado si tienes muchos partidos)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+            
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -257,8 +266,8 @@ class OpenMatchViewSet(viewsets.ModelViewSet):
             user=request.user
         ).values_list('match_id', flat=True)
         
-        # Filtrar partidos futuros y abiertos
-        matches = self.get_queryset().filter(
+        # Aplicamos la misma optimización N+1 aquí
+        matches = self.get_queryset().select_related('creator', 'category', 'court').prefetch_related('participants__user').filter(
             id__in=participant_matches,
             status='OPEN',
             start_time__gte=timezone.now()

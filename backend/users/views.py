@@ -84,7 +84,7 @@ class UserViewSet(viewsets.ModelViewSet): # Mantener ModelViewSet por ahora, ref
     """
     API endpoint that allows users to be viewed or edited.
     """
-    queryset = User.objects.all().order_by('-date_joined')
+    queryset = User.objects.select_related('role').all().order_by('-date_joined')
     serializer_class = UserSerializer
     permission_classes = [IsAdminUser] # Permisos para las acciones por defecto (list, retrieve, create, update, destroy)
 

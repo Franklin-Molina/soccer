@@ -32,3 +32,4 @@ venv/
 .venv/
 
 .agents/skills/actt/
+.clinerules/workflows

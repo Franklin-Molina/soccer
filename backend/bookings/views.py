@@ -102,11 +102,24 @@ class BookingViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         user = request.user
-        if not user.is_staff:
-            bookings = Booking.objects.filter(user=user).order_by('-created_at')
-        else:
-            bookings = Booking.objects.all().order_by('-created_at')
+        
+        # 1. OPTIMIZACIÓN N+1: select_related hace un JOIN en SQL.
+        # Trae la información del usuario y la cancha en 1 sola consulta.
+        base_queryset = Booking.objects.select_related('user', 'court').order_by('-created_at')
 
+        # 2. Filtrar según el rol
+        if not user.is_staff:
+            bookings = base_queryset.filter(user=user)
+        else:
+            bookings = base_queryset.all()
+
+        # 3. OPTIMIZACIÓN DE PAGINACIÓN: Respetar el ?page=1 del frontend
+        page = self.paginate_queryset(bookings)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # Fallback por si la paginación está apagada globalmente
         serializer = self.get_serializer(bookings, many=True)
         return Response(serializer.data)
 
