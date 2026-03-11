@@ -100,6 +100,7 @@ else:
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        "users.authentication.CookieJWTAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
@@ -185,6 +186,9 @@ LOGOUT_REDIRECT_URL = os.getenv(
 # Configuración de dj-rest-auth para usar JWT y allauth
 REST_AUTH = {
     "USE_JWT": True,
+    "JWT_AUTH_COOKIE": "access_token",
+    "JWT_AUTH_REFRESH_COOKIE": "refresh_token",
+    "JWT_AUTH_HTTPONLY": True,
 }
 
 # Configuración de socialaccount para auto-registro
@@ -222,15 +226,15 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "digitaldxz1@gmail.com")
 
 
 
-DATABASES = {
+""" DATABASES = {
     "default": dj_database_url.config(
         default=os.getenv("DATABASE_URL"),
         conn_max_age=600,
         ssl_require=True
     )
-}
+} """
 
-""" 
+
 DATABASES = {
     "default": {
         "ENGINE": os.environ.get("DB_ENGINE", "django.db.backends.postgresql"),
@@ -241,7 +245,7 @@ DATABASES = {
         "PORT": os.environ.get("DB_PORT"),
     }
 }
- """
+ 
 
 
 # Configuración de Djoser
@@ -407,7 +411,13 @@ SIMPLE_JWT = {
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
-   # "USERNAME_FIELD": os.getenv("SIMPLE_JWT_USERNAME_FIELD"),
+    # "USERNAME_FIELD": os.getenv("SIMPLE_JWT_USERNAME_FIELD"),
+    "AUTH_COOKIE": "access_token",  # Nombre de la cookie para el token de acceso
+    "AUTH_COOKIE_REFRESH": "refresh_token",  # Nombre de la cookie para el token de refresco
+    "AUTH_COOKIE_SECURE": not DEBUG,  # True en producción (HTTPS)
+    "AUTH_COOKIE_HTTP_ONLY": True,  # Previene acceso vía JavaScript
+    "AUTH_COOKIE_PATH": "/",  # Ruta donde la cookie es válida
+    "AUTH_COOKIE_SAMESITE": "Lax",  # 'Lax' es generalmente recomendado actualizar  a None
 }
 
 # Configuración de CORS para permitir solicitudes desde el frontend durante el desarrollo

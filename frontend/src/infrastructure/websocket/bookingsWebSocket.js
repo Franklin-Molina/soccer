@@ -7,24 +7,17 @@ class BookingsWebSocket {
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
     this.reconnectDelay = 3000;
+    
+    // NUEVAS VARIABLES DE CONTROL
+    this.reconnectTimeoutId = null; 
+    this.isIntentionalDisconnect = false; 
   }
 
   async connect() {
-    // 1. Obtención de tokens frescos: Siempre intentamos refrescar/obtener el más reciente
-    let token = await refreshToken();
-    
-    // Si no hay token después del refresh, intentamos el de localStorage como respaldo
-    if (!token) {
-      token = localStorage.getItem('accessToken');
-    }
-
-    // 2. Validación de tokens: Verificar que exista un token válido antes de conectar
-    if (!token) {
-      console.warn('⚠️ No se encontró un token válido. Abortando conexión WebSocket.');
-      return;
-    }
-
     if (this.ws && this.ws.readyState !== WebSocket.CLOSED) return;
+
+    // Al intentar conectar, bajamos la bandera de desconexión intencional
+    this.isIntentionalDisconnect = false;
 
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     const host = apiUrl.replace(/^https?:\/\//, '');
@@ -32,11 +25,9 @@ class BookingsWebSocket {
     const wsUrl = `${wsProtocol}//${host}/ws/bookings/`;
 
     try {
-    //  console.log(`🔌 Intentando conectar a WebSocket (intento ${this.reconnectAttempts + 1})...`);
-      this.ws = new WebSocket(wsUrl, [token]);
+      this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
-      //  console.log('✅ Booking WebSocket conectado');
         this.reconnectAttempts = 0;
       };
 
@@ -45,49 +36,55 @@ class BookingsWebSocket {
           const data = JSON.parse(event.data);
           this.listeners.forEach(callback => callback(data));
         } catch (error) {
-          console.error('❌ Error parseando mensaje de Booking WebSocket:', error);
+       //   console.error('❌ Error parseando mensaje de Booking WebSocket:', error);
         }
       };
 
       this.ws.onerror = (error) => {
-        console.error('❌ Error en Booking WebSocket:', error);
+       // console.error('❌ Error en Booking WebSocket:', error);
       };
 
       this.ws.onclose = async (event) => {
-        console.log(`🔌 Booking WebSocket desconectado (Código: ${event.code})`);
+      //  console.log(`🔌 Booking WebSocket desconectado (Código: ${event.code})`);
         
-        // Si el código es 4001, el token probablemente expiró
-        if (event.code === 4001) {
-          console.log('🔑 Token expirado (4001). Intentando refrescar y reconectar...');
-          const newToken = await refreshToken();
-          if (newToken) {
+        // 🛑 NUEVO: Si cerramos sesión, cortamos la ejecución aquí mismo
+        if (this.isIntentionalDisconnect) {
+         // console.log('🛑 Desconexión intencional. El WebSocket no se reconectará.99999999999999999999999999999999999999999999999');
+          return;
+        }
+
+        if (event.code === 4001 || event.code === 4003) {
+       //   console.log('🔑 Sesión expirada. Intentando refrescar y reconectar...');
+          const success = await refreshToken();
+          if (success) {
             this.reconnectAttempts = 0;
             this.connect();
             return;
           }
         }
 
-        // No reintentar si el cierre fue normal
         if (event.code !== 1000 && event.code !== 1001) {
           this.handleReconnect();
         }
       };
     } catch (error) {
-      console.error('❌ Excepción al conectar WebSocket:', error);
+    //  console.error('❌ Excepción al conectar WebSocket:', error);
       this.handleReconnect();
     }
   }
 
   handleReconnect() {
+    // 🛑 NUEVO: Guardia extra de seguridad
+    if (this.isIntentionalDisconnect) return;
+
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(`⏳ Reintentando conexión en ${this.reconnectDelay}ms...`);
-      setTimeout(() => this.connect(), this.reconnectDelay);
+   //   console.log(`⏳ Reintentando conexión en ${this.reconnectDelay}ms...`);
+      
+      // 🛑 NUEVO: Guardamos el ID del timeout para poder destruirlo después
+      this.reconnectTimeoutId = setTimeout(() => this.connect(), this.reconnectDelay);
     } else {
-      // 3 & 4. Limpieza de tokens y Fuerza de nuevo inicio de sesión
-      console.error('❌ Máximos intentos de reconexión alcanzados. Limpiando tokens y redirigiendo...');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+    //  console.error('❌ Máximos intentos de reconexión alcanzados. Redirigiendo...');
       window.location.href = '/';
     }
   }
@@ -98,11 +95,22 @@ class BookingsWebSocket {
   }
 
   disconnect() {
+    // 🛑 NUEVO: Activamos la bandera
+    this.isIntentionalDisconnect = true;
+
+    // 🛑 NUEVO: Destruimos el temporizador si estaba contando
+    if (this.reconnectTimeoutId) {
+      clearTimeout(this.reconnectTimeoutId);
+      this.reconnectTimeoutId = null;
+    }
+
     if (this.ws) {
       this.ws.close(1000, 'Normal Closure');
       this.ws = null;
     }
+    
     this.listeners.clear();
+    this.reconnectAttempts = 0; // Reiniciamos los intentos por si entra otro usuario
   }
 }
 

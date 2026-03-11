@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from .views import RegisterView, UserViewSet, GroupViewSet, PermissionViewSet, GoogleLogin, AdminRegisterView, AdminManagementViewSet, UserProfileUpdateView, ChangePasswordView, LoginView, UserStatsView, ValidatePasswordResetTokenView # Añadir LoginView, UserStatsView y ValidatePasswordResetTokenView
+from .views import RegisterView, UserViewSet, GroupViewSet, PermissionViewSet, GoogleLogin, AdminRegisterView, AdminManagementViewSet, UserProfileUpdateView, ChangePasswordView, LoginView, RefreshView, LogoutView, UserStatsView, ValidatePasswordResetTokenView # Añadir LoginView, UserStatsView y ValidatePasswordResetTokenView
 from rest_framework import routers
 from .models import User
 from django.urls import path
@@ -19,7 +19,8 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
    
     path('login/', LoginView.as_view(), name='token_obtain_pair'), # Cambiado a LoginView
-    path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('login/refresh/', RefreshView.as_view(), name='token_refresh'),
+    path('logout/', LogoutView.as_view(), name='logout'),
     path('google/', GoogleLogin.as_view(), name='google_login'),
     
     # La ruta admin/register/ ya existe y usa AdminRegisterView.
@@ -42,3 +43,4 @@ urlpatterns = [
 ]
 # Las rutas para listar, suspender, reactivar y eliminar admins de cancha
 # ahora están manejadas por AdminManagementViewSet y registradas en el router.
+

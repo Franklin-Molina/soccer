@@ -9,6 +9,8 @@ import { GetAuthenticatedUserUseCase } from '../../application/use-cases/users/g
 import { LoginWithGoogleUseCase } from '../../application/use-cases/users/login-with-google.js';
 import { ResetPasswordUseCase } from '../../application/use-cases/users/reset-password.js';
 import { ResetPasswordConfirmUseCase } from '../../application/use-cases/users/reset-password-confirm.js';
+import { bookingsWebSocket } from '../../infrastructure/websocket/bookingsWebSocket.js'; 
+
 import { toast } from 'react-toastify'; // Importar toast de react-toastify
 
 // Crear el contexto de autenticación
@@ -66,6 +68,8 @@ export const AuthProvider = ({ children }) => {
       // console.error('Error al obtener información del usuario:', error); // Eliminado mensaje de consola
       // Si hay un error al obtener el usuario (ej. token expirado), el repositorio ya debería haber limpiado los tokens
       setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem('hasSession');
       setIsAuthenticated(false);
       // No redirigir aquí, la redirección al login se maneja en ProtectedRoute
     } finally {
@@ -129,21 +133,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Función para cerrar sesión usando el caso de uso
+// Función para cerrar sesión usando el caso de uso
   const logout = async () => {
+    // 1. CORTAR DE RAÍZ: Limpiamos el estado INMEDIATAMENTE.
+    // Esto desmontará los componentes protegidos al instante, evitando que hagan peticiones.
+    bookingsWebSocket.disconnect();
+    setIsAuthenticated(false);
+    setUser(null); 
+    
     try {
-      // Llamar al caso de uso para cerrar sesión
+      // 2. Avisar al backend para que destruya las cookies HttpOnly
       await logoutUserUseCase.execute();
-     // console.log("Sesión cerrada.");
-      // Limpiar estado local
-      setIsAuthenticated(false);
-      setUser(null);      
-      toast.info('Sesión cerrada exitosamente.'); // Alerta de cierre de sesión
-      return <Navigate to="/" replace />; // Redirigir a la página de inicio
+      toast.info('Sesión cerrada exitosamente.'); 
     } catch (error) {
-      // console.error('Error al cerrar sesión:', error); // Eliminado mensaje de consola
-      toast.error('Error al cerrar sesión.'); // Alerta de error al cerrar sesión
-      // Manejar el error si es necesario, aunque logout local debería ser robusto
+      console.error('Error al cerrar sesión en el servidor:', error);
+      // Aunque falle en el backend (ej. token ya expirado), igual debemos sacarlo del frontend.
+    } finally {
+      // 3. REDIRECCIÓN FORZADA
+      // Usamos window.location.href en lugar de navigate('/') para forzar 
+      // una limpieza total de la memoria del navegador y matar cualquier 
+      // petición fantasma que haya quedado en Axios.
+      window.location.href = '/'; 
     }
   };
 
@@ -164,12 +174,21 @@ export const AuthProvider = ({ children }) => {
   };
 
 
-  // Efecto para cargar la sesión al iniciar la aplicación
+// Efecto para cargar la sesión al iniciar la aplicación
   useEffect(() => {
     // Intentar obtener el usuario autenticado al cargar la app solo una vez
     if (!hasFetchedUser.current) {
+      hasFetchedUser.current = true; // Lo marcamos como ejecutado inmediatamente
+
+      // 👇 La magia de la bandera: si no hay sesión previa, cortamos de raíz
+      if (!localStorage.getItem('hasSession')) {
+        setIsAuthenticated(false);
+        setLoading(false); // ¡Vital para que tu app no se quede cargando infinitamente!
+        return; 
+      }
+
+      // Si la bandera sí existe, entonces hacemos la petición real al backend
       fetchUser();
-      hasFetchedUser.current = true;
     }
   }, []); // Se ejecuta solo una vez al montar el componente
 

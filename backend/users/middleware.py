@@ -24,29 +24,36 @@ def get_user(token_key):
     except (InvalidToken, TokenError, User.DoesNotExist):
         return AnonymousUser()
 
+from django.conf import settings
+from django.http import parse_cookie
+
 class JWTAuthMiddleware:
     """
-    Middleware para autenticar vía Subprotocolo (Sec-WebSocket-Protocol).
-    Esta técnica permite enviar el token sin exponerlo en los parámetros GET.
+    Middleware para autenticar vía Cookie HttpOnly en WebSockets.
     """
     def __init__(self, app):
         self.app = app
 
     async def __call__(self, scope, receive, send):
-        # Buscamos el token en los subprotocolos
-        subprotocols = scope.get('subprotocols', [])
+        # Intentar obtener el token de la cookie
+        headers = dict(scope.get('headers', []))
+        cookie_header = headers.get(b'cookie', b'').decode()
+        cookies = parse_cookie(cookie_header)
         
-        # Asumimos que si hay un subprotocolo, es el token
-        if subprotocols:
-            token = subprotocols[0] 
+        auth_cookie_name = settings.SIMPLE_JWT.get('AUTH_COOKIE', 'access_token')
+        token = cookies.get(auth_cookie_name)
+
+        if token:
             scope['user'] = await get_user(token)
-            
-            # ¡IMPORTANTE! 
-            # Debemos aceptar el subprotocolo para que el navegador no cierre la conexión
-            # por "protocol mismatch". Se pasa al scope para que el consumer lo maneje.
-            scope['accepted_subprotocol'] = token 
         else:
-            scope['user'] = AnonymousUser()
+            # Fallback a subprotocolo por si acaso (compatibilidad)
+            subprotocols = scope.get('subprotocols', [])
+            if subprotocols:
+                token = subprotocols[0]
+                scope['user'] = await get_user(token)
+                scope['accepted_subprotocol'] = token
+            else:
+                scope['user'] = AnonymousUser()
 
         return await self.app(scope, receive, send)
 

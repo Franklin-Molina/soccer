@@ -36,6 +36,9 @@ from .application.use_cases.change_password import ChangePasswordUseCase # Impor
 # Nota: Los casos de uso para login/logout/google se manejan en el frontend
 # y los endpoints de JWT/dj-rest-auth manejan la autenticación en el backend.
 
+# Añade esto en la parte superior de views.py
+from asgiref.sync import sync_to_async
+
 class UsersConfig(AppConfig):
     name = 'users'
     def ready(self):
@@ -244,98 +247,183 @@ class LoginView(views.APIView): # Cambiado de TokenObtainPairView a views.APIVie
         validation_time = time.time()
         # self.logger.debug(f"LoginView: Tiempo de validación del serializador (autenticación y generación de token): {validation_time - validation_start_time:.4f} segundos") # Log comentado
 
-        # El serializador CustomTokenObtainPairSerializer (o su base) debería establecer 'user'
-        # en sí mismo después de una validación exitosa si está personalizado para ello,
-        # o los datos validados contendrán los tokens.
-        # El objeto 'user' se obtiene del serializador si este lo expone.
-        # Si CustomTokenObtainPairSerializer no expone 'user', necesitaremos obtenerlo de request.data['username']
-        # y luego buscarlo, pero esto es menos ideal después de que el serializador ya lo validó.
-        # La práctica común es que el serializador TokenObtainPairSerializer establece self.user
-        # internamente y lo usa para generar el token.
-        # Para obtener el usuario, si el serializador no lo expone directamente,
-        # podemos tomar el username del request.data y buscar el usuario.
-        # Sin embargo, el serializador validado ya debería tener el usuario.
-        # TokenObtainPairSerializer en su método validate() establece self.user.
-        # Si CustomTokenObtainPairSerializer llama a super().validate(), entonces self.user estará disponible.
-
-        user = getattr(serializer, 'user', None) # Intentar obtener el usuario del serializador
+        user = getattr(serializer, 'user', None)
 
         if not user:
-            # Fallback si serializer.user no está disponible directamente.
-            # Esto no debería suceder si CustomTokenObtainPairSerializer hereda correctamente de TokenObtainPairSerializer
-            # y llama a super().validate().
-            self.logger.warning("LoginView: serializer.user no encontrado directamente. Esto puede indicar un problema en CustomTokenObtainPairSerializer.")
-            # Si no hay usuario, la validación del token ya falló o el serializador no lo expone.
-            # La respuesta de error ya se habrá lanzado desde is_valid(raise_exception=True)
-            # o se habrá devuelto una respuesta de error genérica.
-            # Este bloque es más una salvaguarda o para logging.
-            # No deberíamos llegar aquí si la validación falló y raise_exception=True.
-            # Si la validación fue exitosa pero 'user' no está, es un problema del serializador.
-            # Por ahora, si llegamos aquí, es un estado inesperado.
+            self.logger.warning("LoginView: serializer.user no encontrado directamente.")
             return Response({"detail": "Error al obtener el usuario después de la validación del token."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
         # Serializar el objeto de usuario para incluirlo en la respuesta
         user_serialization_start_time = time.time()
-        user_serializer_instance = UserSerializer(user) # UserSerializer ya está importado
+        user_serializer_instance = UserSerializer(user)
         user_data = user_serializer_instance.data
         user_serialization_time = time.time()
-        # self.logger.debug(f"LoginView: Tiempo de serialización del usuario: {user_serialization_time - user_serialization_start_time:.4f} segundos") # Log comentado
 
-        # Combinar los datos del token con los datos del usuario
-        response_data = serializer.validated_data.copy()
-        response_data['user'] = user_data
+        # Obtener tokens
+        access_token = serializer.validated_data.get('access')
+        refresh_token = serializer.validated_data.get('refresh')
+
+        # Preparar respuesta sin tokens en el cuerpo (opcional, pero mejor para seguridad)
+        response_data = {'user': user_data}
+        response = Response(response_data, status=status.HTTP_200_OK)
+
+        # Establecer cookies
+        from django.conf import settings
+        
+        response.set_cookie(
+            key=settings.SIMPLE_JWT['AUTH_COOKIE'],
+            value=access_token,
+            expires=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+            path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
+        )
+        response.set_cookie(
+            key=settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+            value=refresh_token,
+            expires=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+            path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
+        )
 
         process_end_time = time.time()
-        # self.logger.debug(f"LoginView: Tiempo total del proceso de login (exitoso): {process_end_time - process_start_time:.4f} segundos") # Log comentado
-        # self.logger.debug(f"LoginView: Respuesta del login enviada al frontend: {response_data}") # Log comentado
-
-        return Response(response_data, status=status.HTTP_200_OK)
+        return response
 
 class RefreshView(TokenRefreshView):
     permission_classes = [permissions.AllowAny]
 
-class GoogleLogin(SocialLoginView): # subclass the SocialLoginView
+    def post(self, request, *args, **kwargs):
+        # Intentar obtener el refresh token de la cookie si no está en el body
+        from django.conf import settings
+        refresh_token = request.data.get('refresh') or request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
+        
+        if not refresh_token:
+            return Response({"detail": "Refresh token no encontrado."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Inyectar el token en el data para que el serializador base lo encuentre
+        request.data['refresh'] = refresh_token
+        
+        try:
+            response = super().post(request, *args, **kwargs)
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
+
+        if response.status_code == 200:
+            access_token = response.data.get('access')
+            # Actualizar la cookie de access_token
+            response.set_cookie(
+                key=settings.SIMPLE_JWT['AUTH_COOKIE'],
+                value=access_token,
+                expires=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
+            )
+            # Si hay un nuevo refresh token (rotación), actualizarlo también
+            refresh_token_new = response.data.get('refresh')
+            if refresh_token_new:
+                response.set_cookie(
+                    key=settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+                    value=refresh_token_new,
+                    expires=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
+                    secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                    httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                    samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                    path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
+                )
+            
+            # Limpiar tokens del body de respuesta
+            if 'access' in response.data: del response.data['access']
+            if 'refresh' in response.data: del response.data['refresh']
+            
+        return response
+
+class LogoutView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        from django.conf import settings
+        response = Response({"detail": "Sesión cerrada exitosamente."}, status=status.HTTP_200_OK)
+        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
+        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
+        return response
+
+class GoogleLogin(SocialLoginView): 
     adapter_class = GoogleOAuth2Adapter
     client_class = OAuth2Client
     permission_classes = [permissions.AllowAny]
 
     def process_login(self):
-        # Llama al método original de SocialLoginView para procesar el login
-        super().process_login()
+        import time
+        print("⏳ 1. Iniciando process_login con Google...")
+        start_time = time.time()
 
-        # Verifica si el usuario tiene un rol asignado. Si no, asigna el rol 'cliente'.
-        if not self.user.role:
-            user_repository = DjangoUserRepository()
+        # AQUÍ ESTÁ LA MAGIA: Forzamos a que el código síncrono de allauth 
+        # corra en un hilo separado seguro para ASGI
+        try:
+            from asgiref.sync import sync_to_async
+            sync_to_async(super().process_login, thread_sensitive=True)()
+        except Exception as e:
+            print(f"Error en super().process_login: {e}")
+        
+        mid_time = time.time()
+        print(f"⏱️ 2. Validar con Google y Allauth tardó: {mid_time - start_time:.2f} segundos")
+
+        if not getattr(self.user, 'role', None):
             try:
-                # Obtener el rol 'cliente' por su ID (asumiendo que 3 es el ID de cliente)
-                # Es mejor obtenerlo por nombre para evitar dependencias de IDs fijos
-                # Pero si el usuario especificó ID 3, lo usaremos.
-                # Si el ID 3 es 'cliente', lo buscaremos por nombre para mayor robustez.
-                client_role = async_to_sync(user_repository.get_role_by_name)('cliente')
-                if client_role:
-                    self.user.role = client_role
-                    async_to_sync(self.user.asave)() # Usar asave para guardar de forma asíncrona
-                    print(f"Usuario {self.user.username} registrado con Google, rol 'cliente' asignado.")
-                else:
-                    print("Advertencia: El rol 'cliente' no se encontró en la base de datos.")
+                from .models import Role 
+                client_role = Role.objects.get(name='cliente')
+                self.user.role = client_role
+                self.user.save() 
+                
+                end_time = time.time()
+                print(f"⏱️ 3. Asignar rol y guardar en DB tardó: {end_time - mid_time:.2f} segundos")
+                print(f"✅ Usuario {self.user.username} registrado con Google.")
+            except Role.DoesNotExist:
+                print("Advertencia: El rol 'cliente' no se encontró.")
             except Exception as e:
-                print(f"Error al asignar el rol 'cliente' al usuario de Google: {e}")
+                print(f"Error al asignar el rol: {e}")
 
     def get_response(self):
-        # Obtener la respuesta base de SocialLoginView
-        response = super().get_response()
+        # 1. Ejecutar el flujo original de SocialLoginView
+        super().get_response()
 
-        # Generar un nuevo par de tokens (access y refresh) para el usuario autenticado
-        # Esto asegura que la respuesta siempre incluya ambos tokens
-        # Usar TokenObtainPairSerializer para generar ambos tokens
+        # 2. Generar JWT para el usuario autenticado
         token = TokenObtainPairSerializer.get_token(self.user)
-        refresh = token
-        access = token.access_token
+        access_token = str(token.access_token)
+        refresh_token = str(token)
 
-        # Modificar la respuesta para incluir ambos tokens
-        response.data['access_token'] = str(access)
-        response.data['refresh_token'] = str(refresh)
+        # 3. Preparar la respuesta JSON (SOLO con datos del usuario, igual que el login normal)
+        from .serializers import UserSerializer
+        user_data = UserSerializer(self.user).data
+        response = Response({'user': user_data}, status=status.HTTP_200_OK)
+
+        from django.conf import settings
+        # 4. Inyectar las cookies HttpOnly leyendo tu settings.py
+        response.set_cookie(
+            key=settings.SIMPLE_JWT['AUTH_COOKIE'],
+            value=access_token,
+            expires=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+            path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
+        )
+        
+        response.set_cookie(
+            key=settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+            value=refresh_token,
+            expires=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+            path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
+        )
 
         return response
     

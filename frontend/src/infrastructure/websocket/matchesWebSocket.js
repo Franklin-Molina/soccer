@@ -11,20 +11,6 @@ class MatchesWebSocket {
   }
 
   async connect() {
-    // 1. Obtención de tokens frescos: Siempre intentamos refrescar/obtener el más reciente
-    let token = await refreshToken();
-    
-    // Si no hay token después del refresh, intentamos el de localStorage como respaldo
-    if (!token) {
-      token = localStorage.getItem('accessToken');
-    }
-
-    // 2. Validación de tokens: Verificar que exista un token válido antes de conectar
-    if (!token) {
-    //  console.warn('⚠️ No se encontró un token válido para Matches WebSocket. Abortando.');
-      return;
-    }
-
     if (this.ws?.readyState === WebSocket.OPEN || this.ws?.readyState === WebSocket.CONNECTING) {
       return;
     }
@@ -35,8 +21,8 @@ class MatchesWebSocket {
     const wsUrl = `${wsProtocol}//${host}/ws/matches/`;
 
     try {
-     // console.log(`🔌 Conectando a Matches WebSocket (intento ${this.reconnectAttempts + 1})...`);
-      this.ws = new WebSocket(wsUrl, [token]);
+      // Ya no enviamos el token manualmente; las cookies se envían automáticamente
+      this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
       //  console.log('✅ Matches WebSocket conectado');
@@ -59,11 +45,11 @@ class MatchesWebSocket {
       this.ws.onclose = async (event) => {
         console.log(`🔌 Matches WebSocket desconectado (Código: ${event.code})`);
         
-        // Si el código es 4001, el token probablemente expiró
-        if (event.code === 4001) {
-          console.log('🔑 Token expirado (4001). Intentando refrescar y reconectar a Matches...');
-          const newToken = await refreshToken();
-          if (newToken) {
+        // El backend de Channels podría cerrar con 4001 o 4003 si no hay cookie
+        if (event.code === 4001 || event.code === 4003) {
+          console.log('🔑 Sesión expirada. Intentando refrescar y reconectar a Matches...');
+          const success = await refreshToken();
+          if (success) {
             this.reconnectAttempts = 0;
             this.connect();
             return;
@@ -86,10 +72,7 @@ class MatchesWebSocket {
       console.log(`⏳ Reintentando conexión a Matches en ${this.reconnectDelay}ms...`);
       setTimeout(() => this.connect(), this.reconnectDelay);
     } else {
-      // 3 & 4. Limpieza de tokens y Fuerza de nuevo inicio de sesión
-      console.error('❌ Máximos intentos de reconexión Matches alcanzados. Limpiando tokens...');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+      console.error('❌ Máximos intentos de reconexión Matches alcanzados. Redirigiendo...');
       window.location.href = '/';
     }
   }

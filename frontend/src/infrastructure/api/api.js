@@ -1,98 +1,63 @@
 import axios from 'axios';
 
-// TODO: Configurar la URL base de la API desde una variable de entorno
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/api';
+// URL base de la API
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  // Configuración para incluir la cookie CSRF automáticamente
   xsrfCookieName: 'csrftoken',
   xsrfHeaderName: 'X-CSRFToken',
-  withCredentials: true, // Importante para enviar cookies a través de dominios/puertos
+  withCredentials: true, // ¡Crucial para las cookies HttpOnly!
 });
 
 let refreshTokenPromise = null;
 
-// Función auxiliar para refrescar el token con reintentos para manejar el "cold start" de Render
-export const refreshToken = async (failedToken = null, retries = 3, delay = 5000) => {
-  // Si el token en localStorage ya es diferente al que falló, significa que otra petición ya lo refrescó
-  const currentToken = localStorage.getItem('accessToken');
-  if (failedToken && currentToken !== failedToken && currentToken !== null) {
-    return currentToken;
-  }
-
-  // Si ya hay un refresco en curso, retornar esa misma promesa
+// Función auxiliar para refrescar el token (Optimizada)
+export const refreshToken = async (retries = 3, delay = 5000) => {
   if (refreshTokenPromise) {
     return refreshTokenPromise;
   }
 
-  const refresh = localStorage.getItem('refreshToken');
-  if (!refresh) {
-    console.warn('❌ No hay refreshToken disponible en localStorage');
-    return null;
-  }
-
   refreshTokenPromise = (async () => {
     for (let i = 0; i < retries; i++) {
-    try {
-      // console.log(`🔄 Intentando refrescar token (intento ${i + 1}/${retries})...`);
-      const response = await axios.post(`${API_BASE_URL}/api/users/login/refresh/`, { refresh });
-      const { access } = response.data;
-      
-      // console.log('✅ Token refrescado exitosamente');
-      localStorage.setItem('accessToken', access);
-      refreshTokenPromise = null;
-      return access;
-    } catch (error) {
-      const isLastAttempt = i === retries - 1;
-      const serverAwakening = !error.response || error.code === 'ECONNABORTED' || error.message === 'Network Error';
-
-      // Si el servidor no responde (cold start) y no es el último intento, esperar y reintentar
-      if (serverAwakening && !isLastAttempt) {
-        console.warn(`⏳ Backend despertando (intento ${i + 1}/${retries})... esperando ${delay}ms`);
-        await new Promise(res => setTimeout(res, delay));
-        continue;
-      }
-
-      // 1. Manejo selectivo de limpieza de tokens: Solo limpiar si hay error real
-      // Si el error es una respuesta del servidor (ej: 401, 400), el token de refresco ya no es válido
-      if (error.response) {
-        console.error('❌ Error real del servidor al refrescar token. Limpiando credenciales:', error.response.status, error.response.data);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-      } else if (isLastAttempt) {
-        console.error('❌ Se agotaron los reintentos y el servidor sigue sin responder.');
-      }
-
-      if (isLastAttempt) {
+      try {
+        // Usamos axios puro para evitar bucles infinitos con el interceptor de 'api'
+        await axios.post(`${API_BASE_URL}/api/users/login/refresh/`, {}, { withCredentials: true });
+        
         refreshTokenPromise = null;
+        return true; // Éxito
+      } catch (error) {
+        const isLastAttempt = i === retries - 1;
+        const serverAwakening = !error.response || error.code === 'ECONNABORTED' || error.message === 'Network Error';
+
+        if (serverAwakening && !isLastAttempt) {
+          console.warn(`⏳ Backend despertando (intento ${i + 1}/${retries})... esperando ${delay}ms`);
+          await new Promise(res => setTimeout(res, delay));
+          continue;
+        }
+
+        if (error.response && (error.response.status === 401 || error.response.status === 400)) {
+          console.error('❌ Error al refrescar token (Cookie expirada o inválida)');
+        }
+
+        if (isLastAttempt) {
+          // 👇 Si fallan todos los intentos, matamos la bandera de sesión por seguridad
+          localStorage.removeItem('hasSession');
+          refreshTokenPromise = null;
+        }
+        return false; // Retornamos false explícitamente al fallar
       }
-      return null;
     }
-  }
-  refreshTokenPromise = null;
-  return null;
+    return false;
   })();
 
   return refreshTokenPromise;
 };
 
-api.interceptors.request.use(
-  (config) => {
-    const accessToken = localStorage.getItem('accessToken'); 
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
+// Interceptor de Respuestas
 api.interceptors.response.use(
   (response) => {
     return response;
@@ -100,39 +65,26 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // CASO 1: El servidor está apagado o no hay internet (Cold Start)
-    if (!error.response && !originalRequest._retry) {
-      originalRequest._retry = true;
-      console.warn("⚠️ El servidor no responde. Intentando despertar backend...");
-      
-      const currentToken = localStorage.getItem('accessToken');
-      const newAccessToken = await refreshToken(currentToken);
-      if (newAccessToken) {
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return api(originalRequest);
-      }
+    // 1. Evitar bucles: si el error viene del endpoint de refresco, lo rechazamos de inmediato
+    if (originalRequest.url.includes('/api/users/login/refresh/')) {
+      return Promise.reject(error); 
     }
 
-    // CASO 2: Error 401 (Token expirado o inválido)
-    if (error.response && error.response.status === 401) {
-      if (!originalRequest._retry) {
-        originalRequest._retry = true;
+    // 2. Manejar el error 401 (Acceso denegado)
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
 
-        // Extraer el token que falló de los headers de la petición original
-        const authHeader = originalRequest.headers.Authorization;
-        const failedToken = authHeader ? authHeader.split(' ')[1] : null;
+      // 👇 Llamamos a tu super función de arriba en lugar de reescribir la petición
+      const refreshSuccess = await refreshToken();
 
-        const newAccessToken = await refreshToken(failedToken);
-        if (newAccessToken) {
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          return api(originalRequest);
-        }
+      if (refreshSuccess) {
+        // Si el refresco fue exitoso, reintentamos la petición original
+        return api(originalRequest);
+      } else {
+        // Si falló, la sesión está muerta. Limpiamos la bandera y rechazamos.
+        localStorage.removeItem('hasSession');
+        return Promise.reject(error);
       }
-
-      // Si el refresco falla o ya se intentó, limpiar y redirigir
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      window.location.href = '/';
     }
 
     return Promise.reject(error);

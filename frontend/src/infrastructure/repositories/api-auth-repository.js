@@ -17,15 +17,16 @@ export class ApiAuthRepository extends IAuthRepository {
   async login(username, password) {
     try {
       const response = await api.post('/api/users/login/', { username, password });
-      const { access, refresh, user } = response.data; // Extraer access, refresh, y user
-      const tokens = new AuthTokens({ access, refresh });
-      await this.saveTokens(tokens); // Guardar tokens después de un login exitoso
+      const { user } = response.data; 
       
-      // Crear instancia de AuthenticatedUser y devolver tokens y usuario
+      localStorage.setItem('hasSession', 'true');
+      // Ya no recibimos ni guardamos tokens explícitamente en localStorage
+      // Las cookies son manejadas automáticamente por el navegador y withCredentials: true
+      
       const authenticatedUserInstance = new AuthenticatedUser(user);
-      return { tokens, user: authenticatedUserInstance };
+      localStorage.setItem('hasSession', 'true');
+      return { user: authenticatedUserInstance };
     } catch (error) {
-    //  console.error('Error logging in:', error);
       throw error;
     }
   }
@@ -36,12 +37,11 @@ export class ApiAuthRepository extends IAuthRepository {
    * @returns {Promise<AuthTokens>} Una promesa que resuelve con los tokens de autenticación.
    */
   async loginWithGoogle(googleAccessToken) {
+    // Nota: El backend de Google Login también debería actualizarse para usar cookies
+    // Por ahora, asumimos que se ajustará similar a LoginView
     try {
       const response = await api.post('/api/users/google/', { access_token: googleAccessToken });
-      const { access_token: access, refresh_token: refresh } = response.data;
-      const tokens = new AuthTokens({ access, refresh });
-      await this.saveTokens(tokens); // Guardar tokens después de un login exitoso
-      return tokens;
+      return response.data;
     } catch (error) {
       console.error('Error logging in with Google:', error);
       throw error;
@@ -53,14 +53,13 @@ export class ApiAuthRepository extends IAuthRepository {
    * @returns {Promise<void>} Una promesa que resuelve cuando la sesión se ha cerrado.
    */
   async logout() {
-    // Opcional: llamar a un endpoint de logout en el backend si existe
-    // try {
-    //   await api.post('/users/logout/');
-    // } catch (error) {
-    //   console.error('Error calling backend logout:', error);
-    //   // Continuar eliminando tokens localmente incluso si la llamada al backend falla
-    // }
+    try {
+      await api.post('/api/users/logout/');
+    } catch (error) {
+      console.error('Error calling backend logout:', error);
+    }
     await this.removeTokens();
+    localStorage.removeItem('hasSession');
   }
 
   /**
@@ -69,48 +68,32 @@ export class ApiAuthRepository extends IAuthRepository {
    */
   async getAuthenticatedUser() {
     try {
-      const tokens = await this.getTokens();
-      if (!tokens || !tokens.access) {
-        return null; // No hay tokens, no hay usuario autenticado
-      }
-      // La instancia de api ya adjunta el token de acceso si existe en localStorage
+      // Intentamos obtener el usuario actual. Si no hay cookie válida, fallará con 401
       const response = await api.get('/api/users/users/me/');
       return new AuthenticatedUser(response.data);
     } catch (error) {
-   //   console.error('Error fetching authenticated user:', error);
-      // Si hay un error (ej. 401), eliminar tokens locales
-      if (error.response && error.response.status === 401) {
-         await this.removeTokens();
-      }
-      throw error; // Relanzar el error
+      // Si hay un error (ej. 401), el usuario no está autenticado
+      return null;
     }
   }
 
   /**
-   * Guarda los tokens de autenticación en localStorage.
-   * @param {AuthTokens} tokens - Los tokens a guardar.
-   * @returns {Promise<void>} Una promesa que resuelve cuando los tokens se han guardado.
+   * Guarda los tokens de autenticación (deprecated).
    */
   async saveTokens(tokens) {
-    localStorage.setItem('accessToken', tokens.access);
-    localStorage.setItem('refreshToken', tokens.refresh);
+    // No hacer nada, las cookies se encargan
   }
 
   /**
-   * Obtiene los tokens de autenticación desde localStorage.
-   * @returns {Promise<AuthTokens | null>} Una promesa que resuelve con los tokens guardados o null.
+   * Obtiene los tokens de autenticación (deprecated).
    */
   async getTokens() {
-    const access = localStorage.getItem('accessToken');
-    const refresh = localStorage.getItem('refreshToken');
-    if (access && refresh) {
-      return new AuthTokens({ access, refresh });
-    }
+    // No podemos acceder a cookies HttpOnly desde JS
     return null;
   }
 
   /**
-   * Elimina los tokens de autenticación de localStorage.
+   * Elimina los tokens de autenticación de localStorage (limpieza).
    * @returns {Promise<void>} Una promesa que resuelve cuando los tokens se han eliminado.
    */
   async removeTokens() {
@@ -165,5 +148,5 @@ export class ApiAuthRepository extends IAuthRepository {
     }
   }
 
-  // TODO: Implementar métodos para refrescar tokens, registrar usuario, etc.
+
 }

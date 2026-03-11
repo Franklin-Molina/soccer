@@ -11,20 +11,6 @@ class UsersWebSocket {
   }
 
   async connect() {
-    // 1. Obtención de tokens frescos: Siempre intentamos refrescar/obtener el más reciente
-    let token = await refreshToken();
-    
-    // Si no hay token después del refresh, intentamos el de localStorage como respaldo
-    if (!token) {
-      token = localStorage.getItem('accessToken');
-    }
-
-    // 2. Validación de tokens: Verificar que exista un token válido antes de conectar
-    if (!token) {
-      console.warn('⚠️ No se encontró un token válido para Users WebSocket. Abortando.');
-      return;
-    }
-
     if (this.ws?.readyState === WebSocket.OPEN || this.ws?.readyState === WebSocket.CONNECTING) return;
     if (this.isConnecting) return;
 
@@ -36,7 +22,8 @@ class UsersWebSocket {
     try {
       console.log(`🔌 Conectando a Users WebSocket (intento ${this.reconnectAttempts + 1})...`);
       this.isConnecting = true;
-      this.ws = new WebSocket(wsUrl, [token]);
+      // Ya no enviamos el token manualmente; las cookies se envían automáticamente
+      this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
         console.log('✅ Users WebSocket conectado');
@@ -62,11 +49,11 @@ class UsersWebSocket {
         this.isConnecting = false;
         console.log(`🔌 Users WebSocket desconectado (Código: ${event.code})`);
         
-        // Si el código es 4001, el token probablemente expiró
-        if (event.code === 4001) {
-          console.log('🔑 Token expirado (4001). Intentando refrescar y reconectar a Users...');
-          const newToken = await refreshToken();
-          if (newToken) {
+        // El backend de Channels podría cerrar con 4001 o 4003 si no hay cookie
+        if (event.code === 4001 || event.code === 4003) {
+          console.log('🔑 Sesión expirada. Intentando refrescar y reconectar a Users...');
+          const success = await refreshToken();
+          if (success) {
             this.reconnectAttempts = 0;
             this.connect();
             return;
@@ -92,10 +79,7 @@ class UsersWebSocket {
       console.log(`⏳ Reintentando conexión a Users en ${delay}ms...`);
       setTimeout(() => this.connect(), delay);
     } else {
-      // 3 & 4. Limpieza de tokens y Fuerza de nuevo inicio de sesión
-      console.error('❌ Máximos intentos de reconexión Users alcanzados. Limpiando tokens...');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+      console.error('❌ Máximos intentos de reconexión Users alcanzados. Redirigiendo...');
       window.location.href = '/';
     }
   }

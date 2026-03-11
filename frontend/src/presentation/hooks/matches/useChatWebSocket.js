@@ -1,5 +1,7 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback } from 'react';
 import { refreshToken } from '../../../infrastructure/api/api';
+// IMPORTANTE: Ajusta esta ruta según la ubicación real de tu AuthContext
+import { useAuth } from '../../context/AuthContext.jsx'; 
 
 class ChatWebSocket {
   constructor() {
@@ -7,6 +9,10 @@ class ChatWebSocket {
     this.matchId = null;
     this.listeners = [];
     this.connecting = false;
+    
+    // Variables de control anti-bucles (como en los otros WS)
+    this.reconnectTimeoutId = null;
+    this.isIntentionalDisconnect = false;
   }
 
   async connect(matchId) {
@@ -16,78 +22,72 @@ class ChatWebSocket {
       return;
     }
 
+    // Bajamos la bandera al intentar conectar
+    this.isIntentionalDisconnect = false;
+
     if (this.ws) {
       this.ws.close();
     }
 
     this.connecting = true;
     this.matchId = matchId;
-    
-    // Validar y refrescar token antes de conectar
-    let token = localStorage.getItem('accessToken');
-
-    // Si no hay token, no intentar conectar
-    if (!token || token === 'null' || token === 'undefined') {
-     // console.warn("⛔ No hay token disponible. Deteniendo intento de conexión WS.");
-      this.connecting = false;
-      return;
-    }
-    
-    // Intentamos refrescar siempre para asegurar token fresco al conectar WebSocket
-    // o podrías decodificar el JWT para ver si expiró. Por simplicidad, refrescamos.
-    try {
-      const newToken = await refreshToken();
-      if (newToken) {
-        token = newToken;
-      }
-    } catch (error) {
-      // console.error("Error refreshing token for WebSocket:", error);
-      // Si falla el refresco, seguimos con el token actual o fallará la conexión
-    }
 
     const wsBaseUrl = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     const wsHost = apiUrl.replace(/^https?:\/\//, '');
     const wsUrl = `${wsBaseUrl}//${wsHost}/ws/chat/${matchId}/`;
 
-    //console.log(`Intentando conectar a WebSocket: ${wsUrl}`);
-    // Pasamos el token como un subprotocolo para evitar exponerlo en la URL
-    this.ws = new WebSocket(wsUrl, [token]);
+    try {
+      // Magia de las cookies HttpOnly: el navegador las envía solas, 
+      // ya no pasamos el token por la URL ni por subprotocolos.
+      this.ws = new WebSocket(wsUrl);
 
-    this.ws.onopen = () => {
-      this.connecting = false;
-    //  console.log(`✅ Chat WebSocket conectado al match ${matchId}`);
-    };
+      this.ws.onopen = () => {
+        this.connecting = false;
+      };
 
-    this.ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-    this.listeners.forEach(callback => callback(data));
-  };
+      this.ws.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            this.listeners.forEach(callback => callback(data));
+        } catch (error) {
+            console.error('❌ Error parseando mensaje Chat WebSocket:', error);
+        }
+      };
 
-  this.ws.onerror = (error) => {
-      this.connecting = false;
-    //  console.error('❌ Error Chat WebSocket:', error);
-    };
+      this.ws.onerror = (error) => {
+        this.connecting = false;
+      };
 
-    this.ws.onclose = async (event) => {
-      this.connecting = false;
-     // console.log(`🔌 Chat WebSocket desconectado del match ${matchId}. Código: ${event.code}`);
-      
-      // Si el código es 4001 (No valid user) o similar, forzar refresco total antes de reintentar
-      if (event.code === 4001 || event.code === 4002) {
-        console.log('🔑 Token expirado o inválido (4001/4002). Intentando refrescar y reconectar chat...');
-        const newToken = await refreshToken();
-        if (newToken) {
-          this.connect(matchId);
+      this.ws.onclose = async (event) => {
+        this.connecting = false;
+        
+        // 🛑 Freno de emergencia: Si el usuario cerró sesión, no reconectar
+        if (this.isIntentionalDisconnect) {
           return;
         }
-      }
+        
+        // Códigos 4001, 4002, 4003 indican problemas de sesión en Channels
+        if (event.code === 4001 || event.code === 4002 || event.code === 4003) {
+          console.log('🔑 Sesión expirada en chat. Intentando refrescar...');
+          const success = await refreshToken();
+          if (success) {
+            this.connect(matchId);
+            return;
+          }
+        }
 
-      if (event.code !== 1000 && event.code < 4000) {
-       // console.log('🔄 Intentando reconectar chat...');
-        setTimeout(() => this.connect(matchId), 3000);
-      }
-    };
+        // Si fue una caída de red, reintentar en 3 segundos
+        if (event.code !== 1000 && event.code !== 1001) {
+          this.reconnectTimeoutId = setTimeout(() => this.connect(matchId), 3000);
+        }
+      };
+    } catch (error) {
+        this.connecting = false;
+        if (!this.isIntentionalDisconnect) {
+            this.reconnectTimeoutId = setTimeout(() => this.connect(matchId), 3000);
+        }
+    }
   }
 
   sendMessage(message) {
@@ -110,27 +110,43 @@ class ChatWebSocket {
   }
 
   disconnect() {
+    // 🛑 Activamos bandera y destruimos temporizadores
+    this.isIntentionalDisconnect = true;
+    
+    if (this.reconnectTimeoutId) {
+      clearTimeout(this.reconnectTimeoutId);
+      this.reconnectTimeoutId = null;
+    }
+
     if (this.ws) {
-      this.ws.close();
+      this.ws.close(1000, 'Normal Closure');
       this.ws = null;
       this.matchId = null;
     }
+    
+    this.listeners = [];
+    this.connecting = false;
   }
 }
 
-const chatWebSocket = new ChatWebSocket();
+// 🛑 IMPORTANTE: Exportamos la instancia para poder apagarla desde el AuthContext
+export const chatWebSocket = new ChatWebSocket();
 
 export const useChatWebSocket = (matchId, onMessage) => {
+  const { isAuthenticated } = useAuth(); // Integramos tu validación global
+
   useEffect(() => {
-    if (!matchId) return;
+    // Si no hay ID de partido o el usuario NO tiene sesión, bloqueamos la conexión
+    if (!matchId || !isAuthenticated) return;
 
     chatWebSocket.connect(matchId);
+    
     const unsubscribe = chatWebSocket.subscribe(onMessage);
 
     return () => {
       unsubscribe();
     };
-  }, [matchId, onMessage]);
+  }, [matchId, onMessage, isAuthenticated]);
 
   const sendMessage = useCallback((message) => {
     chatWebSocket.sendMessage(message);
