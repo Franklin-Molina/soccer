@@ -9,7 +9,7 @@ const NotFound = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 px-4 text-center">
       <div className="max-w-md w-full">
-        <h1 className="text-9xl font-extrabold text-black-600 tracking-widest">404</h1>
+        <h1 className="text-9xl font-extrabold text-black-600 tracking-widest dark:text-white">404</h1>
         <div className="bg-black text-white px-2 text-sm rounded rotate-12 absolute transform -translate-y-12 translate-x-1/2 inline-block">
           Página No Encontrada
         </div>

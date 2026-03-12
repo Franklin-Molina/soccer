@@ -3,7 +3,6 @@ import { Route, Routes } from 'react-router-dom';
 import { RepositoryProvider } from './presentation/context/RepositoryContext.jsx';
 import { UseCaseProvider } from './presentation/context/UseCaseContext.jsx';
 import { NotificationProvider, useNotification } from './presentation/context/NotificationContext.jsx';
-import { useBookingNotifier } from './presentation/hooks/bookings/useBookingNotifier.js';
 import Notification from './presentation/components/common/Notification.jsx';
 import HomePage from './presentation/pages/general/HomePage.jsx'; // Ruta actualizada
 import RegisterForm from './presentation/components/Auth/RegisterForm.jsx';
@@ -55,13 +54,10 @@ function App() {
 
 // Componente para manejar la lógica de notificaciones globales
 function GlobalNotificationHandler() {
-  const { user } = useAuth(); // Obtener el usuario del contexto de autenticación
-
-  // El notificador se llama incondicionalmente, pero solo se activa si el usuario es admin.
-  const isUserAdmin = user && (user.role === 'admin');
-  useBookingNotifier(isUserAdmin);
-
   const { notification } = useNotification();
+  
+  // ¡Adiós al bucle infinito y al viejo notificador! 👋
+  
   return <Notification message={notification} />;
 }
 

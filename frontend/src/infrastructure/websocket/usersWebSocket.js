@@ -20,13 +20,13 @@ class UsersWebSocket {
     const wsUrl = `${wsProtocol}//${host}/ws/users/`;
 
     try {
-      console.log(`🔌 Conectando a Users WebSocket (intento ${this.reconnectAttempts + 1})...`);
+     // console.log(`🔌 Conectando a Users WebSocket (intento ${this.reconnectAttempts + 1})...`);
       this.isConnecting = true;
       // Ya no enviamos el token manualmente; las cookies se envían automáticamente
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
-        console.log('✅ Users WebSocket conectado');
+       // console.log('✅ Users WebSocket conectado');
         this.reconnectAttempts = 0;
         this.isConnecting = false;
       };
