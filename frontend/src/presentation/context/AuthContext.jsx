@@ -158,17 +158,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Función para iniciar sesión con Google usando el caso de uso
+ // Función para iniciar sesión con Google usando el caso de uso
   const loginWithGoogle = async (googleAccessToken) => {
     try {
       // Llamar al caso de uso para iniciar sesión con Google
       const tokens = await loginWithGoogleUseCase.execute(googleAccessToken);
-      // console.log("Login con Google exitoso, tokens obtenidos:", tokens); // Eliminado mensaje de consola
+      
+      // 🔥 LA SOLUCIÓN: Levantamos la bandera para sobrevivir a la recarga (F5)
+      localStorage.setItem('hasSession', 'true');
+      
       // Después de obtener los tokens, obtener la información del usuario
-      await fetchUser(); // fetchUser ahora maneja la redirección después de obtener el usuario
+      await fetchUser(); 
 
     } catch (error) {
-      // console.error('Error al iniciar sesión con Google:', error); // Eliminado mensaje de consola
-      // Relanzar el error para que el componente de UI lo maneje
       throw error;
     }
   };
