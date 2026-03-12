@@ -1,42 +1,75 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // 🔥 1. Agregamos los hooks aquí
 import { Route, Routes } from 'react-router-dom';
 import { RepositoryProvider } from './presentation/context/RepositoryContext.jsx';
 import { UseCaseProvider } from './presentation/context/UseCaseContext.jsx';
 import { NotificationProvider, useNotification } from './presentation/context/NotificationContext.jsx';
 import Notification from './presentation/components/common/Notification.jsx';
-import HomePage from './presentation/pages/general/HomePage.jsx'; // Ruta actualizada
+import HomePage from './presentation/pages/general/HomePage.jsx'; 
 import RegisterForm from './presentation/components/Auth/RegisterForm.jsx';
 import ForgotPassword from './presentation/components/Auth/ForgotPassword.jsx';
 import ResetPasswordConfirm from './presentation/components/Auth/ResetPasswordConfirm.jsx';
 import ActivateAccount from './presentation/components/Auth/ActivateAccount.jsx';
-import BookingPage from './presentation/pages/bookings/BookingPage.jsx'; // Ruta actualizada
+import BookingPage from './presentation/pages/bookings/BookingPage.jsx'; 
 import ProtectedRoute from './presentation/components/Auth/ProtectedRoute.jsx';
 import AuthPage from './presentation/components/Auth/AuthPage.jsx';
 import AdminRegisterPage from './presentation/components/Auth/AdminRegisterPage.jsx';
 import Layout from './presentation/components/common/Layout.jsx';
 import DashboardLayout from './presentation/components/Dashboard/DashboardLayout.jsx';
-import DashboardOverviewPage from './presentation/pages/dashboard/overview/DashboardOverviewPage.jsx'; // Ruta actualizada
-import DashboardCourtsPage from './presentation/pages/dashboard/courts/DashboardCourtsPage.jsx'; // Ruta actualizada
-import DashboardManageCourtsPage from './presentation/pages/dashboard/courts/DashboardManageCourtsPage.jsx'; // Ruta actualizada
-import CourtDetailPage from './presentation/pages/courts/CourtDetailPage.jsx'; // Ruta actualizada
-import DashboardBookingsPage from './presentation/pages/dashboard/bookings/DashboardBookingsPage.jsx'; // Ruta actualizada
-import BookingHistoryPage from './presentation/pages/dashboard/bookings/BookingHistoryPage.jsx'; // Nueva importación
-import DashboardProfilePage from './presentation/pages/dashboard/users/DashboardProfilePage.jsx'; // Ruta actualizada
-import DashboardUsersPage from './presentation/pages/dashboard/users/DashboardUsersPage.jsx'; // Ruta actualizada
-import DashboardModifyCourtPage from './presentation/pages/dashboard/courts/DashboardModifyCourtPage.jsx'; // Ruta actualizada
-import AdminGlobalDashboardPage from './presentation/pages/dashboard/admin/AdminGlobalDashboardPage.jsx'; // Ruta actualizada
+import DashboardOverviewPage from './presentation/pages/dashboard/overview/DashboardOverviewPage.jsx'; 
+import DashboardCourtsPage from './presentation/pages/dashboard/courts/DashboardCourtsPage.jsx'; 
+import DashboardManageCourtsPage from './presentation/pages/dashboard/courts/DashboardManageCourtsPage.jsx'; 
+import CourtDetailPage from './presentation/pages/courts/CourtDetailPage.jsx'; 
+import DashboardBookingsPage from './presentation/pages/dashboard/bookings/DashboardBookingsPage.jsx'; 
+import BookingHistoryPage from './presentation/pages/dashboard/bookings/BookingHistoryPage.jsx'; 
+import DashboardProfilePage from './presentation/pages/dashboard/users/DashboardProfilePage.jsx'; 
+import DashboardUsersPage from './presentation/pages/dashboard/users/DashboardUsersPage.jsx'; 
+import DashboardModifyCourtPage from './presentation/pages/dashboard/courts/DashboardModifyCourtPage.jsx'; 
+import AdminGlobalDashboardPage from './presentation/pages/dashboard/admin/AdminGlobalDashboardPage.jsx'; 
 import ManageAdminsTable from './presentation/components/AdminGlobalDashboard/ManageAdminsTable.jsx';
-import CategoryManagement from './presentation/components/Courts/CategoryManagement.jsx'; // Nueva importación
+import CategoryManagement from './presentation/components/Courts/CategoryManagement.jsx'; 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ClientDashboardLayout from './presentation/components/Dashboard/ClientDashboardLayout.jsx';
-import MyBookingsPage from './presentation/pages/bookings/MyBookingsPage.jsx'; // Ruta actualizada
+import MyBookingsPage from './presentation/pages/bookings/MyBookingsPage.jsx'; 
 import OpenMatchesPage from './presentation/pages/Matches/OpenMatchesPage.jsx';
-import { AuthProvider, useAuth } from './presentation/context/AuthContext.jsx'; // Importar AuthProvider y useAuth
-import Spinner from './presentation/components/common/Spinner.jsx'; // Importar Spinner
-import NotFound from './presentation/components/common/NotFound.jsx'; // Importar NotFound
+import { AuthProvider, useAuth } from './presentation/context/AuthContext.jsx'; 
+import Spinner from './presentation/components/common/Spinner.jsx'; 
+import NotFound from './presentation/components/common/NotFound.jsx'; 
+import ServerErrorFallback from './presentation/components/common/ServerErrorFallback.jsx'; // 🔥 2. Ruta corregida
+
 
 function App() {
+  const [isServerDown, setIsServerDown] = useState(false);
+
+  useEffect(() => {
+    // 1. Escuchamos el evento que dispara api.js
+    const handleServerDown = () => {
+      setIsServerDown(true);
+    };
+
+    window.addEventListener('server-down', handleServerDown);
+
+    // 2. Limpiamos el evento si el componente se desmonta
+    return () => {
+      window.removeEventListener('server-down', handleServerDown);
+    };
+  }, []);
+
+  // 3. El Cortacircuitos: Si el servidor cae, mostramos ESTO y nada más.
+  if (isServerDown) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <ServerErrorFallback 
+          title="Sin conexión al servidor"
+          message="El backend está apagado o no responde. Si estás en modo local, asegúrate de correr 'python manage.py runserver'."
+          onRetry={() => {
+            setIsServerDown(false);
+            window.location.reload(); // Recargamos para reintentar todo
+          }} 
+        />
+      </div>
+    );
+  }
   return (
     <RepositoryProvider>
       <UseCaseProvider>

@@ -33,20 +33,25 @@ function HomePage({ openAuthModal }) {
 
   if (error) {
     const isNetworkError = error.message === 'Network Error' || error.code === 'ERR_NETWORK';
+    // Comprobamos si el servidor respondió, pero con un estado 500 o superior
+    const isServerError = error.response && error.response.status >= 500;
+
     if (isNetworkError) {
+      return <ServerErrorFallback onRetry={() => window.location.reload()} />;
+    }
+
+    if (isServerError) {
       return (
         <ServerErrorFallback 
-          onRetry={() => {
-             // Si tienes la función para recargar expuesta en tu hook, úsala.
-             // Si no, un simple window.location.reload() funciona perfecto.
-             window.location.reload(); 
-          }} 
+          onRetry={() => window.location.reload()} 
+          title="Estamos experimentando problemas técnicos"
+          message="Nuestra base de datos o servidor interno encontró un error inesperado. Nuestro equipo técnico ya ha sido notificado. Por favor, intenta nuevamente en unos minutos."
         />
       );
     }
     return (
       <div className="flex justify-center items-center h-screen text-red-500 text-lg font-semibold bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:to-gray-800">
-        Error al cargargg canchas: {error.message}
+        Error al cargar canchas: {error.message}
       </div>
     );
   }

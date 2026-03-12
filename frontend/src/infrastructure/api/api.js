@@ -1,10 +1,12 @@
 import axios from 'axios';
 
+
 // URL base de la API
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 2000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -56,32 +58,74 @@ export const refreshToken = async (retries = 3, delay = 5000) => {
 
   return refreshTokenPromise;
 };
+let isServerDownFlag = false; 
+// Interceptor de PETICIÓN (actúa ANTES de que salga la llamada)
+api.interceptors.request.use((config) => {
+  if (isServerDownFlag) {
+    // Si ya sabemos que está caído, abortamos el vuelo inmediatamente
+    // Esto evita que el navegador intente conectar y tire el error rojo
+    return Promise.reject(new Error("Bloqueado por cortacircuitos: Servidor apagado."));
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+let isRefreshing = false;
+let refreshSubscribers = [];
 
-// Interceptor de Respuestas
+function subscribeTokenRefresh(cb) {
+  refreshSubscribers.push(cb);
+}
+
+function onRefreshed() {
+  refreshSubscribers.forEach(cb => cb());
+  refreshSubscribers = [];
+}
+
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
+
   async (error) => {
     const originalRequest = error.config;
 
-    // 1. Evitar bucles: si el error viene del endpoint de refresco, lo rechazamos de inmediato
-    if (originalRequest.url.includes('/api/users/login/refresh/')) {
-      return Promise.reject(error); 
+    // 🔥 AHORA SÍ: El cortacircuitos está dentro del interceptor
+    if (!error.response) {
+      isServerDownFlag = true; // 🔒 CERRAMOS EL CANDADO PARA LAS DEMÁS
+      console.warn("Servidor no disponible");
+      
+      // Disparamos la alarma global
+      window.dispatchEvent(new Event('server-down'));
+      
+      return Promise.reject(error);
     }
 
-    // 2. Manejar el error 401 (Acceso denegado)
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    // Evitar bucle en refresh
+    if (originalRequest.url.includes('/api/users/login/refresh/')) {
+      return Promise.reject(error);
+    }
 
-      // 👇 Llamamos a tu super función de arriba en lugar de reescribir la petición
+    // Manejo de 401
+    if (error.response.status === 401 && !originalRequest._retry) {
+
+      if (isRefreshing) {
+        return new Promise(resolve => {
+          subscribeTokenRefresh(() => {
+            resolve(api(originalRequest));
+          });
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
       const refreshSuccess = await refreshToken();
 
+      isRefreshing = false;
+
       if (refreshSuccess) {
-        // Si el refresco fue exitoso, reintentamos la petición original
+        onRefreshed();
         return api(originalRequest);
       } else {
-        // Si falló, la sesión está muerta. Limpiamos la bandera y rechazamos.
         localStorage.removeItem('hasSession');
         return Promise.reject(error);
       }

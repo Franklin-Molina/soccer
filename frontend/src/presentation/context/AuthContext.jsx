@@ -219,16 +219,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  if (isRefreshing && loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-        <p className="text-gray-400 animate-pulse">Despertando servidor...</p>
-        <p className="text-xs text-gray-600 mt-2">Esto puede tardar hasta 30 segundos tras un periodo de inactividad.</p>
-      </div>
-    );
-  }
-
   return (
     <AuthContext.Provider value={{ 
       user, 
