@@ -232,8 +232,7 @@ DATABASES = {
         conn_max_age=600,
         ssl_require=True
     )
-}
-
+} 
 
 """ DATABASES = {
     "default": {
@@ -244,8 +243,8 @@ DATABASES = {
         "HOST": os.environ.get("DB_HOST", "db"),  # This will now be 'db'
         "PORT": os.environ.get("DB_PORT"),
     }
-}
- """
+} """
+
 
 # Configuración de Djoser
 DJOSER = {
