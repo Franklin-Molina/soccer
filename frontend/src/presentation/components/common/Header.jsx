@@ -182,7 +182,7 @@ function Header({ children, openAuthModal, onToggleSidebar }) {
         )}
 
         {/* Área de contenido */}
-        <main className="flex-1 overflow-y-auto">
+       <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-500 dark:hover:scrollbar-thumb-gray-500">
           {children || <Outlet />}
         </main>
       </div>
