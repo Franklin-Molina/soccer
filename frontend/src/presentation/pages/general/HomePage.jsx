@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import Spinner from '../../components/common/Spinner.jsx';
 import {Sun, Layers   } from "lucide-react";
 import { formatPrice } from '../../utils/formatters.js';
-
+import ServerErrorFallback from '../../components/common/ServerErrorFallback.jsx'
 
 function HomePage({ openAuthModal }) {
   const { isAuthenticated } = useAuth();
@@ -32,9 +32,21 @@ function HomePage({ openAuthModal }) {
   }
 
   if (error) {
+    const isNetworkError = error.message === 'Network Error' || error.code === 'ERR_NETWORK';
+    if (isNetworkError) {
+      return (
+        <ServerErrorFallback 
+          onRetry={() => {
+             // Si tienes la función para recargar expuesta en tu hook, úsala.
+             // Si no, un simple window.location.reload() funciona perfecto.
+             window.location.reload(); 
+          }} 
+        />
+      );
+    }
     return (
       <div className="flex justify-center items-center h-screen text-red-500 text-lg font-semibold bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:to-gray-800">
-        Error al cargar canchas: {error.message}
+        Error al cargargg canchas: {error.message}
       </div>
     );
   }
