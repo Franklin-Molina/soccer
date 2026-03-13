@@ -34,9 +34,7 @@ function WeeklyAvailabilityCalendar({
     }
   };
 
-  if (loadingWeeklyAvailability) {
-    return <Spinner />;
-  }
+  if (loadingWeeklyAvailability) return <Spinner />;
 
   if (weeklyAvailabilityError) {
     return (
@@ -54,26 +52,44 @@ function WeeklyAvailabilityCalendar({
     );
   }
 
+// 1. GENERAR TODOS LOS DÍAS (Sin filtrar los pasados)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const allDays = daysOfWeek.map((dayName, index) => {
+    const date = addDays(monday, index);
+    const dateOnly = new Date(date);
+    dateOnly.setHours(0, 0, 0, 0);
+    return {
+      dayName,
+      date,
+      originalIndex: index,
+      isValid: dateOnly >= today // Sigue sabiendo si es pasado o no
+    };
+  }); // <-- ¡Le quitamos el .filter() de aquí!
+
   return (
     <>
       <div className="bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        {/* pb-2 añadido para que la barra de scroll nativa no corte el contenido */}
+        <div className="overflow-x-auto ">
+          <table className="w-full border-collapse">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
-                <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 px-4 py-4 text-center w-48">
+                {/* 1. HORARIO: Redujimos el ancho drásticamente (w-20 en móvil) y añadimos sombra lateral */}
+                <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 px-2 py-3 sm:py-4 text-center w-24 min-w-[4rem] sm:w-32 shadow-[4px_0_8px_rgba(0,0,0,0.05)] dark:shadow-[4px_0_8px_rgba(0,0,0,0.2)]">
                   <div className="flex flex-col items-center gap-1">
                     <Clock className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Horario</span>
+                    <span className="text-[10px] sm:text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Hora</span>
                   </div>
                 </th>
-                {daysOfWeek.map((day, index) => {
-                  const currentDay = addDays(monday, index);
+                
+                {allDays.map((col) => {
                   return (
-                    <th key={day} className="px-2 py-4 text-center">
+                    <th key={col.dayName} className={`px-2 py-4 text-center min-w-[80px] sm:min-w-[100px]   ${!col.isValid ? 'hidden lg:table-cell opacity-60' : ''}`}>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-800 dark:text-white">{day}</span>
-                        <span className="text-xs text-slate-600 dark:text-slate-400">{format(currentDay, 'dd/MM')}</span>
+                        <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-white capitalize">{col.dayName}</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-slate-500 dark:text-slate-400">{format(col.date, 'dd/MM')}</span>
                       </div>
                     </th>
                   );
@@ -83,16 +99,38 @@ function WeeklyAvailabilityCalendar({
             <tbody>
               {hoursOfDay.map((hourRange, hourIndex) => {
                 const startHour24 = hourIndex + 6;
+                
+                // 1. SEPARAMOS LA HORA DE INICIO Y FIN EXACTAMENTE POR EL GUION
+                // Si hourRange es "6:00 AM - 7:00 AM", startTime="6:00 AM" y endTime="7:00 AM"
+                const [startTime, endTime] = hourRange.split(' - ');
+
                 return (
-                  <tr key={hourRange} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors">
-                    <td className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-800/95 px-4 py-3 border-r border-b border-slate-200 dark:border-slate-700/50">
-                      <span className="text-xs md:text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                        {hourRange}
-                      </span>
+                  <tr key={hourRange} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors group">
+                    
+                    {/* CELDA DE HORA FIJA (Responsive) */}
+                    <td className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-800/95 border-r border-b border-slate-200 dark:border-slate-700/50 w-20 min-w-[80px] sm:w-24 shadow-[4px_0_8px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_8px_rgba(0,0,0,0.1)]">
+                      {/* Usamos flex-col SIEMPRE, sin condicionales sm: */}
+                      <div className="flex flex-col items-center justify-center py-2 px-1 gap-0.5">
+                        
+                        {/* HORA DE INICIO */}
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">
+                          {startTime}
+                        </span>
+                        
+                        {/* HORA DE FIN (Un poco más tenue para dar jerarquía) */}
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                          {endTime}
+                        </span>
+                        
+                      </div>
                     </td>
-                    {daysOfWeek.map((day, dayIndex) => {
+                    
+                    {/* ... EL RESTO DE TU CÓDIGO (El map de los días) ... */}
+                    
+                    {allDays.map((col) => {
                       const now = new Date();
-                      const currentDay = addDays(monday, dayIndex);
+                      const currentDay = col.date;
+                      const dayIndex = col.originalIndex;
                       const hourNumber = startHour24;
                       const slotDateTime = new Date(currentDay);
                       slotDateTime.setHours(hourNumber, 0, 0, 0);
@@ -112,39 +150,34 @@ function WeeklyAvailabilityCalendar({
 
                       const isClickable = !isOccupied && !isPast;
 
+                      // 3. ESTILOS DE CELDA: Cambiamos border-2 por border normal y ajustamos colores para menos ruido
                       const getSlotStyle = (status) => {
                         switch (status) {
                           case 'available': 
-                            return 'bg-teal-400/50 hover:bg-teal-400/60 border-teal-500/70 dark:bg-teal-500/20 dark:hover:bg-teal-500/30 dark:border-teal-500/30';
+                            return 'bg-teal-50 dark:bg-teal-500/10 hover:bg-teal-100 dark:hover:bg-teal-500/20 border-teal-200 dark:border-teal-500/30 text-teal-600 dark:text-teal-400 shadow-sm';
                           case 'occupied': 
-                            return 'bg-red-400/40 border-red-500/70 dark:bg-red-500/20 dark:border-red-500/40';
+                            return 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20 text-rose-500 dark:text-rose-400';
                           case 'expired': 
-                            return 'bg-slate-200/60 border-slate-300/70 opacity-50 dark:bg-gray-500/10 dark:border-gray-600/20 dark:opacity-40';
+                            return 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-700/50 text-slate-400 dark:text-slate-600 opacity-60';
                           case 'selected': 
-                            return 'bg-emerald-400/50 border-emerald-500/80 ring-2 ring-emerald-500 dark:bg-emerald-500/30 dark:border-emerald-500/50 dark:ring-2 dark:ring-emerald-400';
+                            return 'bg-emerald-500 text-white border-emerald-600 dark:bg-emerald-500 dark:border-emerald-400 shadow-md transform scale-105';
                           default: 
-                            return 'bg-slate-200/50 border-slate-300/60 dark:bg-gray-500/10 dark:border-gray-500/20';
+                            return 'bg-transparent border-transparent';
                         }
                       };
 
-                      return (
-                        <td key={dayIndex} className="px-2 py-2">
+                  return (
+                        <td key={dayIndex} className={`px-2 py-1.5 ${!col.isValid ? 'hidden lg:table-cell' : ''}`}>
                           <div
-                            className={`relative w-full h-10 rounded-lg border-2 transition-all flex items-center justify-center ${getSlotStyle(slotStatus)} ${isClickable ? 'cursor-pointer hover:scale-105' : 'cursor-not-allowed'}`}
+                            className={`relative w-full h-10 rounded-lg border transition-all duration-300 flex items-center justify-center ${getSlotStyle(slotStatus)} ${isClickable ? 'cursor-pointer hover:-translate-y-0.5 active:translate-y-0' : 'cursor-not-allowed'}`}
                             onClick={() => isClickable && handleTimeSlotClick(formattedDate, hourNumber, isAvailable)}
                             onMouseEnter={() => isClickable && handleMouseEnter(formattedDate, hourNumber, hourRange)}
                             onMouseLeave={handleMouseLeave}
-                            title={isPast ? 'Horario pasado' : isOccupied ? 'Ocupado' : 'Disponible'}
                           >
-                            {hoveredSlot && hoveredSlot.date === formattedDate && hoveredSlot.hour === hourNumber && isClickable && (
-                              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 text-white text-xs font-bold rounded-md z-10">
-                                {hourRange}
-                              </div>
-                            )}
-                            <div className="z-0">
-                              {isPast ? <MinusCircle className="w-4 h-4 text-slate-500 dark:text-gray-500" /> :
-                                isAvailable ? <CheckCircle className="w-4 h-4 text-teal-600 dark:text-teal-400" /> :
-                                  isOccupied ? <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" /> : null}
+                            <div className="flex items-center justify-center">
+                              {isPast ? <MinusCircle className="w-4 h-4" /> :
+                                isAvailable ? <CheckCircle className="w-4 h-4" /> :
+                                  isOccupied ? <XCircle className="w-4 h-4" /> : null}
                             </div>
                           </div>
                         </td>

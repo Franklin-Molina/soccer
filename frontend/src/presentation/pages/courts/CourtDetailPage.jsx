@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
-import { X, Users } from "lucide-react";
+import { X, User } from "lucide-react";
 
 import { Link } from "react-router-dom";
 
@@ -13,6 +13,32 @@ import CourtImageGallery from "../../components/Courts/CourtImageGallery";
 import CourtAvailabilityCalendar from "../../components/Courts/CourtAvailabilityCalendar";
 import { useCourtDetailLogic } from "../../hooks/courts/useCourtDetailLogic.js";
 import { formatPrice } from "../../utils/formatters.js";
+import GoogleLoginButton from "../../components/Auth/GoogleLoginButton.jsx"
+
+
+function RegisterForm() {
+  const { loginWithGoogle } = useAuth(); // Sacamos la función de tu contexto
+
+  // Función cuando Google dice "¡Todo bien!"
+  const handleGoogleSuccess = async (googleResponse) => {
+    try {
+      // Le pasamos el token de Google a tu contexto
+      await loginWithGoogle(googleResponse.credential || googleResponse.access_token);
+      toast.success('¡Ingreso con Google exitoso!');
+      // La redirección ya la hace tu fetchUser en el AuthContext 😉
+    } catch (error) {
+      toast.error('Error al ingresar con Google.');
+    }
+  };
+
+  // Función cuando el usuario cierra la ventanita de Google
+  const handleGoogleError = () => {
+    toast.error('Se canceló el inicio de sesión con Google.');
+  };
+
+}
+
+
 
 function CourtDetailPage({ openAuthModal }) {
   const {
@@ -127,6 +153,20 @@ function CourtDetailPage({ openAuthModal }) {
         {/* Stats Cards */}
         <StatsCards stats={stats} />
 
+            {/* Calendar Section */}
+        <CourtAvailabilityCalendar
+          weeklyAvailability={weeklyAvailability}
+          loadingWeeklyAvailability={loadingWeeklyAvailability}
+          weeklyAvailabilityError={weeklyAvailabilityError}
+          handleCellClick={handleCellClick}
+          daysOfWeek={daysOfWeek}
+          hoursOfDay={hoursOfDay}
+          currentWeekStartDate={currentWeekStartDate}
+          handlePreviousWeek={handlePreviousWeek}
+          handleNextWeek={handleNextWeek}
+          selectedSlot={selectedSlot}
+        />
+
         {/* Court Info Section */}
         <CourtInfoSection court={court} />
 
@@ -144,19 +184,7 @@ function CourtDetailPage({ openAuthModal }) {
           handleZoomOut={handleZoomOut}
         />
 
-        {/* Calendar Section */}
-        <CourtAvailabilityCalendar
-          weeklyAvailability={weeklyAvailability}
-          loadingWeeklyAvailability={loadingWeeklyAvailability}
-          weeklyAvailabilityError={weeklyAvailabilityError}
-          handleCellClick={handleCellClick}
-          daysOfWeek={daysOfWeek}
-          hoursOfDay={hoursOfDay}
-          currentWeekStartDate={currentWeekStartDate}
-          handlePreviousWeek={handlePreviousWeek}
-          handleNextWeek={handleNextWeek}
-          selectedSlot={selectedSlot}
-        />
+    
 
         {/* Mensajes de estado */}
         {bookingError && (
@@ -174,7 +202,7 @@ function CourtDetailPage({ openAuthModal }) {
               <h2 className="text-xl sm:text-2xl font-bold text-emerald-500 dark:text-emerald-400">
                 Confirmar Reserva
               </h2>
-              <button onClick={cancelConfirmation} className="sm:hidden p-2 text-slate-400">
+              <button onClick={cancelConfirmation} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                 <X size={24} />
               </button>
             </div>
@@ -256,16 +284,16 @@ function CourtDetailPage({ openAuthModal }) {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
           <div className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 animate-in slide-in-from-bottom duration-300">
             <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-              <h2 className="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+              <h2 className="text-xl sm:text-2xl font-bold text-emerald-400 dark:text-emerald-400">
                 Acceso Requerido
               </h2>
-              <button onClick={handleCloseLoginModal} className="sm:hidden p-2 text-slate-400">
+              <button onClick={handleCloseLoginModal} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                 <X size={24} />
               </button>
             </div>
             <div className="p-8 space-y-4 text-center">
-              <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
+              <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <User className="w-10 h-10 text-red-600 dark:text-red-400" />
               </div>
               <p className="text-slate-600 dark:text-slate-300 font-medium">
                 Para reservar una cancha, debes estar registrado e iniciar sesión.
@@ -274,16 +302,28 @@ function CourtDetailPage({ openAuthModal }) {
             <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex flex-col gap-3 pb-10 sm:pb-6">
               <button
                 onClick={openAuthModal}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-4 rounded-xl font-bold transition-all shadow-lg active:scale-95"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-4 rounded-xl font-bold transition-all shadow-lg active:scale-95"
               >
                 Iniciar Sesión
               </button>
-              <Link 
-                to="/register"
-                className="w-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-white px-6 py-4 rounded-xl font-bold transition-all text-center active:scale-95"
-              >
-                Crear una Cuenta
-              </Link>
+                {/* Divider */}
+                       <div className="flex items-center justify-center gap-2 text-gray-400 my-4">
+                         <span className="border-t border-gray-300 dark:border-gray-600 w-16"></span>
+                         <span className="text-sm">O</span>
+                         <span className="border-t border-gray-300 dark:border-gray-600 w-16"></span>
+                       </div>
+             
+                       {/* Google Login */}
+                   
+                   
+             
+                     {/* Registro */}
+                     <div className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
+                       ¿No tienes una cuenta?{' '}
+                       <a href="/register" className="text-emerald-500 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium animate-float animate-pulse-glow ">
+                         Regístrate aquí
+                       </a>
+                     </div>
             </div>
           </div>
         </div>
