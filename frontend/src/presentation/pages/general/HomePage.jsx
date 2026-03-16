@@ -192,14 +192,14 @@ function HomePage({ openAuthModal }) {
                             Sin cubierta
                           </span>
                         )}
-                      </div>
+                      </div>                  
                     </div>
                   </div>
                 )}
 
                 <div className="p-5 sm:p-6">
                   <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-4 sm:mb-5 line-clamp-2">
-                    Disfruta de una experiencia única en nuestra cancha de alta calidad. Perfecta para tus partidos con amigos.
+                      <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-4 sm:mb-5 line-clamp-2">{court.description}</p>
                   </p>
 
                   <Link
