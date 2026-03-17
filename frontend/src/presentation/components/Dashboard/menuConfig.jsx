@@ -13,6 +13,7 @@ import {
   Settings,
   Building,
   List,
+  Trophy,
 } from 'lucide-react';
 
 export const menuItems = {
@@ -49,6 +50,17 @@ export const menuItems = {
         { to: '/dashboard/canchas/categories', label: 'Gestionar Categorías', icon: <List className="w-5 h-5" /> },
       ],
     },
+
+    {
+      label: 'Torneos',
+      icon: <Trophy  className="w-5 h-5" />,
+      submenu: [
+        { to: '/tournaments', label: 'Gestor Torneos', icon: <Settings className="w-5 h-5" /> },
+        { to: '/tournaments', label: 'Gestor Torneos', icon: <Settings className="w-5 h-5" /> },
+      
+      ],
+    },
+
     { to: '/dashboard/usuarios', label: 'Usuarios', icon: <Users className="w-5 h-5" /> },
     { to: '/dashboard/pagos', label: 'Pagos', icon: <DollarSign className="w-5 h-5" /> },
     { to: '/dashboard/estadisticas', label: 'Estadísticas', icon: <BarChart2 className="w-5 h-5" /> },

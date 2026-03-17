@@ -35,7 +35,11 @@ import OpenMatchesPage from './presentation/pages/Matches/OpenMatchesPage.jsx';
 import { AuthProvider, useAuth } from './presentation/context/AuthContext.jsx'; 
 import Spinner from './presentation/components/common/Spinner.jsx'; 
 import NotFound from './presentation/components/common/NotFound.jsx'; 
-import ServerErrorFallback from './presentation/components/common/ServerErrorFallback.jsx'; // 🔥 2. Ruta corregida
+import ServerErrorFallback from './presentation/components/common/ServerErrorFallback.jsx'; 
+
+import TournamentsPage from './presentation/pages/Tournaments/TournamentsPage.jsx'
+import TournamentDetailPage from './presentation/pages/Tournaments/TournamentDetailPage.jsx'
+
 
 
 function App() {
@@ -151,6 +155,26 @@ function AuthContent() {
           </Layout>
         }
       />
+
+      {/* 🔥 NUEVA RUTA: Página pública de Torneos */}
+      <Route
+        path="/tournaments"
+        element={
+          <Layout>
+            <TournamentsPage />           
+
+          </Layout>
+        }
+      />
+      <Route
+        path="/tournaments/:id" // <-- El :id nos permite saber a qué torneo entró
+        element={
+          <Layout>
+            <TournamentDetailPage />
+          </Layout>
+        }
+      />
+
       <Route
         path="/register"
         element={

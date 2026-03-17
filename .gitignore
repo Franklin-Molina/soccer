@@ -33,3 +33,5 @@ venv/
 
 .agents/skills/actt/
 .clinerules/workflows
+
+backend/staticfiles/
