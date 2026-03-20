@@ -1,101 +1,35 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   Trophy, Calendar, Users, MapPin, Shield,
   ChevronLeft, Info, GitMerge, Clock, X, User, Loader2
 } from 'lucide-react';
 
-import { useAuth } from '../../context/AuthContext.jsx';
-import { useTournamentDetail } from '../../hooks/tournaments/useTournamentDetail';
 import AdminMatchManager from '../../components/Tournaments/AdminMatchManager';
 import TournamentBracket from '../../components/Tournaments/TournamentBracket';
 import { formatPrice } from '../../utils/formatters.js';
-
+import { useTournamentDetailLogic } from '../../hooks/tournaments/useTournamentDetailLogic';
 
 function TournamentDetailPage() {
-  const { id } = useParams();
-  const { user } = useAuth();
-  const socketRef = React.useRef(null);
-
   const {
     tournament,
     loading,
     error,
     isSubmitting,
-    enrollTeam,
-    generateFixture,
+    activeTab,
+    setActiveTab,
+    showLoginModal,
+    setShowLoginModal,
+    showRegistrationModal,
+    setShowRegistrationModal,
+    teamName,
+    setTeamName,
+    user,
+    handleEnrollClick,
+    handleSubmitRegistration,
+    handleGenerateFixture,
     refresh
-  } = useTournamentDetail(id);
-
-  // WebSocket para actualizaciones en tiempo real
-  // WebSocket para actualizaciones en tiempo real
-  React.useEffect(() => {
-    // Solo conectar si tenemos un ID y ya cargó el torneo
-    if (!id || loading || !tournament) return;
-
-    // Limpiar cualquier conexión previa "huérfana"
-    if (socketRef.current) {
-        socketRef.current.close();
-        socketRef.current = null;
-    }
-
-    const wsBaseUrl = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    const wsHost = apiUrl.replace(/^https?:\/\//, '').replace(/\/$/, ''); 
-    const wsUrl = `${wsBaseUrl}//${wsHost}/ws/tournaments/${id}/`;
-
-    //console.log('🔌 Intentando conectar a WebSocket:', wsUrl);
-    const socket = new WebSocket(wsUrl);
-    socketRef.current = socket;
-
-    socket.onopen = () => {
-      //console.log('✅ WebSocket Conectado Exitosamente');
-    };
-
-    socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === 'match_updated') {
-         // console.log('🏆 Actualización de torneo recibida');
-          refresh(true); 
-        }
-      } catch (e) {
-      //  console.error('Error parseando mensaje:', e);
-      }
-    };
-
-    socket.onerror = (error) => {
-      // Solo mostramos error si el socket realmente intentaba estar abierto
-      if (socket.readyState === WebSocket.OPEN) {
-          console.error('❌ WebSocket Error:', error);
-      }
-    };
-
-    socket.onclose = (event) => {
-      if (!event.wasClean && socket.readyState !== WebSocket.CLOSED) {
-     //   console.log('🔌 WebSocket cerrado. Código:', event.code);
-      }
-      // Limpiar la referencia al cerrar
-      if (socketRef.current === socket) {
-          socketRef.current = null;
-      }
-    };
-
-    // Función de limpieza al desmontar
-    return () => {
-      if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
-      //  console.log('🧹 Cerrando WebSocket limpiamente al desmontar');
-        socket.close();
-      }
-    };
-  // 🔥 Es VITAL agregar 'loading' y 'tournament?.id' a las dependencias
-  }, [id, refresh, loading, tournament?.id]);
-
-  const [activeTab, setActiveTab] = useState('info');
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
-  const [teamName, setTeamName] = useState('');
+  } = useTournamentDetailLogic();
 
   if (loading) {
     return (
@@ -122,45 +56,6 @@ function TournamentDetailPage() {
   }
 
   const isFull = tournament.registeredTeams >= tournament.maxTeams;
-
-  const handleEnrollClick = () => {
-    if (!user) {
-      setShowLoginModal(true);
-    } else {
-      setShowRegistrationModal(true);
-    }
-  };
-
-  const handleSubmitRegistration = async (e) => {
-    e.preventDefault();
-    if (!teamName.trim()) {
-      toast.error('El nombre del equipo es obligatorio');
-      return;
-    }
-
-    try {
-      await enrollTeam(teamName);
-      setShowRegistrationModal(false);
-      setTeamName('');
-      toast.success(`¡Excelente! El equipo "${teamName}" ha sido pre-inscrito. Revisa tu correo para el pago.`);
-    } catch (err) {
-      const message = err.response?.data?.error || 'Error al inscribir el equipo';
-      toast.error(message);
-    }
-  };
-
-  const handleGenerateFixture = async () => {
-    if (!window.confirm('¿Estás seguro de generar el fixture? Esto borrará los encuentros actuales.')) return;
-
-    try {
-      await generateFixture();
-      toast.success('¡Fixture generado con éxito!');
-      setActiveTab('fixture');
-    } catch (err) {
-      const message = err.response?.data?.error || 'Error al generar el fixture';
-      toast.error(message);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-12">
@@ -267,8 +162,8 @@ function TournamentDetailPage() {
 
           {activeTab === 'teams' && (
             <div className="animate-in fade-in duration-300">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Equipos Confirmados ({tournament.teams.length})</h3>
-              {tournament.teams.length > 0 ? (
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Equipos Confirmados ({tournament.teams?.length || 0})</h3>
+              {tournament.teams?.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {tournament.teams.map((team) => (
                     <div key={team.id} className="flex items-center p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
@@ -303,13 +198,8 @@ function TournamentDetailPage() {
 
               {tournament.matches && tournament.matches.length > 0 ? (
                 <div className="space-y-6">
-
-                  {/* 🔥 MAGIA AQUÍ: Separamos la vista del Admin y la del Jugador */}
                   {user?.is_staff ? (
-                    
-                    <AdminMatchManager initialMatches={tournament.matches} onRefresh={refresh} />
-                    
-
+                    <AdminMatchManager initialMatches={tournament.matches} onRefresh={() => refresh(true)} />
                   ) : (
                     <TournamentBracket matches={tournament.matches} />
                   )}

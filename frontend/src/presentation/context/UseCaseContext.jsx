@@ -16,6 +16,7 @@ import { CreateTournamentUseCase } from '../../application/use-cases/tournaments
 import { UpdateTournamentUseCase } from '../../application/use-cases/tournaments/update-tournament';
 import { DeleteTournamentUseCase } from '../../application/use-cases/tournaments/delete-tournament';
 import { GenerateFixtureUseCase } from '../../application/use-cases/tournaments/generate-fixture';
+import { EnrollTeamUseCase } from '../../application/use-cases/tournaments/enroll-team';
 
 import { UpdateMatchScoreUseCase } from '../../application/use-cases/tournaments/update-match-score'
 // Importar otros casos de uso aquí si es necesario
@@ -47,6 +48,7 @@ export const UseCaseProvider = ({ children }) => {
   const updateTournamentUseCase = new UpdateTournamentUseCase(tournamentRepository);
   const deleteTournamentUseCase = new DeleteTournamentUseCase(tournamentRepository);
   const generateFixtureUseCase = new GenerateFixtureUseCase(tournamentRepository);
+  const enrollTeamUseCase = new EnrollTeamUseCase(tournamentRepository);
   const updateMatchScoreUseCase = new UpdateMatchScoreUseCase(tournamentRepository);
   
   // Añadir otros casos de uso aquí
@@ -67,6 +69,7 @@ export const UseCaseProvider = ({ children }) => {
     updateTournamentUseCase,
     deleteTournamentUseCase,
     generateFixtureUseCase,
+    enrollTeamUseCase,
     updateMatchScoreUseCase // Añadir generateFixtureUseCase al objeto
     // Añadir otros casos de uso aquí
   };
