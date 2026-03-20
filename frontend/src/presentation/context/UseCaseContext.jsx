@@ -9,6 +9,15 @@ import { GetCourtByIdUseCase } from '../../application/use-cases/courts/get-cour
 import { CheckAvailabilityUseCase } from '../../application/use-cases/courts/check-availability';
 import { GetWeeklyAvailabilityUseCase } from '../../application/use-cases/courts/get-weekly-availability';
 import { UpdateCourtUseCase } from '../../application/use-cases/courts/update-court'; // Importar UpdateCourtUseCase
+
+import { GetTournamentsUseCase } from '../../application/use-cases/tournaments/get-tournaments';
+import { GetTournamentByIdUseCase } from '../../application/use-cases/tournaments/get-tournament-by-id';
+import { CreateTournamentUseCase } from '../../application/use-cases/tournaments/create-tournament';
+import { UpdateTournamentUseCase } from '../../application/use-cases/tournaments/update-tournament';
+import { DeleteTournamentUseCase } from '../../application/use-cases/tournaments/delete-tournament';
+import { GenerateFixtureUseCase } from '../../application/use-cases/tournaments/generate-fixture';
+
+import { UpdateMatchScoreUseCase } from '../../application/use-cases/tournaments/update-match-score'
 // Importar otros casos de uso aquí si es necesario
 
 // Crear el contexto para los casos de uso
@@ -20,7 +29,7 @@ const UseCaseContext = createContext(null);
  * @param {object} { children } - Los componentes hijos que tendrán acceso a los casos de uso.
  */
 export const UseCaseProvider = ({ children }) => {
-  const { bookingRepository, userRepository, courtRepository } = useRepositories();
+  const { bookingRepository, userRepository, courtRepository, tournamentRepository } = useRepositories();
 
   // Instanciar los casos de uso aquí, inyectando las dependencias de los repositorios
   const getBookingsUseCase = new GetBookingsUseCase(bookingRepository);
@@ -32,6 +41,14 @@ export const UseCaseProvider = ({ children }) => {
   const createBookingUseCase = new CreateBookingUseCase(bookingRepository);
   const deleteBookingUseCase = new DeleteBookingUseCase(bookingRepository);
   const updateCourtUseCase = new UpdateCourtUseCase(courtRepository); // Instanciar UpdateCourtUseCase
+  const getTournamentsUseCase = new GetTournamentsUseCase(tournamentRepository);
+  const getTournamentByIdUseCase = new GetTournamentByIdUseCase(tournamentRepository);
+  const createTournamentUseCase = new CreateTournamentUseCase(tournamentRepository);
+  const updateTournamentUseCase = new UpdateTournamentUseCase(tournamentRepository);
+  const deleteTournamentUseCase = new DeleteTournamentUseCase(tournamentRepository);
+  const generateFixtureUseCase = new GenerateFixtureUseCase(tournamentRepository);
+  const updateMatchScoreUseCase = new UpdateMatchScoreUseCase(tournamentRepository);
+  
   // Añadir otros casos de uso aquí
 
   const useCases = {
@@ -43,7 +60,14 @@ export const UseCaseProvider = ({ children }) => {
     checkAvailabilityUseCase,
     getWeeklyAvailabilityUseCase,
     createBookingUseCase,
-    updateCourtUseCase, // Añadir updateCourtUseCase al objeto
+    updateCourtUseCase,    
+    getTournamentsUseCase,
+    getTournamentByIdUseCase,
+    createTournamentUseCase,
+    updateTournamentUseCase,
+    deleteTournamentUseCase,
+    generateFixtureUseCase,
+    updateMatchScoreUseCase // Añadir generateFixtureUseCase al objeto
     // Añadir otros casos de uso aquí
   };
 

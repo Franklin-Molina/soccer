@@ -1,26 +1,96 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { 
-  Trophy, Calendar, Users, MapPin, Shield, 
+import {
+  Trophy, Calendar, Users, MapPin, Shield,
   ChevronLeft, Info, GitMerge, Clock, X, User, Loader2
 } from 'lucide-react';
 
-import { useAuth } from '../../context/AuthContext.jsx'; 
+import { useAuth } from '../../context/AuthContext.jsx';
 import { useTournamentDetail } from '../../hooks/tournaments/useTournamentDetail';
+import AdminMatchManager from '../../components/Tournaments/AdminMatchManager';
+import TournamentBracket from '../../components/Tournaments/TournamentBracket';
+import { formatPrice } from '../../utils/formatters.js';
+
 
 function TournamentDetailPage() {
   const { id } = useParams();
-  const { user } = useAuth(); 
-  
-  const { 
-    tournament, 
-    loading, 
-    error, 
-    isSubmitting, 
+  const { user } = useAuth();
+  const socketRef = React.useRef(null);
+
+  const {
+    tournament,
+    loading,
+    error,
+    isSubmitting,
     enrollTeam,
-    generateFixture
+    generateFixture,
+    refresh
   } = useTournamentDetail(id);
+
+  // WebSocket para actualizaciones en tiempo real
+  // WebSocket para actualizaciones en tiempo real
+  React.useEffect(() => {
+    // Solo conectar si tenemos un ID y ya cargó el torneo
+    if (!id || loading || !tournament) return;
+
+    // Limpiar cualquier conexión previa "huérfana"
+    if (socketRef.current) {
+        socketRef.current.close();
+        socketRef.current = null;
+    }
+
+    const wsBaseUrl = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const wsHost = apiUrl.replace(/^https?:\/\//, '').replace(/\/$/, ''); 
+    const wsUrl = `${wsBaseUrl}//${wsHost}/ws/tournaments/${id}/`;
+
+    //console.log('🔌 Intentando conectar a WebSocket:', wsUrl);
+    const socket = new WebSocket(wsUrl);
+    socketRef.current = socket;
+
+    socket.onopen = () => {
+      //console.log('✅ WebSocket Conectado Exitosamente');
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'match_updated') {
+         // console.log('🏆 Actualización de torneo recibida');
+          refresh(true); 
+        }
+      } catch (e) {
+      //  console.error('Error parseando mensaje:', e);
+      }
+    };
+
+    socket.onerror = (error) => {
+      // Solo mostramos error si el socket realmente intentaba estar abierto
+      if (socket.readyState === WebSocket.OPEN) {
+          console.error('❌ WebSocket Error:', error);
+      }
+    };
+
+    socket.onclose = (event) => {
+      if (!event.wasClean && socket.readyState !== WebSocket.CLOSED) {
+     //   console.log('🔌 WebSocket cerrado. Código:', event.code);
+      }
+      // Limpiar la referencia al cerrar
+      if (socketRef.current === socket) {
+          socketRef.current = null;
+      }
+    };
+
+    // Función de limpieza al desmontar
+    return () => {
+      if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+      //  console.log('🧹 Cerrando WebSocket limpiamente al desmontar');
+        socket.close();
+      }
+    };
+  // 🔥 Es VITAL agregar 'loading' y 'tournament?.id' a las dependencias
+  }, [id, refresh, loading, tournament?.id]);
 
   const [activeTab, setActiveTab] = useState('info');
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -67,7 +137,7 @@ function TournamentDetailPage() {
       toast.error('El nombre del equipo es obligatorio');
       return;
     }
-    
+
     try {
       await enrollTeam(teamName);
       setShowRegistrationModal(false);
@@ -81,7 +151,7 @@ function TournamentDetailPage() {
 
   const handleGenerateFixture = async () => {
     if (!window.confirm('¿Estás seguro de generar el fixture? Esto borrará los encuentros actuales.')) return;
-    
+
     try {
       await generateFixture();
       toast.success('¡Fixture generado con éxito!');
@@ -94,10 +164,10 @@ function TournamentDetailPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-12">
-      
+
       <div className="relative h-64 md:h-80 w-full overflow-hidden">
         <div className="absolute inset-0 bg-slate-900/60 z-10"></div>
-        <img src={tournament.coverImage || 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1920&q=80'} alt="Torneo Cover" className="absolute inset-0 w-full h-full object-cover"/>
+        <img src={tournament.coverImage || 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1920&q=80'} alt="Torneo Cover" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute z-20 top-4 left-4 md:top-8 md:left-8">
           <Link to="/tournaments" className="flex items-center text-white/80 hover:text-white transition-colors bg-black/20 hover:bg-black/40 px-3 py-1.5 rounded-lg backdrop-blur-sm">
             <ChevronLeft className="w-5 h-5 mr-1" /> Volver a Torneos
@@ -105,17 +175,20 @@ function TournamentDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30 -mt-24 md:-mt-32">
-        
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 relative z-30 -mt-24 md:-mt-32">
+
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 md:p-8 flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
-                tournament.status === 'open' 
-                ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                : 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30'
-              }`}>
-                {tournament.status === 'open' ? 'Inscripciones Abiertas' : 'En Juego'}
+                  tournament.status === 'open' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' :
+                  tournament.status === 'closed' ? 'bg-slate-500/20 text-slate-600 dark:text-slate-400 border-slate-500/30' :
+                  tournament.status === 'finished' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30' :
+                  'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                }`}>
+                {tournament.status === 'open' ? 'Inscripciones Abiertas' : 
+                 tournament.status === 'closed' ? 'Inscripciones Cerradas' :
+                 tournament.status === 'finished' ? 'Torneo Finalizado' : 'En Juego'}
               </span>
               <span className="text-slate-500 dark:text-slate-400 text-sm font-medium flex items-center">
                 <MapPin className="w-4 h-4 mr-1" /> {tournament.location}
@@ -128,22 +201,22 @@ function TournamentDetailPage() {
               Cupos: <span className="text-slate-900 dark:text-white font-bold">{tournament.registeredTeams} / {tournament.maxTeams}</span> equipos inscritos
             </p>
           </div>
-          
+
           <div className="w-full md:w-auto flex flex-col gap-3 shrink-0">
-            <button 
+            <button
               onClick={handleEnrollClick}
               disabled={isFull || tournament.status !== 'open'}
-              className={`w-full md:w-auto px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg active:scale-95 flex items-center justify-center ${
-                isFull || tournament.status !== 'open'
+              className={`w-full md:w-auto px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg active:scale-95 flex items-center justify-center ${isFull || tournament.status !== 'open'
                   ? 'bg-slate-200 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
                   : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-emerald-500/30'
-              }`}
+                }`}
             >
               <Shield className="w-5 h-5 mr-2" />
-              {tournament.status !== 'open' ? 'Torneo en Curso' : isFull ? 'Cupos Agotados' : 'Inscribir a mi Equipo'}
+              {tournament.status === 'open' ? (isFull ? 'Cupos Agotados' : 'Inscribir a mi Equipo') : 
+               tournament.status === 'finished' ? 'Torneo Finalizado' : 'Inscripciones Cerradas'}
             </button>
             <p className="text-center text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Costo de inscripción: ${tournament.registrationFee}
+              Costo de inscripción: ${formatPrice(tournament.registrationFee)}
             </p>
           </div>
         </div>
@@ -161,114 +234,95 @@ function TournamentDetailPage() {
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 dark:border-slate-700 min-h-[400px]">
-           {activeTab === 'info' && (
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in duration-300">
-                <div className="md:col-span-2 space-y-6">
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Sobre el Torneo</h3>
-                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed">{tournament.description}</p>
+          {activeTab === 'info' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in duration-300">
+              <div className="md:col-span-2 space-y-6">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Sobre el Torneo</h3>
+                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed">{tournament.description}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <p className="text-xs text-slate-500 uppercase font-bold mb-1">Formato</p>
+                    <p className="font-bold text-slate-900 dark:text-white">{tournament.format}</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                       <p className="text-xs text-slate-500 uppercase font-bold mb-1">Formato</p>
-                       <p className="font-bold text-slate-900 dark:text-white">{tournament.format}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                       <p className="text-xs text-slate-500 uppercase font-bold mb-1">Nivel</p>
-                       <p className="font-bold text-slate-900 dark:text-white">{tournament.level}</p>
-                    </div>
+                  <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <p className="text-xs text-slate-500 uppercase font-bold mb-1">Nivel</p>
+                    <p className="font-bold text-slate-900 dark:text-white">{tournament.level}</p>
                   </div>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-6 border border-slate-100 dark:border-slate-700 h-fit space-y-5">
-                  <div className="flex items-start">
-                    <Trophy className="w-6 h-6 text-amber-500 mr-3 shrink-0" />
-                    <div><p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Premio Mayor</p><p className="font-bold text-slate-900 dark:text-white">{tournament.prize}</p></div>
-                  </div>
-                  <div className="flex items-start">
-                    <Calendar className="w-6 h-6 text-emerald-500 mr-3 shrink-0" />
-                    <div><p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Fecha de Inicio</p><p className="font-bold text-slate-900 dark:text-white">{new Date(tournament.startDate).toLocaleDateString()}</p></div>
-                  </div>
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-6 border border-slate-100 dark:border-slate-700 h-fit space-y-5">
+                <div className="flex items-start">
+                  <Trophy className="w-6 h-6 text-amber-500 mr-3 shrink-0" />
+                  <div><p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Premio Mayor</p><p className="font-bold text-slate-900 dark:text-white">{formatPrice(tournament.prize)}</p></div>
                 </div>
-             </div>
-           )}
+                <div className="flex items-start">
+                  <Calendar className="w-6 h-6 text-emerald-500 mr-3 shrink-0" />
+                  <div><p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Fecha de Inicio</p><p className="font-bold text-slate-900 dark:text-white">{new Date(tournament.startDate).toLocaleDateString()}</p></div>
+                </div>
+              </div>
+            </div>
+          )}
 
-           {activeTab === 'teams' && (
-              <div className="animate-in fade-in duration-300">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Equipos Confirmados ({tournament.teams.length})</h3>
-                {tournament.teams.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {tournament.teams.map((team) => (
-                      <div key={team.id} className="flex items-center p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                        <div className="w-12 h-12 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center mr-4 shrink-0"><Shield className="w-6 h-6 text-slate-400" /></div>
-                        <div><p className="font-bold text-slate-900 dark:text-white">{team.name}</p><p className="text-xs text-slate-500">Capitán: {team.captain?.username || 'N/A'}</p></div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <p className="text-slate-500">Aún no hay equipos inscritos. ¡Sé el primero!</p>
-                  </div>
+          {activeTab === 'teams' && (
+            <div className="animate-in fade-in duration-300">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Equipos Confirmados ({tournament.teams.length})</h3>
+              {tournament.teams.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {tournament.teams.map((team) => (
+                    <div key={team.id} className="flex items-center p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                      <div className="w-12 h-12 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center mr-4 shrink-0"><Shield className="w-6 h-6 text-slate-400" /></div>
+                      <div><p className="font-bold text-slate-900 dark:text-white">{team.name}</p><p className="text-xs text-slate-500">Capitán: {team.captain?.username || 'N/A'}</p></div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-slate-500">Aún no hay equipos inscritos. ¡Sé el primero!</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'fixture' && (
+            <div className="animate-in fade-in duration-300">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Encuentros del Torneo</h3>
+                {user?.is_staff && (
+                  <button
+                    onClick={handleGenerateFixture}
+                    disabled={isSubmitting || tournament.registeredTeams < 2}
+                    className="flex items-center gap-2 bg-slate-900 dark:bg-emerald-600 hover:bg-slate-800 dark:hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
+                  >
+                    <GitMerge size={16} />
+                    {tournament.matches?.length > 0 ? 'Regenerar Fixture' : 'Generar Fixture Automático'}
+                  </button>
                 )}
               </div>
-           )}
 
-           {activeTab === 'fixture' && (
-              <div className="animate-in fade-in duration-300">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">Encuentros del Torneo</h3>
-                  {user?.is_staff && (
-                    <button
-                      onClick={handleGenerateFixture}
-                      disabled={isSubmitting || tournament.registeredTeams < 2}
-                      className="flex items-center gap-2 bg-slate-900 dark:bg-emerald-600 hover:bg-slate-800 dark:hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
-                    >
-                      <GitMerge size={16} />
-                      {tournament.matches?.length > 0 ? 'Regenerar Fixture' : 'Generar Fixture Automático'}
-                    </button>
+              {tournament.matches && tournament.matches.length > 0 ? (
+                <div className="space-y-6">
+
+                  {/* 🔥 MAGIA AQUÍ: Separamos la vista del Admin y la del Jugador */}
+                  {user?.is_staff ? (
+                    
+                    <AdminMatchManager initialMatches={tournament.matches} onRefresh={refresh} />
+                    
+
+                  ) : (
+                    <TournamentBracket matches={tournament.matches} />
                   )}
                 </div>
-
-                {tournament.matches && tournament.matches.length > 0 ? (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {tournament.matches.map((match) => (
-                        <div key={match.id} className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-emerald-500/30 transition-colors">
-                          <div className="flex justify-between items-center mb-4">
-                             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">{match.round_name}</span>
-                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                               match.status === 'completed' ? 'bg-slate-200 text-slate-600' : 'bg-emerald-500 text-white'
-                             }`}>{match.status === 'completed' ? 'Finalizado' : 'Pendiente'}</span>
-                          </div>
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="flex-1 text-center">
-                              <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm border border-slate-100 dark:border-slate-700"><Shield className="w-6 h-6 text-slate-300" /></div>
-                              <p className="font-bold text-sm dark:text-white line-clamp-1">{match.team1?.name || 'TBD'}</p>
-                            </div>
-                            <div className="flex flex-col items-center">
-                              <div className="flex items-center gap-3 mb-1">
-                                <span className="text-2xl font-black dark:text-white">{match.score1}</span>
-                                <span className="text-slate-300 font-bold">-</span>
-                                <span className="text-2xl font-black dark:text-white">{match.score2}</span>
-                              </div>
-                            </div>
-                            <div className="flex-1 text-center">
-                              <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm border border-slate-100 dark:border-slate-700"><Shield className="w-6 h-6 text-slate-300" /></div>
-                              <p className="font-bold text-sm dark:text-white line-clamp-1">{match.team2?.name || 'TBD'}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4"><Clock className="w-10 h-10 text-slate-400" /></div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Fixture en Preparación</h3>
-                    <p className="text-slate-500 text-sm">Los encuentros se generarán una vez que se cierren las inscripciones.</p>
-                  </div>
-                )}
-              </div>
-           )}
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4"><Clock className="w-10 h-10 text-slate-400" /></div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Fixture en Preparación</h3>
+                  <p className="text-slate-500 text-sm">Los encuentros se generarán una vez que se cierren las inscripciones.</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -307,7 +361,7 @@ function TournamentDetailPage() {
                 <X size={24} />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmitRegistration} className="p-6 space-y-6">
               <p className="text-slate-600 dark:text-slate-300 text-sm">
                 Estás a un paso de inscribirte en <span className="font-bold text-slate-900 dark:text-white">{tournament.name}</span>.
@@ -340,7 +394,7 @@ function TournamentDetailPage() {
 
               <div className="bg-emerald-500/5 dark:bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20 flex justify-between items-center">
                 <span className="text-emerald-600 dark:text-emerald-400 font-bold uppercase text-sm tracking-wider">Total a Pagar</span>
-                <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">${tournament.registrationFee}</span>
+                <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">${formatPrice(tournament.registrationFee)}</span>
               </div>
 
               <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
@@ -363,7 +417,7 @@ function TournamentDetailPage() {
           </div>
         </div>
       )}
-      
+
     </div>
   );
 }

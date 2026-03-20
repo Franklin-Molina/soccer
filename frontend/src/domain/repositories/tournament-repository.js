@@ -37,4 +37,13 @@ export class ITournamentRepository {
   async generateFixture(id) {
     throw new Error('Method not implemented.');
   }
+  async createTournament(tournamentData) {
+     throw new Error('Method not implemented');
+     }
+  async updateTournament(id, tournamentData) { 
+    throw new Error('Method not implemented');
+   }
+  async deleteTournament(id) { 
+    throw new Error('Method not implemented'); 
+  }
 }

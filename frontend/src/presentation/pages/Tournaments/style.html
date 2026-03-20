@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Encuentros del Torneo</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0b1210;
+  --surface:   #111c19;
+  --surface2:  #172320;
+  --border:    rgba(34,197,94,0.12);
+  --border2:   rgba(255,255,255,0.06);
+  --green:     #22c55e;
+  --green-dim: #15803d;
+  --gold:      #f59e0b;
+  --gold-dim:  #92400e;
+  --text:      #e2e8e4;
+  --muted:     rgba(255,255,255,0.35);
+  --win-glow:  0 0 18px rgba(34,197,94,0.25);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.wrapper {
+  width: 100%;
+  max-width: 900px;
+}
+
+/* Header */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.section-header h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.header-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, rgba(34,197,94,0.3), transparent);
+}
+
+/* Contenedor principal del bracket */
+.bracket-shell {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 36px 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Fondo decorativo */
+.bracket-shell::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 240px; height: 240px;
+  background: radial-gradient(circle, rgba(34,197,94,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.bracket-shell::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; left: 40%;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(245,158,11,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Layout bracket */
+.bracket {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  position: relative;
+}
+
+/* Columna de ronda */
+.round {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.round-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.round-label.final-label {
+  color: var(--gold);
+}
+
+/* Matches en la columna */
+.matches {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ── MATCH CARD ── */
+.match {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  overflow: hidden;
+  width: 230px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  position: relative;
+  animation: fadeIn 0.5s ease both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.match:nth-child(2) { animation-delay: 0.1s; }
+
+.match:hover {
+  border-color: rgba(34,197,94,0.25);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+/* Estado del partido */
+.match-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border2);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.match-status.live { color: #4ade80; }
+.match-status.live .status-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 6px #4ade80;
+  animation: blink 1.2s infinite;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.match-status .status-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+/* Equipo row */
+.team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.team:first-of-type { border-bottom: 1px solid var(--border2); }
+
+.team.winner {
+  background: rgba(34,197,94,0.06);
+}
+
+.team.winner .team-name { color: var(--green); font-weight: 600; }
+.team.winner .score {
+  color: var(--green);
+  background: rgba(34,197,94,0.12);
+}
+
+.team-shield {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.team-shield svg { opacity: 0.5; }
+.team.winner .team-shield {
+  background: rgba(34,197,94,0.1);
+  border-color: rgba(34,197,94,0.2);
+}
+.team.winner .team-shield svg { opacity: 1; color: var(--green); }
+
+.team-name {
+  flex: 1;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.team-name.tbd {
+  font-style: italic;
+  color: rgba(255,255,255,0.25);
+  font-weight: 400;
+  text-transform: none;
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.82rem;
+}
+
+.score {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  min-width: 28px;
+  height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── CONECTORES SVG ── */
+.connector-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  flex-shrink: 0;
+}
+
+/* ── FINAL CARD (más grande) ── */
+.match.final-match {
+  width: 250px;
+  border-color: rgba(245,158,11,0.2);
+  box-shadow: 0 0 24px rgba(245,158,11,0.08);
+}
+
+.match.final-match:hover {
+  border-color: rgba(245,158,11,0.4);
+  box-shadow: 0 6px 28px rgba(245,158,11,0.15);
+}
+
+.match.final-match .match-status { border-bottom-color: rgba(245,158,11,0.1); }
+.match.final-match .team:first-of-type { border-bottom-color: rgba(245,158,11,0.08); }
+
+/* Trofeo encima de la final */
+.final-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.trophy-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 20px;
+}
+
+.trophy-badge span {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="section-header">
+    <h2>Encuentros del Torneo</h2>
+    <div class="header-line"></div>
+  </div>
+
+  <!-- Bracket shell -->
+  <div class="bracket-shell">
+    <div class="bracket">
+
+      <!-- ── SEMIFINALES ── -->
+      <div class="round">
+        <div class="round-label">Semifinal</div>
+        <div class="matches">
+
+          <!-- Semifinal 1 -->
+          <div class="match" style="animation-delay:0s">
+            <div class="match-status">
+              <span class="status-dot"></span> Por jugar
+            </div>
+            <div class="team">
+              <div class="team-shield">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <span class="team-name">t2</span>
+              <span class="score">–</span>
+            </div>
+            <div class="team">
+              <div class="team-shield">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <span class="team-name">t4</span>
+              <span class="score">–</span>
+            </div>
+          </div>
+
+          <!-- Semifinal 2 -->
+          <div class="match" style="animation-delay:0.12s">
+            <div class="match-status">
+              <span class="status-dot"></span> Por jugar
+            </div>
+            <div class="team">
+              <div class="team-shield">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <span class="team-name">t3</span>
+              <span class="score">–</span>
+            </div>
+            <div class="team">
+              <div class="team-shield">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <span class="team-name">t1</span>
+              <span class="score">–</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── CONECTOR SVG ── -->
+      <div class="connector-col">
+        <svg width="60" height="180" viewBox="0 0 60 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- línea desde semifinal 1 (arriba) -->
+          <path d="M0 52 H30 V90" stroke="rgba(34,197,94,0.25)" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- línea desde semifinal 2 (abajo) -->
+          <path d="M0 128 H30 V90" stroke="rgba(34,197,94,0.25)" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- línea hacia la final -->
+          <path d="M30 90 H60" stroke="rgba(34,197,94,0.25)" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- nodo central -->
+          <circle cx="30" cy="90" r="3" fill="rgba(34,197,94,0.4)"/>
+        </svg>
+      </div>
+
+      <!-- ── GRAN FINAL ── -->
+      <div class="final-col">
+        <div class="trophy-badge">
+          <svg width="12" height="12" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M6 9H4a2 2 0 0 1-2-2V5h4"/><path d="M18 9h2a2 2 0 0 0 2-2V5h-4"/>
+            <path d="M6 9c0 3.87 2.69 7.13 6 8 3.31-.87 6-4.13 6-8"/>
+            <line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/>
+          </svg>
+          <span>Gran Final</span>
+        </div>
+
+        <div class="match final-match" style="animation-delay:0.25s">
+          <div class="match-status">
+            <span class="status-dot"></span> Por definir
+          </div>
+          <div class="team">
+            <div class="team-shield">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <span class="team-name tbd">Por definir</span>
+            <span class="score">–</span>
+          </div>
+          <div class="team">
+            <div class="team-shield">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <span class="team-name tbd">Por definir</span>
+            <span class="score">–</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /bracket -->
+  </div><!-- /shell -->
+
+  <!-- ── DEMO: Estado con ganador ── -->
+  <div style="margin-top:40px">
+    <div class="section-header" style="margin-bottom:16px">
+      <h2 style="font-size:1rem;opacity:0.5">Vista con resultado (demo)</h2>
+      <div class="header-line"></div>
+    </div>
+
+    <div class="bracket-shell" style="padding:28px 32px">
+      <div class="bracket">
+        <div class="round">
+          <div class="round-label">Semifinal</div>
+          <div class="matches">
+            <div class="match">
+              <div class="match-status live">
+                <span class="status-dot"></span> En curso
+              </div>
+              <div class="team winner">
+                <div class="team-shield">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <span class="team-name">Halcones</span>
+                <span class="score">3</span>
+              </div>
+              <div class="team">
+                <div class="team-shield">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <span class="team-name">Tigres</span>
+                <span class="score">1</span>
+              </div>
+            </div>
+
+            <div class="match">
+              <div class="match-status">
+                <span class="status-dot"></span> Finalizado
+              </div>
+              <div class="team">
+                <div class="team-shield">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <span class="team-name">Leones</span>
+                <span class="score">0</span>
+              </div>
+              <div class="team winner">
+                <div class="team-shield">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <span class="team-name">Águilas</span>
+                <span class="score">2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="connector-col">
+          <svg width="60" height="180" viewBox="0 0 60 180" fill="none">
+            <path d="M0 52 H30 V90" stroke="rgba(34,197,94,0.35)" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M0 128 H30 V90" stroke="rgba(34,197,94,0.35)" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M30 90 H60" stroke="rgba(34,197,94,0.35)" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="30" cy="90" r="3" fill="rgba(34,197,94,0.5)"/>
+          </svg>
+        </div>
+
+        <div class="final-col">
+          <div class="trophy-badge">
+            <svg width="12" height="12" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M6 9H4a2 2 0 0 1-2-2V5h4"/><path d="M18 9h2a2 2 0 0 0 2-2V5h-4"/>
+              <path d="M6 9c0 3.87 2.69 7.13 6 8 3.31-.87 6-4.13 6-8"/>
+              <line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/>
+            </svg>
+            <span>Gran Final</span>
+          </div>
+          <div class="match final-match">
+            <div class="match-status">
+              <span class="status-dot"></span> Por jugar
+            </div>
+            <div class="team">
+              <div class="team-shield">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <span class="team-name">Halcones</span>
+              <span class="score">–</span>
+            </div>
+            <div class="team">
+              <div class="team-shield">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <span class="team-name">Águilas</span>
+              <span class="score">–</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

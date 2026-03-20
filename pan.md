@@ -1,44 +1,30 @@
-# backend
+He analizado a fondo los requisitos para el ciclo completo de torneos. Actualmente tenemos una base funcional, pero para cumplir con un sistema de **eliminación directa** robusto, necesitamos implementar una estructura de **árbol (bracket)** donde los partidos estén conectados entre sí.
 
-He completado la implementación del backend para los torneos, incluyendo la lógica de **Fixture automático**.
+Este es el plan detallado para llevar el sistema de torneos al siguiente nivel:
 
-### Lo que hemos logrado:
+### 1. Evolución del Modelo de Datos
+Para soportar llaves eliminatorias, necesitamos que cada partido sepa a qué partido sigue el ganador.
+*   **`TournamentMatch`**: Añadiré `next_match` (relación a sí mismo) y `round_number`.
+*   **`Tournament`**: Añadiré el estado `closed` para la fase de cierre de inscripciones.
 
-1.  **Gestión de Torneos e Inscripciones**:
-    *   Modelos `Tournament` y `TournamentTeam` con todos los campos necesarios.
-    *   API para listar y ver detalles de torneos con compatibilidad de nombres (camelCase).
-    *   Endpoint funcional para inscribir equipos (`/enroll/`).
+### 2. Generación Inteligente de Fixture (Algoritmo de Potencia de 2)
+Implementaré un nuevo algoritmo de generación que:
+*   Calcula la potencia de 2 más cercana (ej. si hay 6 o 7 equipos, el bracket se basa en 8).
+*   Crea todos los partidos necesarios desde la Final hasta la primera ronda.
+*   Gestiona los **BYEs** (equipos que pasan directo): si un equipo no tiene rival en la primera ronda, el sistema lo marcará como ganador automáticamente y lo avanzará a la siguiente fase.
+*   Utiliza **Random Shuffle** para garantizar imparcialidad.
 
-2.  **Sistema de Fixture**:
-    *   **Nuevo Modelo `TournamentMatch`**: Almacena los enfrentamientos, puntajes, rondas y ganadores.
-    *   **Generación Automática**: He añadido un endpoint administrativo (`POST /api/tournaments/{id}/generate_fixture/`) que toma todos los equipos inscritos, los mezcla aleatoriamente y genera los emparejamientos de la primera ronda automáticamente.
-    *   **Compatibilidad**: El detalle del torneo ahora incluye la lista de partidos (`matches`), lista para ser mostrada en tu pestaña de "Fixture & Llaves".
+### 3. Progresión Automática
+Actualizaré la lógica de guardado de resultados para que:
+*   Al marcar un partido como `completed`, el sistema identifique al ganador.
+*   El ganador sea movido automáticamente al siguiente partido (`next_match`) en la posición correcta (Local o Visitante) según el orden de la llave.
+*   Se disparen notificaciones por WebSocket para que todos los clientes vean al equipo avanzar en tiempo real.
 
-3.  **Administración**:
-    *   Desde el panel de Django Admin ahora puedes gestionar los partidos, ingresar resultados y declarar ganadores.
+### 4. Ciclo de Vida del Torneo
+Añadiré acciones para:
+*   **Cerrar Inscripciones**: Cambiar de `open` a `closed`, bloqueando nuevos registros.
+*   **Finalizar Torneo**: Cambiar a `finished` cuando se complete el último partido.
 
-### Próximos pasos para ti:
-1.  En el frontend, puedes conectar la pestaña de "Fixture & Llaves" usando la propiedad `matches` que ahora devuelve el objeto del torneo.
-2.  Si tienes un usuario administrador, puedes probar la generación del fixture haciendo una petición POST a `/api/tournaments/1/generate_fixture/`.
+---
 
-¡El backend ya está listo para soportar toda la lógica de tus torneos! Quedo a tu disposición si necesitas algún ajuste adicional.
-
-
-
-
-
-# COMPLETADO EN EN FRONTEND
-
-<!-- Edit this markdown file to update your focus chain list -->
-<!-- Use the format: - [ ] for incomplete items and - [x] for completed items -->
-
-- [x] Backend de Torneos e Inscripciones
-- [x] Integración Frontend (Listado, Detalle, Inscripción)
-- [x] Hacer funcional Fixture & Llaves
-  - [x] Añadir `generateFixture` al repositorio frontend
-  - [x] Actualizar hook `useTournamentDetail` con `generateFixture`
-  - [x] Añadir botón de generación en `TournamentDetailPage.jsx` (solo admin)
-  - [x] Mejorar visualización de encuentros en la pestaña Fixture
-- [x] Pruebas finales de funcionamiento fluido y corrección de errores de sintaxis
-
-<!-- Save this file and the focus chain list will be updated in the task -->
+¿Deseas que comience con la implementación de estos cambios en el backend y frontend?

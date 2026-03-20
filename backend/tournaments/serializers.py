@@ -25,8 +25,8 @@ class TournamentMatchSerializer(serializers.ModelSerializer):
         model = TournamentMatch
         fields = [
             'id', 'team1', 'team2', 'score1', 'score2', 
-            'date', 'location', 'round_name', 'order', 
-            'status', 'winner'
+            'date', 'location', 'round_number', 'round_name', 'order', 
+            'status', 'winner', 'next_match', 'position_in_next_match'
         ]
 
 class TournamentSerializer(serializers.ModelSerializer):
@@ -34,7 +34,7 @@ class TournamentSerializer(serializers.ModelSerializer):
     endDate = serializers.DateField(source='end_date')
     registeredTeams = serializers.ReadOnlyField(source='registered_teams_count')
     maxTeams = serializers.IntegerField(source='max_teams')
-    coverImage = serializers.ImageField(source='cover_image')
+    coverImage = serializers.URLField(source='cover_image', read_only=True)
     registrationFee = serializers.DecimalField(source='registration_fee', max_digits=10, decimal_places=2)
     teams = TournamentTeamSerializer(many=True, read_only=True)
     matches = TournamentMatchSerializer(many=True, read_only=True)

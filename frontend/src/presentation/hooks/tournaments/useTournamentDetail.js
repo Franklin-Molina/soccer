@@ -9,16 +9,16 @@ export const useTournamentDetail = (id) => {
 
   const tournamentRepository = new ApiTournamentRepository();
 
-  const fetchTournamentDetail = useCallback(async () => {
+  const fetchTournamentDetail = useCallback(async (isRefresh = false) => {
     if (!id) return;
     try {
-      setLoading(true);
+      if (!isRefresh) setLoading(true);
       const data = await tournamentRepository.getTournamentById(id);
       setTournament(data);
     } catch (err) {
       setError(err);
     } finally {
-      setLoading(false);
+      if (!isRefresh) setLoading(false);
     }
   }, [id]);
 

@@ -2,6 +2,7 @@ import React, { createContext, useContext } from 'react';
 import { ApiBookingRepository } from '../../infrastructure/repositories/api-booking-repository';
 import { ApiUserRepository } from '../../infrastructure/repositories/api-user-repository';
 import { ApiCourtRepository } from '../../infrastructure/repositories/api-court-repository';
+import { ApiTournamentRepository } from '../../infrastructure/repositories/api-tournament-repository';
 // Importar otros repositorios aquí si es necesario
 
 // Crear el contexto para los repositorios
@@ -18,12 +19,14 @@ export const RepositoryProvider = ({ children }) => {
   const bookingRepository = new ApiBookingRepository();
   const userRepository = new ApiUserRepository();
   const courtRepository = new ApiCourtRepository();
+  const tournamentRepository = new ApiTournamentRepository();
   // const anotherRepository = new AnotherRepository();
 
   const repositories = {
     bookingRepository,
     userRepository,
     courtRepository,
+    tournamentRepository,
     // Añadir otros repositorios aquí
   };
 

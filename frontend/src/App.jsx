@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // 🔥 1. Agregamos los hooks aquí
+import React, { useState, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { RepositoryProvider } from './presentation/context/RepositoryContext.jsx';
 import { UseCaseProvider } from './presentation/context/UseCaseContext.jsx';
@@ -40,26 +40,25 @@ import ServerErrorFallback from './presentation/components/common/ServerErrorFal
 import TournamentsPage from './presentation/pages/Tournaments/TournamentsPage.jsx'
 import TournamentDetailPage from './presentation/pages/Tournaments/TournamentDetailPage.jsx'
 
-
+// 🔥 1. AGREGAMOS LAS IMPORTACIONES DEL DASHBOARD DE TORNEOS AQUÍ
+import DashboardManageTournamentsPage from './presentation/pages/Tournaments/DashboardManageTournamentsPage.jsx';
+import DashboardTournamentFormPage from './presentation/pages/Tournaments/DashboardTournamentFormPage.jsx';
 
 function App() {
   const [isServerDown, setIsServerDown] = useState(false);
 
   useEffect(() => {
-    // 1. Escuchamos el evento que dispara api.js
     const handleServerDown = () => {
       setIsServerDown(true);
     };
 
     window.addEventListener('server-down', handleServerDown);
 
-    // 2. Limpiamos el evento si el componente se desmonta
     return () => {
       window.removeEventListener('server-down', handleServerDown);
     };
   }, []);
 
-  // 3. El Cortacircuitos: Si el servidor cae, mostramos ESTO y nada más.
   if (isServerDown) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -68,7 +67,7 @@ function App() {
           message="El backend está apagado o no responde. Si estás en modo local, asegúrate de correr 'python manage.py runserver'."
           onRetry={() => {
             setIsServerDown(false);
-            window.location.reload(); // Recargamos para reintentar todo
+            window.location.reload(); 
           }} 
         />
       </div>
@@ -89,16 +88,11 @@ function App() {
   );
 }
 
-// Componente para manejar la lógica de notificaciones globales
 function GlobalNotificationHandler() {
   const { notification } = useNotification();
-  
-  // ¡Adiós al bucle infinito y al viejo notificador! 👋
-  
   return <Notification message={notification} />;
 }
 
-// Componente auxiliar para manejar el contenido condicional basado en el estado de carga de autenticación
 function AuthContent() {
   const { loading } = useAuth();
 
@@ -127,9 +121,12 @@ function AuthContent() {
         <Route path="reservas" element={<DashboardBookingsPage />} />
         <Route path="reservas/historial" element={<BookingHistoryPage />} />
         <Route path="usuarios" element={<DashboardUsersPage />} />
-        <Route path="perfil" element={<DashboardProfilePage />} /> {/* Usar DashboardProfilePage */}
-        {/* Ruta para la página de modificación de canchas */}
-        <Route path="manage-courts/:id" element={<DashboardModifyCourtPage />} />
+        <Route path="perfil" element={<DashboardProfilePage />} /> 
+        <Route path="manage-courts/:id" element={<DashboardModifyCourtPage />} />   
+        <Route path="tournaments" element={<DashboardManageTournamentsPage />} />
+        <Route path="tournaments/new" element={<DashboardTournamentFormPage />} /> 
+        <Route path="tournaments/edit/:id" element={<DashboardTournamentFormPage />} />
+
       </Route>
 
       <Route
@@ -156,18 +153,17 @@ function AuthContent() {
         }
       />
 
-      {/* 🔥 NUEVA RUTA: Página pública de Torneos */}
+      {/* RUTAS PÚBLICAS DE TORNEOS */}
       <Route
         path="/tournaments"
         element={
           <Layout>
-            <TournamentsPage />           
-
+            <TournamentsPage />          
           </Layout>
         }
       />
       <Route
-        path="/tournaments/:id" // <-- El :id nos permite saber a qué torneo entró
+        path="/tournaments/:id" 
         element={
           <Layout>
             <TournamentDetailPage />
@@ -234,7 +230,7 @@ function AuthContent() {
             </Layout>
           </ProtectedRoute>
         }
-      />
+      />         
       <Route
         path="/adminglobal"
         element={
@@ -251,7 +247,7 @@ function AuthContent() {
           <Route path="manage-admins" element={<ManageAdminsTable />} />
           <Route path="register-admin" element={<AdminRegisterPage />} />
         </Route>
-        <Route path="profile" element={<DashboardProfilePage />} />
+        <Route path="profile" element={<DashboardProfilePage />} />       
       </Route>
 
       {/* Ruta catch-all para 404 */}

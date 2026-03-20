@@ -22,6 +22,7 @@ export const menuItems = {
     { to: '/client/bookings', label: 'Mis Reservas', icon: <CalendarDays className="w-5 h-5" /> },
     { to: '/client/history', label: 'Historial', icon: <History className="w-5 h-5" /> },
     { to: '/client/matches', label: 'Buscar Partido', icon: <Users className="w-5 h-5" /> },
+    { to: '/tournaments', label: 'Gestor Torneos', icon: <Trophy className="w-5 h-5" /> },
     { to: '/client/profile', label: 'Mi Perfil', icon: <User className="w-5 h-5" /> },
   ],
   admin: [
@@ -56,8 +57,8 @@ export const menuItems = {
       icon: <Trophy  className="w-5 h-5" />,
       submenu: [
         { to: '/tournaments', label: 'Gestor Torneos', icon: <Settings className="w-5 h-5" /> },
-        { to: '/tournaments', label: 'Gestor Torneos', icon: <Settings className="w-5 h-5" /> },
-      
+        { to: '/dashboard/tournaments/new', label: 'Crear Torneo', icon: <Settings className="w-5 h-5" /> },
+        { to: '/dashboard/tournaments/', label: 'Gestinar torneos', icon: <Settings className="w-5 h-5" /> },     
       ],
     },
 

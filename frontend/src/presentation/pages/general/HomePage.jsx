@@ -4,7 +4,7 @@ import Pagination from '../../components/common/Pagination.jsx';
 import { useHomePageLogic } from '../../hooks/general/useHomePageLogic.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import Spinner from '../../components/common/Spinner.jsx';
-import {Sun, Layers   } from "lucide-react";
+import { Sun, Layers, Trophy } from "lucide-react";
 import { formatPrice } from '../../utils/formatters.js';
 import ServerErrorFallback from '../../components/common/ServerErrorFallback.jsx'
 
@@ -26,7 +26,7 @@ function HomePage({ openAuthModal }) {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:to-gray-800">
-       <Spinner/>
+        <Spinner />
       </div>
     );
   }
@@ -42,8 +42,8 @@ function HomePage({ openAuthModal }) {
 
     if (isServerError) {
       return (
-        <ServerErrorFallback 
-          onRetry={() => window.location.reload()} 
+        <ServerErrorFallback
+          onRetry={() => window.location.reload()}
           title="Estamos experimentando problemas técnicos"
           message="Nuestra base de datos o servidor interno encontró un error inesperado. Nuestro equipo técnico ya ha sido notificado. Por favor, intenta nuevamente en unos minutos."
         />
@@ -61,7 +61,7 @@ function HomePage({ openAuthModal }) {
       {/* HERO */}
       <section className="relative overflow-hidden bg-gradient-to-r from-[#16A34A] via-[#0F172A] to-[#16A34A] dark:from-[#16A34A] dark:via-[#0F172A] dark:to-[#16A34A]">
         <div className="absolute inset-0 bg-black/30"></div>
-        <div className="absolute inset-0 bg-center bg-cover opacity-30" style={{backgroundImage: 'url(/logo2.jpg)'}}></div>
+        <div className="absolute inset-0 bg-center bg-cover opacity-30" style={{ backgroundImage: 'url(/logo2.jpg)' }}></div>
 
         <div className="relative max-w-8xl mx-auto px-4 sm:px-6 py-20 sm:py-32  flex flex-col items-center text-center ">
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-6 text-white text-xs sm:text-sm font-medium">
@@ -76,7 +76,7 @@ function HomePage({ openAuthModal }) {
             </span>
           </h1>
 
-       {/*    <p className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto mb-8 leading-relaxed">
+          {/*    <p className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto mb-8 leading-relaxed">
             Las mejores canchas deportivas a tu alcance. Reserva en segundos y disfruta del juego.
           </p> */}
 
@@ -104,8 +104,8 @@ function HomePage({ openAuthModal }) {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           {[
             { label: 'Canchas', value: 'Disponibles', color: 'from-[#16A34A] to-[#0F172A]', icon: courts.length },
-           /*  { label: 'Reserva', value: 'Instantánea', color: 'from-[#FACC15] to-[#16A34A]', icon: '⚡' },
-            { label: 'Calificación', value: '4.9/5.0', color: 'from-[#0F172A] to-[#16A34A]', icon: '★' }, */
+            { label: 'Torneos', value: 'Torneos Dispoibles', color: 'from-[#FACC15] to-[#16A34A]', icon: <Trophy className="w-5 h-5" />, },
+            /*{ label: 'Calificación', value: '4.9/5.0', color: 'from-[#0F172A] to-[#16A34A]', icon: '★' }, */
           ].map((item, i) => (
             <div
               key={i}
@@ -140,8 +140,8 @@ function HomePage({ openAuthModal }) {
               <button
                 key={i}
                 className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap text-sm sm:text-base ${i === 0
-                    ? 'bg-[#16A34A] text-white hover:bg-[#0F172A]'
-                    : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  ? 'bg-[#16A34A] text-white hover:bg-[#0F172A]'
+                  : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
               >
                 {label}
@@ -174,7 +174,7 @@ function HomePage({ openAuthModal }) {
                       <h3 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">{court.name}</h3>
                       <div className="flex items-center justify-between">
                         <p className="text-white text-lg sm:text-xl font-semibold">${formatPrice(court.price)}</p>
-                       
+
                         <span className="bg-white/20 backdrop-blur-md text-[#FACC15] px-3 py-1 rounded-full text-xs sm:text-sm font-semibold border border-white/10">
                           ★ 4.9
                         </span>
@@ -182,24 +182,24 @@ function HomePage({ openAuthModal }) {
                       <div className="mt-2">
                         {court.covered ? (
                           <span className="inline-flex items-center gap-1 bg-amber-500 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
-                              <Layers className="w-3 h-3 text-white"/>
-                            Techada                           
+                            <Layers className="w-3 h-3 text-white" />
+                            Techada
                           </span>
-                          
+
                         ) : (
                           <span className="inline-flex items-center gap-1 bg-gray-500 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
-                            <Sun className="w-3 h-3 text-white"/>
+                            <Sun className="w-3 h-3 text-white" />
                             Sin cubierta
                           </span>
                         )}
-                      </div>                  
+                      </div>
                     </div>
                   </div>
                 )}
 
                 <div className="p-5 sm:p-6">
                   <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-4 sm:mb-5 line-clamp-2">
-                      <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-4 sm:mb-5 line-clamp-2">{court.description}</p>
+                    {court.description}
                   </p>
 
                   <Link

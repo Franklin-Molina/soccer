@@ -6,6 +6,7 @@ User = get_user_model()
 class Tournament(models.Model):
     STATUS_CHOICES = [
         ('open', 'Inscripciones Abiertas'),
+        ('closed', 'Inscripciones Cerradas'),
         ('in_progress', 'En Juego'),
         ('finished', 'Finalizado'),
     ]
@@ -21,11 +22,17 @@ class Tournament(models.Model):
     registration_fee = models.DecimalField(max_digits=10, decimal_places=2)
     max_teams = models.PositiveIntegerField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open') 
-    cover_image = models.ImageField(upload_to='tournaments/', null=True, blank=True)
+    cover_image = models.URLField(max_length=1000, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
+
+    def delete(self, *args, **kwargs):
+        if self.cover_image:
+            from utils.supabase_storage import supabase_storage
+            supabase_storage.delete_image(self.cover_image)
+        super().delete(*args, **kwargs)
 
     @property
     def registered_teams_count(self):
@@ -52,10 +59,14 @@ class TournamentMatch(models.Model):
     date = models.DateTimeField(null=True, blank=True)
     location = models.CharField(max_length=255, blank=True, null=True)
     
-    # round_number: 1 (Octavos), 2 (Cuartos), 3 (Semis), 4 (Final) etc.
+    round_number = models.PositiveIntegerField(default=1)
     round_name = models.CharField(max_length=100, blank=True, null=True) 
     order = models.PositiveIntegerField(default=0) # Para ordenar partidos dentro de una ronda
     
+    # Nuevo para el bracket
+    next_match = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='previous_matches')
+    position_in_next_match = models.CharField(max_length=10, choices=[('team1', 'Equipo 1'), ('team2', 'Equipo 2')], null=True, blank=True)
+
     status = models.CharField(max_length=20, choices=[
         ('pending', 'Pendiente'),
         ('in_progress', 'En Juego'),
@@ -66,6 +77,6 @@ class TournamentMatch(models.Model):
     winner = models.ForeignKey(TournamentTeam, related_name='matches_won', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        t1 = self.team1.name if self.team1 else "TBD"
-        t2 = self.team2.name if self.team2 else "TBD"
+        t1 = self.team1.name if self.team1 else "Por definir"
+        t2 = self.team2.name if self.team2 else "Por definir"
         return f"{t1} vs {t2} - {self.tournament.name}"
