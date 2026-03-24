@@ -6,6 +6,8 @@ import { useMatches } from "../../hooks/matches/useMatches";
 import CreateMatchForm from "../../components/Matches/CreateMatchForm";
 import MatchCard from "../../components/Matches/MatchCard";
 import { Plus } from "lucide-react";
+import Spinner from '../../../presentation/components/common/Spinner.jsx'; 
+
 
 const OpenMatchesPage = () => {
   const { user } = useAuth();
@@ -65,13 +67,9 @@ const OpenMatchesPage = () => {
   }, [activeTab, selectedCategory, availableMatches, upcomingMatches]);
 
   if (loading) {
-    return (
-      <div className="
-        flex justify-center items-center h-screen text-lg
-        bg-gray-50 text-gray-600
-        dark:bg-gray-900 dark:text-gray-300
-      ">
-        <div className="animate-pulse">Cargando partidos...</div>
+    return (    
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+        <Spinner />
       </div>
     );
   }

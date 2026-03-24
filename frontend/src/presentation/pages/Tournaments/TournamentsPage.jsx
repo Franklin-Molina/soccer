@@ -2,6 +2,8 @@ import React from 'react';
 import TournamentCard from '../../components/Tournaments/TournamentCard'
 import { Trophy, Loader2 } from 'lucide-react';
 import { useTournaments } from '../../hooks/tournaments/useTournaments';
+import Spinner from '../../../presentation/components/common/Spinner.jsx';
+
 
 function TournamentsPage() {
   const { tournaments, loading, error } = useTournaments();
@@ -9,7 +11,7 @@ function TournamentsPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto">
-        
+
         {/* Cabecera Épica */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center justify-center p-3 bg-amber-500/10 rounded-2xl mb-4">
@@ -25,14 +27,13 @@ function TournamentsPage() {
 
         {/* Cuadrícula de Torneos (Responsiva) */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-12 h-12 text-emerald-500 animate-spin mb-4" />
-            <p className="text-slate-500 font-medium">Cargando torneos...</p>
+          <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+            <Spinner />
           </div>
         ) : error ? (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-6 rounded-2xl text-center">
-             <p className="text-red-600 dark:text-red-400 font-bold">Error al cargar los torneos</p>
-             <p className="text-red-500 text-sm mt-1">Por favor, intenta nuevamente más tarde.</p>
+            <p className="text-red-600 dark:text-red-400 font-bold">Error al cargar los torneos</p>
+            <p className="text-red-500 text-sm mt-1">Por favor, intenta nuevamente más tarde.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
