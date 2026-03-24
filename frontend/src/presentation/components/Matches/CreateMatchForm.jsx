@@ -62,21 +62,15 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
                 value={formData.court_id}
                 onChange={(value) => handleSelectChange('court_id', value)}
                 placeholder="Selecciona una cancha"
+                disabled={isEditing}
               />
+              {isEditing && (
+                <p className="text-[10px] text-amber-600 dark:text-amber-500 mt-1 font-medium">
+                  La cancha no se puede cambiar después de crear el partido.
+                </p>
+              )}
             </div>
-
-            {/* Categoría */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1">
-                Categoría
-              </label>
-              <CustomSelect
-                options={categories.map(c => ({ value: c.id, label: c.name }))}
-                value={formData.category_id}
-                onChange={(value) => handleSelectChange('category_id', value)}
-                placeholder="Selecciona una categoría"
-              />
-            </div>
+           
 
             {/* Selección de Hora */}
             <div className="mt-6">
@@ -111,6 +105,19 @@ const CreateMatchForm = ({ onClose, onMatchCreated, match }) => {
                   </button>
                 </div>
               )}
+            </div>
+
+             {/* Categoría */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1">
+                Categoría
+              </label>
+              <CustomSelect
+                options={categories.map(c => ({ value: c.id, label: c.name }))}
+                value={formData.category_id}
+                onChange={(value) => handleSelectChange('category_id', value)}
+                placeholder="Selecciona una categoría"
+              />
             </div>
 
             {/* Jugadores */}

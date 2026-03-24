@@ -7,6 +7,7 @@ function CustomSelect({
   onChange,
   placeholder = "Seleccionar...",
   direction = "down",
+  disabled = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
@@ -68,13 +69,18 @@ function CustomSelect({
   };
 
   return (
-    <div className="relative w-full" ref={selectRef}>
+    <div className={`relative w-full ${disabled ? "opacity-60 cursor-not-allowed" : ""}`} ref={selectRef}>
       <button
         type="button" // Añadir type="button" para evitar el envío del formulario padre
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className="w-full flex items-center justify-between px-3.5 py-2.5 bg-gray-50/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-100 transition-all"
+        className={`w-full flex items-center justify-between px-3.5 py-2.5 border rounded-lg transition-all focus:outline-none ${
+          disabled 
+            ? "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 cursor-not-allowed"
+            : "bg-gray-50/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-100"
+        }`}
       >
         <span>{selectedOption ? selectedOption.label : placeholder}</span>
         <ChevronDown

@@ -117,6 +117,7 @@ function DashboardProfilePage() {
                 <input
                   type="text"
                   value={lastName}
+                  readOnly
                   onChange={(e) => setLastName(e.target.value)}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100"
                 />

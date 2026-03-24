@@ -34,7 +34,7 @@ const NavItem = ({ item, index, isOpen, onToggle, currentPath, onClick }) => {
           onClick={() => onToggle(index)}
           className={`flex items-center justify-between w-full gap-3 px-4 py-2 rounded-xl font-normal transition-all ${
             isActive
-              ? 'bg-emerald-600 text-white shadow-md'
+              ? 'bg-emerald-700 text-white shadow-md' //admin
               : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
           }`}
         >
@@ -81,7 +81,7 @@ const NavItem = ({ item, index, isOpen, onToggle, currentPath, onClick }) => {
         className={({ isActive: isNavLinkActive }) =>
           `flex items-center gap-3 px-4 py-2 rounded-xl font-normal transition-all ${
             isNavLinkActive
-              ? 'bg-emerald-600 text-white shadow-md'
+              ? 'bg-emerald-700/90 text-white shadow-md dark:bg-emerald-800' 
               : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
           }`
         }

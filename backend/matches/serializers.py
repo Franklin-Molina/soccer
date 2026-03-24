@@ -52,12 +52,11 @@ class OpenMatchSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         # Manejar la actualización de relaciones si se proporcionan los IDs
         category_id = validated_data.pop('category_id', None)
-        court_id = validated_data.pop('court_id', None)
+        # Ignoramos court_id en la actualización para evitar cambios de cancha
+        validated_data.pop('court_id', None)
 
         if category_id:
             instance.category = MatchCategory.objects.get(id=category_id)
-        if court_id:
-            instance.court = Court.objects.get(id=court_id)
 
         # Actualizar los demás campos
         for attr, value in validated_data.items():
