@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import MatchChat from "./MatchChat";
+import { format } from 'date-fns';
 import { MessageCircle, LogOut, Calendar, Clock, Users, User, ShieldCheck, X } from "lucide-react";
 import { toast } from 'react-toastify';
 
@@ -16,7 +17,7 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
   const isCreator = currentUser?.id === match.creator.id;
   // El creador también es un participante. isFull ya considera al creador.
   const isFull = match.participants.length >= match.players_needed + 1;
-  
+
   // Verificar si el usuario actual es participante del partido (incluyendo al creador)
   const isParticipant = isCreator || match.participants.some(
     (p) => p.user.id === currentUser?.id
@@ -25,25 +26,26 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
   const startTime = new Date(match.start_time);
   const endTime = new Date(match.end_time);
 
+  const formatTime = (date) => format(date, 'h:mm a').toLowerCase();
+
+
   return (
     <div
-      className={`relative overflow-hidden p-4 sm:p-6 rounded-2xl border transition-all duration-300 ${
-        match.status === "CANCELLED"
+      className={`relative overflow-hidden p-4 sm:p-6 rounded-2xl border transition-all duration-300 ${match.status === "CANCELLED"
           ? "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800/50"
           : isFull
-          ? "bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800"
-          : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/10"
-      }`}
+            ? "bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800"
+            : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/10"
+        }`}
     >
       {/* Estado Badge */}
       <div className="absolute top-0 right-0">
-        <div className={`px-3 py-1 rounded-bl-xl text-[9px] font-black uppercase tracking-widest ${
-          match.status === "CANCELLED" 
-            ? "bg-red-500 text-white" 
-            : isFull 
-            ? "bg-slate-500 text-white" 
-            : "bg-emerald-600 text-white"
-        }`}>
+        <div className={`px-3 py-1 rounded-bl-xl text-[9px] font-black uppercase tracking-widest ${match.status === "CANCELLED"
+            ? "bg-red-500 text-white"
+            : isFull
+              ? "bg-slate-500 text-white"
+              : "bg-emerald-600 text-white"
+          }`}>
           {match.status === "CANCELLED" ? "Cancelado" : isFull ? "Completo" : "Abierto"}
         </div>
       </div>
@@ -55,11 +57,13 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
           <Calendar className="w-4 h-4 text-emerald-500" />
-          <span className="text-xs font-bold">{startTime.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span>
+          <span className="text-xs font-bold">{startTime.toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}</span>
         </div>
         <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
           <Clock className="w-4 h-4 text-emerald-500" />
-          <span className="text-xs font-bold">{startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          <span className="text-xs font-bold">
+            {formatTime(startTime)} - {formatTime(endTime)} 
+          </span>
         </div>
         <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
           <Users className="w-4 h-4 text-emerald-500" />
@@ -89,9 +93,9 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
                 className="flex justify-between items-center p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50 text-[10px] font-bold"
               >
                 <div className="flex items-center gap-1.5">
-                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                   <span className="truncate max-w-[80px]">{p.user.username}</span>
-                   {p.user.id === match.creator.id && <span className="text-[8px] bg-emerald-500/10 text-emerald-500 px-1 py-0.5 rounded-md">Host</span>}
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                  <span className="truncate max-w-[80px]">{p.user.username}</span>
+                  {p.user.id === match.creator.id && <span className="text-[8px] bg-emerald-500/10 text-emerald-500 px-1 py-0.5 rounded-md">Host</span>}
                 </div>
                 {isCreator && p.user.id !== currentUser.id && (
                   <button
@@ -128,11 +132,10 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
                   <button
                     onClick={() => onJoin(match.id)}
                     disabled={isFull}
-                    className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 shadow-lg ${
-                      isFull
+                    className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 shadow-lg ${isFull
                         ? "bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed shadow-none"
                         : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20 active:scale-95"
-                    }`}
+                      }`}
                   >
                     {isFull ? "Cerrado" : "Unirse"}
                   </button>
@@ -160,9 +163,8 @@ const MatchCard = ({ match, onJoin, onCancel, onRemove, onEdit, onLeave, current
             {isFull && isParticipant && (
               <button
                 onClick={handleToggleChat}
-                className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 relative shadow-lg ${
-                  showChat ? "bg-slate-800 text-white" : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20"
-                }`}
+                className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 relative shadow-lg ${showChat ? "bg-slate-800 text-white" : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20"
+                  }`}
               >
                 <MessageCircle className="w-4 h-4" />
                 <span>Chat Grupal</span>
