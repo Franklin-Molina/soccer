@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useQuery } from '@tanstack/react-query';
+import { MatchService } from "../../../infrastructure/services/matchService";
 import { useMatches } from "../../hooks/matches/useMatches";
 import CreateMatchForm from "../../components/Matches/CreateMatchForm";
 import MatchCard from "../../components/Matches/MatchCard";
@@ -7,6 +9,14 @@ import { Plus } from "lucide-react";
 
 const OpenMatchesPage = () => {
   const { user } = useAuth();
+
+  // Pre-cargar datos del formulario (canchas y categorías) para evitar delay al abrir modal
+  useQuery({
+    queryKey: ['matchInitialData'],
+    queryFn: MatchService.getInitialFormData,
+    staleTime: 10 * 60 * 1000,
+  });
+
   const {
     matches: matchesByCategory,
     upcomingMatches,

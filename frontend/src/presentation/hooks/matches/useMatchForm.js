@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useBookingsRealtime } from '../bookings/useBookingsRealtime';
 import { MatchService } from '../../../infrastructure/services/matchService';
 import { format, parseISO } from 'date-fns';
@@ -24,12 +25,8 @@ export const useMatchForm = ({ match, onClose, onMatchCreated }) => {
     players_needed: 1,
     should_reserve: false,
   });
-  const [courts, setCourts] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const queryClient = useQueryClient();
   const [selectedCourtId, setSelectedCourtId] = useState(null);
-  const [weeklyAvailability, setWeeklyAvailability] = useState({});
-  const [loadingWeeklyAvailability, setLoadingWeeklyAvailability] = useState(false);
-  const [weeklyAvailabilityError, setWeeklyAvailabilityError] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showConfirmBooking, setShowConfirmBooking] = useState(false);
@@ -43,19 +40,15 @@ export const useMatchForm = ({ match, onClose, onMatchCreated }) => {
   const daysOfWeek = useMemo(() => MatchService.getDaysOfWeek(), []);
   const hoursOfDay = useMemo(() => MatchService.getHoursOfDay(), []);
 
-  // Cargar datos iniciales
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        const { courts, categories } = await MatchService.getInitialFormData();
-        setCourts(courts);
-        setCategories(categories);
-      } catch (error) {
-        toast.error(error.message);
-      }
-    };
-    loadInitialData();
-  }, []);
+  // Cargar datos iniciales con caché
+  const { data: initialData } = useQuery({
+    queryKey: ['matchInitialData'],
+    queryFn: MatchService.getInitialFormData,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const courts = useMemo(() => initialData?.courts || [], [initialData]);
+  const categories = useMemo(() => initialData?.categories || [], [initialData]);
 
   // Inicializar formulario para edición
   useEffect(() => {
@@ -82,36 +75,21 @@ export const useMatchForm = ({ match, onClose, onMatchCreated }) => {
     }
   }, [isEditing, match]);
 
-  // Obtener disponibilidad semanal
-  const fetchWeeklyAvailability = useCallback(async () => {
-    if (!selectedCourtId) {
-      setWeeklyAvailability({});
-      return;
-    }
-
-    setLoadingWeeklyAvailability(true);
-    setWeeklyAvailabilityError(null);
-
-    try {
-      const availability = await MatchService.getWeeklyAvailability(selectedCourtId, currentWeekStartDate);
-      setWeeklyAvailability(availability);
-    } catch (error) {
-      toast.error(error.message);
-      setWeeklyAvailabilityError(error.message);
-      setWeeklyAvailability({});
-    } finally {
-      setLoadingWeeklyAvailability(false);
-    }
-  }, [selectedCourtId, currentWeekStartDate]);
-
-  useEffect(() => {
-    fetchWeeklyAvailability();
-  }, [fetchWeeklyAvailability]);
+  // Obtener disponibilidad semanal con caché
+  const { 
+    data: weeklyAvailability = {}, 
+    isLoading: loadingWeeklyAvailability, 
+    error: weeklyAvailabilityError 
+  } = useQuery({
+    queryKey: ['weeklyAvailability', selectedCourtId, currentWeekStartDate],
+    queryFn: () => MatchService.getWeeklyAvailability(selectedCourtId, currentWeekStartDate),
+    enabled: !!selectedCourtId,
+  });
 
   // Actualización en tiempo real
   useBookingsRealtime(useCallback(() => {
-    fetchWeeklyAvailability();
-  }, [fetchWeeklyAvailability]));
+    queryClient.invalidateQueries({ queryKey: ['weeklyAvailability'] });
+  }, [queryClient]));
 
   // Manejo de cambios en el formulario
   const handleChange = (e) => {

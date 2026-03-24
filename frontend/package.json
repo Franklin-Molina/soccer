@@ -12,6 +12,7 @@
     "@babel/runtime": "^7.27.1",
     "@lucide/lab": "^0.1.2",
     "@react-oauth/google": "^0.12.1",
+    "@tanstack/react-query": "^5.95.2",
     "axios": "^1.12.2",
     "braces": "^3.0.3",
     "date-fns": "^4.1.0",

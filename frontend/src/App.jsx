@@ -33,6 +33,7 @@ import ClientDashboardLayout from './presentation/components/Dashboard/ClientDas
 import MyBookingsPage from './presentation/pages/bookings/MyBookingsPage.jsx'; 
 import OpenMatchesPage from './presentation/pages/Matches/OpenMatchesPage.jsx';
 import { AuthProvider, useAuth } from './presentation/context/AuthContext.jsx'; 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Spinner from './presentation/components/common/Spinner.jsx'; 
 import NotFound from './presentation/components/common/NotFound.jsx'; 
 import ServerErrorFallback from './presentation/components/common/ServerErrorFallback.jsx'; 
@@ -43,6 +44,16 @@ import TournamentDetailPage from './presentation/pages/Tournaments/TournamentDet
 // 🔥 1. AGREGAMOS LAS IMPORTACIONES DEL DASHBOARD DE TORNEOS AQUÍ
 import DashboardManageTournamentsPage from './presentation/pages/Tournaments/DashboardManageTournamentsPage.jsx';
 import DashboardTournamentFormPage from './presentation/pages/Tournaments/DashboardTournamentFormPage.jsx';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutos de caché por defecto
+      gcTime: 10 * 60 * 1000, // 10 minutos de recolección de basura
+      refetchOnWindowFocus: false, // Desactivar refetch al enfocar la ventana para evitar parpadeos
+    },
+  },
+});
 
 function App() {
   const [isServerDown, setIsServerDown] = useState(false);
@@ -74,17 +85,19 @@ function App() {
     );
   }
   return (
-    <RepositoryProvider>
-      <UseCaseProvider>
-        <AuthProvider>
-          <NotificationProvider>
-            <GlobalNotificationHandler />
-            <AuthContent />
-          </NotificationProvider>
-        </AuthProvider>
-      </UseCaseProvider>
-      <ToastContainer position="top-right" autoClose={1500} />
-    </RepositoryProvider>
+    <QueryClientProvider client={queryClient}>
+      <RepositoryProvider>
+        <UseCaseProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              <GlobalNotificationHandler />
+              <AuthContent />
+            </NotificationProvider>
+          </AuthProvider>
+        </UseCaseProvider>
+        <ToastContainer position="top-right" autoClose={1500} />
+      </RepositoryProvider>
+    </QueryClientProvider>
   );
 }
 
