@@ -4,11 +4,11 @@ from .models import Booking
 from users.models import User
 from courts.models import Court
 from courts.serializers import CourtSerializer
-from users.serializers import UserSerializer
+from users.serializers import UserPublicSerializer
 from django.utils import timezone
 
 class BookingSerializer(serializers.ModelSerializer):
-    user_details = UserSerializer(source='user', read_only=True)
+    user_details = UserPublicSerializer(source='user', read_only=True)
     user = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         default=serializers.CurrentUserDefault(),

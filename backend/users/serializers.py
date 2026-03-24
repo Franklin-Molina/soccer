@@ -22,6 +22,12 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'is_staff', 'is_active', 'fecha_nacimiento', 'date_joined')
 
+class UserPublicSerializer(serializers.ModelSerializer):
+    """Serializador público y ligero para el usuario (evita over-fetching y protege datos sensibles)"""
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name')
+
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         required=True,

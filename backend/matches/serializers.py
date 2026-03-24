@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import MatchCategory, OpenMatch, MatchParticipant
-from users.serializers import UserSerializer # Reutilizamos el serializer de usuario
+from users.serializers import UserPublicSerializer # Usamos el serializer ligero
 from courts.models import Court
 
 
@@ -10,14 +10,14 @@ class MatchCategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class MatchParticipantSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = UserPublicSerializer(read_only=True)
 
     class Meta:
         model = MatchParticipant
         fields = ['user', 'joined_at']
 
 class OpenMatchSerializer(serializers.ModelSerializer):
-    creator = UserSerializer(read_only=True)
+    creator = UserPublicSerializer(read_only=True)
     participants = MatchParticipantSerializer(many=True, read_only=True)
     category = serializers.StringRelatedField()
     court = serializers.StringRelatedField()
