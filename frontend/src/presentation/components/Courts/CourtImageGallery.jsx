@@ -64,7 +64,7 @@ function CourtImageGallery({
             </h3>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {court.images.map((image, index) => {
               const imgSource = image.image_url || image.image;
               return (
@@ -84,7 +84,7 @@ function CourtImageGallery({
       {/* Modal de imagen expandida (estilo ImageFlow) */}
       {selectedImage && (
         <div 
-          className="fixed inset-0 bg-black z-50 flex flex-col"
+          className="fixed top-14 bottom-0 left-0 md:left-72 right-0 bg-black/95 backdrop-blur-sm z-40 flex flex-col"
           onClick={closeModal}
         >
           {/* Top Toolbar */}

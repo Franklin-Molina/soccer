@@ -102,7 +102,7 @@ function HomePage({ openAuthModal }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {[
             { label: 'Canchas', value: 'Disponibles', color: 'from-[#16A34A] to-[#0F172A]', icon: courts.length },
-            { label: 'Torneos', value: 'Torneos Dispoibles', color: 'from-[#FACC15] to-[#16A34A]', icon: <Trophy className="w-5 h-5" />, },
+            { label: 'Torneos', value: 'Torneos ', color: 'from-[#FACC15] to-[#16A34A]', icon: <Trophy className="w-5 h-5" />},
             /*{ label: 'Calificación', value: '4.9/5.0', color: 'from-[#0F172A] to-[#16A34A]', icon: '★' }, */
           ].map((item, i) => (
             <div
