@@ -24,10 +24,8 @@ function HomePage({ openAuthModal }) {
   } = useHomePageLogic();
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    return (     
         <Spinner />
-      </div>
     );
   }
 
@@ -131,7 +129,7 @@ function HomePage({ openAuthModal }) {
       <section className="max-w-8xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-10 gap-6">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-2">Canchas Destacadas</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-2 dark:text-white">Canchas Destacadas</h2>            
             <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Explora nuestras mejores opciones disponibles</p>
           </div>
 
