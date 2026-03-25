@@ -28,6 +28,7 @@ function TournamentBracket({ matches }) {
   }, [matchesByRound]);
 
   // 3. Medimos posiciones para las líneas SVG
+  // 3. Medimos posiciones para las líneas SVG
   useEffect(() => {
     const updatePositions = () => {
       if (!containerRef.current) return;
@@ -40,12 +41,16 @@ function TournamentBracket({ matches }) {
         const matchId = el.getAttribute('data-match-id');
         const rect = el.getBoundingClientRect();
         
-        // Guardamos el centro vertical derecho para la salida
-        // y el centro vertical izquierdo para la entrada
+        // 🔥 NUEVO: Buscamos el contenedor interno de los equipos para tener el centro visual perfecto
+        const teamsWrapper = el.querySelector(`[data-teams-wrapper="${matchId}"]`);
+        // Si existe el envoltorio usamos sus medidas para "Y", si no, usamos el borde de la tarjeta
+        const verticalRect = teamsWrapper ? teamsWrapper.getBoundingClientRect() : rect;
+        
+        // X usa el borde externo de la tarjeta. Y usa el centro de los equipos.
         newPositions[matchId] = {
           rightX: rect.right - containerRect.left,
           leftX: rect.left - containerRect.left,
-          centerY: (rect.top + rect.bottom) / 2 - containerRect.top,
+          centerY: (verticalRect.top + verticalRect.bottom) / 2 - containerRect.top,
           width: rect.width,
           height: rect.height
         };
@@ -150,7 +155,7 @@ function TournamentBracket({ matches }) {
 }
 
 // Sub-componente: La tarjeta visual del partido
-// Sub-componente: La tarjeta visual del partido
+
 const BracketMatchCard = ({ match, isFinal, isAdmin, onUpdateScore, isUpdating }) => {
   const [scoreA, setScoreA] = useState(match.score1 || 0);
   const [scoreB, setScoreB] = useState(match.score2 || 0);
@@ -169,8 +174,11 @@ const BracketMatchCard = ({ match, isFinal, isAdmin, onUpdateScore, isUpdating }
   const isInProgress = match.status === 'in_progress' || (teamsReady && hasGoals && !isFinished);
   const isNotStarted = !isInProgress && !isFinished;
 
-  const team1Won = isFinished && match.winner === match.team1?.id;
-  const team2Won = isFinished && match.winner === match.team2?.id;
+  // 🔥 LÓGICA CORREGIDA: Determinamos qué equipo está resaltado basándonos puramente en los marcadores.
+  // Un equipo se resalta si hay goles y su marcador es mayor que el del rival.
+  // Esto funciona para partidos "En curso" y "Finalizado".
+  const isTeam1Highlighted = hasGoals && scoreA > scoreB;
+  const isTeam2Highlighted = hasGoals && scoreB > scoreA;
 
   // Determinar el estado para la etiqueta superior
   let statusColor = "bg-white/35";
@@ -205,14 +213,14 @@ const BracketMatchCard = ({ match, isFinal, isAdmin, onUpdateScore, isUpdating }
       <div className={`flex items-center gap-2 px-3 py-1.5 border-b text-[0.62rem] font-bold uppercase tracking-[0.1em] text-white/40 ${isFinal ? 'border-[#f59e0b]/10' : 'border-white/5'}`}>
         <span className={`w-1.5 h-1.5 rounded-full ${statusColor}`}></span>
         {statusText}
-      </div>
+      </div>      
 
       {/* Equipo 1 */}
-      <div className={`flex items-center gap-3 p-2.5 border-b transition-colors ${isFinal ? 'border-[#f59e0b]/10' : 'border-white/5'} ${team1Won ? 'bg-[#22c55e]/5' : ''}`}>
-        <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 border transition-all ${team1Won ? 'bg-[#22c55e]/10 border-[#22c55e]/20 text-[#22c55e]' : 'bg-white/5 border-white/10 text-white/50'}`}>
+      <div className={`flex items-center gap-3 p-2.5 border-b transition-colors ${isFinal ? 'border-[#f59e0b]/10' : 'border-white/5'} ${isTeam1Highlighted ? 'bg-[#22c55e]/5' : ''}`}>
+        <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 border transition-all ${isTeam1Highlighted ? 'bg-[#22c55e]/10 border-[#22c55e]/20 text-[#22c55e]' : 'bg-white/5 border-white/10 text-white/50'}`}>
           <Shield className="w-4 h-4 opacity-70" />
         </div>
-        <span className={`flex-1 font-['Barlow_Condensed',sans-serif] text-[0.95rem] tracking-wide truncate uppercase ${team1Won ? 'text-[#22c55e] font-bold' : match.team1 ? 'text-[#e2e8e4] font-semibold' : 'text-white/25 italic text-[0.82rem] font-normal capitalize'}`}>
+        <span className={`flex-1 font-['Barlow_Condensed',sans-serif] text-[0.95rem] tracking-wide truncate uppercase ${isTeam1Highlighted ? 'text-[#22c55e] font-bold' : match.team1 ? 'text-[#e2e8e4] font-semibold' : 'text-white/25 italic text-[0.82rem] font-normal capitalize'}`}>
           {match.team1?.name || 'Por definir'}
         </span>
         
@@ -222,18 +230,18 @@ const BracketMatchCard = ({ match, isFinal, isAdmin, onUpdateScore, isUpdating }
             className="w-10 h-7 text-center text-sm font-bold rounded-md bg-white/5 border border-white/10 text-white/40 focus:border-[#22c55e] focus:text-white outline-none"
           />
         ) : (
-          <div className={`min-w-[28px] h-7 px-2 flex items-center justify-center rounded-md font-['Barlow_Condensed',sans-serif] text-[1.1rem] font-bold ${team1Won ? 'bg-[#22c55e]/10 text-[#22c55e]' : 'bg-white/5 text-white/40'}`}>
+          <div className={`min-w-[28px] h-7 px-2 flex items-center justify-center rounded-md font-['Barlow_Condensed',sans-serif] text-[1.1rem] font-bold ${isTeam1Highlighted ? 'bg-[#22c55e]/10 text-[#22c55e]' : 'bg-white/5 text-white/40'}`}>
             {displayScore1}
           </div>
         )}
       </div>
 
       {/* Equipo 2 */}
-      <div className={`flex items-center gap-3 p-2.5 transition-colors ${team2Won ? 'bg-[#22c55e]/5' : ''}`}>
-        <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 border transition-all ${team2Won ? 'bg-[#22c55e]/10 border-[#22c55e]/20 text-[#22c55e]' : 'bg-white/5 border-white/10 text-white/50'}`}>
+      <div className={`flex items-center gap-3 p-2.5 transition-colors ${isTeam2Highlighted ? 'bg-[#22c55e]/5' : ''}`}>
+        <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 border transition-all ${isTeam2Highlighted ? 'bg-[#22c55e]/10 border-[#22c55e]/20 text-[#22c55e]' : 'bg-white/5 border-white/10 text-white/50'}`}>
           <Shield className="w-4 h-4 opacity-70" />
         </div>
-        <span className={`flex-1 font-['Barlow_Condensed',sans-serif] text-[0.95rem] tracking-wide truncate uppercase ${team2Won ? 'text-[#22c55e] font-bold' : match.team2 ? 'text-[#e2e8e4] font-semibold' : 'text-white/25 italic text-[0.82rem] font-normal capitalize'}`}>
+        <span className={`flex-1 font-['Barlow_Condensed',sans-serif] text-[0.95rem] tracking-wide truncate uppercase ${isTeam2Highlighted ? 'text-[#22c55e] font-bold' : match.team2 ? 'text-[#e2e8e4] font-semibold' : 'text-white/25 italic text-[0.82rem] font-normal capitalize'}`}>
           {match.team2?.name || 'Por definir'}
         </span>
         
@@ -243,7 +251,7 @@ const BracketMatchCard = ({ match, isFinal, isAdmin, onUpdateScore, isUpdating }
             className="w-10 h-7 text-center text-sm font-bold rounded-md bg-white/5 border border-white/10 text-white/40 focus:border-[#22c55e] focus:text-white outline-none"
           />
         ) : (
-          <div className={`min-w-[28px] h-7 px-2 flex items-center justify-center rounded-md font-['Barlow_Condensed',sans-serif] text-[1.1rem] font-bold ${team2Won ? 'bg-[#22c55e]/10 text-[#22c55e]' : 'bg-white/5 text-white/40'}`}>
+          <div className={`min-w-[28px] h-7 px-2 flex items-center justify-center rounded-md font-['Barlow_Condensed',sans-serif] text-[1.1rem] font-bold ${isTeam2Highlighted ? 'bg-[#22c55e]/10 text-[#22c55e]' : 'bg-white/5 text-white/40'}`}>
             {displayScore2}
           </div>
         )}

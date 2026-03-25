@@ -36,7 +36,7 @@ function TournamentsPage() {
             <p className="text-red-500 text-sm mt-1">Por favor, intenta nuevamente más tarde.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
             {tournaments && tournaments.length > 0 ? (
               tournaments.map(tournament => (
                 <TournamentCard key={tournament.id} tournament={tournament} />

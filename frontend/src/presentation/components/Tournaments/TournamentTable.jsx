@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Edit, Trash2, Calendar, Trophy, Eye, Zap, SearchX } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { formatPrice } from '../../utils/formatters.js';
 
 const ActionButton = ({ onClick, icon: Icon, title, className, to, target }) => {
   const content = (
@@ -57,7 +58,7 @@ const TournamentTableRow = ({ t, onDelete, onGenerateFixture }) => {
           <div className="ml-4">
             <div className="font-bold text-slate-900 dark:text-white text-sm line-clamp-1">{t.name}</div>
             <div className="text-xs text-slate-500 font-medium flex items-center mt-1">
-              <Trophy className="w-3 h-3 mr-1 text-amber-500" /> {t.prize}
+              <Trophy className="w-3 h-3 mr-1 text-amber-500" /> {formatPrice(t.prize)}
             </div>
           </div>
         </div>
@@ -99,7 +100,7 @@ const TournamentTableRow = ({ t, onDelete, onGenerateFixture }) => {
             <ActionButton 
               onClick={() => onGenerateFixture(t.id)} 
               icon={Zap} 
-              title="Generar Fixture" 
+              title="Generar Sorteo" 
               className="hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10" 
             />
           )}

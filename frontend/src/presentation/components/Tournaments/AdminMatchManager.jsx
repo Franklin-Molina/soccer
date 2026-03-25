@@ -15,7 +15,7 @@ function AdminMatchManager({ initialMatches = [], onRefresh }) {
       <div className="text-center py-12 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700">
         <ShieldAlert className="w-12 h-12 mx-auto text-slate-400 mb-3" />
         <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">Aún no hay partidos generados</h3>
-        <p className="text-slate-500 text-sm mt-1">Genera el fixture primero para poder administrar los resultados.</p>
+        <p className="text-slate-500 text-sm mt-1">Genera el sorteo primero para poder administrar los resultados.</p>
       </div>
     );
   }

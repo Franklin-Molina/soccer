@@ -235,7 +235,7 @@ DATABASES = {
     )
 } 
 
-""" DATABASES = {
+DATABASES = {
     "default": {
         "ENGINE": os.environ.get("DB_ENGINE", "django.db.backends.postgresql"),
         "NAME": os.environ.get("DB_NAME"),
@@ -244,7 +244,7 @@ DATABASES = {
         "HOST": os.environ.get("DB_HOST", "db"),  # This will now be 'db'
         "PORT": os.environ.get("DB_PORT"),
     }
-} """
+}
 
 
 # Configuración de Djoser

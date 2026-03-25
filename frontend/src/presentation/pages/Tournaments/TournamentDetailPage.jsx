@@ -9,6 +9,7 @@ import AdminMatchManager from '../../components/Tournaments/AdminMatchManager';
 import TournamentBracket from '../../components/Tournaments/TournamentBracket';
 import { formatPrice } from '../../utils/formatters.js';
 import { useTournamentDetailLogic } from '../../hooks/tournaments/useTournamentDetailLogic';
+import Spinner from '../../components/common/Spinner.jsx';
 
 function TournamentDetailPage() {
   const {
@@ -32,11 +33,8 @@ function TournamentDetailPage() {
   } = useTournamentDetailLogic();
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center">
-        <Loader2 className="w-12 h-12 text-emerald-500 animate-spin mb-4" />
-        <p className="text-slate-500 font-medium">Cargando detalles del torneo...</p>
-      </div>
+    return (      
+        <Spinner/>          
     );
   }
 
@@ -124,7 +122,7 @@ function TournamentDetailPage() {
             <Users className="w-4 h-4 mr-2" /> Equipos Inscritos
           </button>
           <button onClick={() => setActiveTab('fixture')} className={`flex items-center px-6 py-4 font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${activeTab === 'fixture' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
-            <GitMerge className="w-4 h-4 mr-2" /> Fixture & Llaves
+            <GitMerge className="w-4 h-4 mr-2" /> Sorteo & Llaves
           </button>
         </div>
 
@@ -191,7 +189,7 @@ function TournamentDetailPage() {
                     className="flex items-center gap-2 bg-slate-900 dark:bg-emerald-600 hover:bg-slate-800 dark:hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
                   >
                     <GitMerge size={16} />
-                    {tournament.matches?.length > 0 ? 'Regenerar Fixture' : 'Generar Fixture Automático'}
+                    {tournament.matches?.length > 0 ? 'Regenerar Sorteo' : 'Generar Sorteo Automático'}
                   </button>
                 )}
               </div>
@@ -207,7 +205,7 @@ function TournamentDetailPage() {
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4"><Clock className="w-10 h-10 text-slate-400" /></div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Fixture en Preparación</h3>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Preparando Sorteo</h3>
                   <p className="text-slate-500 text-sm">Los encuentros se generarán una vez que se cierren las inscripciones.</p>
                 </div>
               )}

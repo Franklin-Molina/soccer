@@ -22,7 +22,7 @@ function DashboardTournamentFormPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto animate-in fade-in duration-500">
+    <div className="p-4 sm:p-6 lg:p-8 w-full mx-auto animate-in fade-in duration-500">
       
       {/* Cabecera */}
       <div className="flex items-center mb-8 gap-4">

@@ -36,7 +36,7 @@ function CourtForm() {
 
   return (
     <div className="w-full mx-auto p-6">
-      <div className="bg-white dark:bg-gray-900 shadow-lg rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 shadow-lg rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Header */}
         <div className="relative h-48 sm:h-64 overflow-hidden">
           <img
@@ -67,10 +67,9 @@ function CourtForm() {
         </div>
 
         {/* Formulario */}
-        <form
-          onSubmit={handleSubmit}
-          className="p-6 space-y-6 text-gray-800 dark:text-gray-100"
-        >
+        <form onSubmit={handleSubmit} className="space-y-6 text-gray-800 dark:text-gray-100" >
+
+          <div className="p-6 md:p-8 space-y-8">
           {/* Nombre + Precio */}
           <div className="grid md:grid-cols-2 gap-6">
             {/* Nombre */}
@@ -90,7 +89,7 @@ function CourtForm() {
                 onChange={handleChange}
                 required
                 placeholder="Ej: Cancha de Fútbol El Campeón"
-                className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 outline-none transition"
+                className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 outline-none transition"
               />
             </div>
 
@@ -113,26 +112,58 @@ function CourtForm() {
                 pattern="[0-9]*\.?[0-9]*"
                 inputMode="decimal"
                 placeholder="$ 0.00"
-                className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 outline-none transition"
+                className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 outline-none transition"
               />
             </div>
 
             {/* Cubierto */}
             <div>
-              <label
-                htmlFor="covered"
-                className="flex items-center gap-2 text-sm font-medium mb-2"
-              >
+              <label className="flex items-center gap-2 text-sm font-medium mb-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                 ¿Tiene Cubierta?
               </label>
-              <input
-                type="checkbox"
-                id="covered"
-                name="covered"
-                checked={formData.covered}
-                onChange={handleChange}
-                className="w-4 h-4 accent-emerald-500"
+              <div className="flex items-center gap-6 mt-1">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={formData.covered === true}
+                    onChange={() => handleSelectChange("covered")(true)}
+                   className="w-4 h-4 accent-emerald-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-emerald-500 transition-colors">
+                    Sí
+                  </span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={formData.covered === false}
+                    onChange={() => handleSelectChange("covered")(false)}
+                    className="w-4 h-4 accent-emerald-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-emerald-500 transition-colors">
+                    No
+                  </span>
+                </label>
+              </div>
+            </div>
+
+
+            {/* Categoría */}
+            <div>
+              <label
+                htmlFor="category"
+                className="flex items-center gap-2 text-sm font-medium mb-2"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                Categoría
+              </label>
+              <CustomSelect
+                options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
+                value={formData.category}
+                onChange={handleSelectChange("category")}
+                placeholder={categoriesLoading ? "Cargando..." : "Seleccione una categoría"}
+                direction="down"
               />
             </div>
           </div>
@@ -152,28 +183,11 @@ function CourtForm() {
               value={formData.description}
               onChange={handleChange}
               placeholder="Describe las características de tu cancha, servicios incluidos, ubicación, etc."
-              className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 outline-none transition min-h-[120px]"
+              className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-2 focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 outline-none transition min-h-[120px]"
             ></textarea>
           </div>
 
-          {/* Categoría */}
-          <div>
-            <label
-              htmlFor="category"
-              className="flex items-center gap-2 text-sm font-medium mb-2"
-            >
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              Categoría
-            </label>
-            <CustomSelect
-              options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
-              value={formData.category}
-              onChange={handleSelectChange("category")}
-              placeholder={categoriesLoading ? "Cargando..." : "Seleccione una categoría"}
-              direction="down"
-            />
-          </div>
-
+          <hr className="border-slate-200 dark:border-slate-700" />
           {/* Imágenes */}
           <div>
             <div className="flex justify-between items-center mb-3">
@@ -201,7 +215,7 @@ function CourtForm() {
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(index)}
-                    className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white p-1 rounded-full transition"
+                    className="absolute top-1 right-1 dark:bg-slate-900/50 hover:bg-black/80 text-white p-1 rounded-full transition"
                   >
                     <X size={14} />
                   </button>
@@ -210,7 +224,7 @@ function CourtForm() {
 
               {/* Botón agregar */}
               {formData.images.length < 5 && (
-                <label className="w-32 h-32 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                <label className="w-32 h-32 flex flex-col items-center justify-center border-2 dark:bg-slate-900/50 border-dashed border-gray-300 dark:border-gray-700 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
                   <Camera className="w-6 h-6 text-blue-500" />
                   <span className="text-xs mt-2 text-gray-600 dark:text-gray-400">
                     Agregar foto
@@ -227,15 +241,18 @@ function CourtForm() {
               )}
             </div>
           </div>
+       </div>
+        {/* FOOTER: Botón de Guardar */}
 
-          {/* Botón de envío */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-gradient-to-r from-emerald-600 to-emerald-600 text-white py-3 rounded-xl font-semibold hover:from-emerald-600 hover:to-emerald-700 transition disabled:opacity-60"
-          >
+          <div className="bg-slate-50 dark:bg-slate-900/50 p-6 border-t border-slate-200 dark:border-slate-700 flex justify-end ">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed min-w-[200px]"
+            >
             {isSubmitting ? "Creando..." : "Crear Cancha"}
-          </button>
+            </button>
+          </div>         
         </form>
       </div>
     </div>

@@ -141,15 +141,26 @@ class TournamentViewSet(viewsets.ModelViewSet):
         tournament.matches.all().delete()
         random.shuffle(teams)
 
-        # 2. Calcular estructura del Bracket (Potencia de 2)
-        num_rounds = math.ceil(math.log2(num_teams))
-        bracket_size = 2**num_rounds
+        # 2. Calcular estructura inteligente (Ronda Preliminar vs Potencia de 2)
+        # Encontramos la potencia de 2 más cercana hacia abajo (o igual)
+        p_base = 2 ** int(math.log2(num_teams))
+        has_preliminary = num_teams > p_base
         
-        # 3. Crear todos los partidos del bracket (desde la final hacia atrás)
+        if not has_preliminary:
+            num_rounds = int(math.log2(p_base))
+            num_prelim_matches = 0
+        else:
+            num_rounds = int(math.log2(p_base)) + 1
+            num_prelim_matches = num_teams - p_base
+
         matches_by_round = {}
         
         # Nombres amigables para las rondas
-        def get_round_name(r_idx, total_r):
+        def get_round_name(r_idx, total_r, is_prelim):
+            if is_prelim and r_idx == 1:
+                return "Ronda Preliminar"
+            
+            # Calculamos la distancia a la final
             dist = total_r - r_idx
             if dist == 0: return "Final"
             if dist == 1: return "Semifinal"
@@ -157,67 +168,74 @@ class TournamentViewSet(viewsets.ModelViewSet):
             if dist == 3: return "Octavos de Final"
             return f"Ronda {r_idx}"
 
-        # Crear partidos "huecos" y conectarlos
+        # 3. Crear partidos por ronda
         for r in range(1, num_rounds + 1):
-            matches_in_round = bracket_size // (2**r)
+            if has_preliminary and r == 1:
+                matches_in_round = num_prelim_matches
+            else:
+                # Si hay preliminar, la ronda r=2 es la base (p_base/2 partidos)
+                # Si no hay preliminar, la ronda r=1 es la base (p_base/2 partidos)
+                r_effective = r - 1 if has_preliminary else r
+                matches_in_round = p_base // (2 ** r_effective)
+            
             matches_by_round[r] = []
             for i in range(matches_in_round):
                 match = TournamentMatch.objects.create(
                     tournament=tournament,
                     round_number=r,
-                    round_name=get_round_name(r, num_rounds),
+                    round_name=get_round_name(r, num_rounds, has_preliminary),
                     order=i + 1,
                     status='pending'
                 )
                 matches_by_round[r].append(match)
-                
-                # Conectar con el partido de la siguiente ronda
-                if r > 1:
-                    prev_round_matches = matches_by_round[r-1]
-                    # El partido i de la ronda r recibe a los ganadores de los partidos 2i y 2i+1 de la ronda r-1
-                    m_prev1 = prev_round_matches[2*i]
-                    m_prev2 = prev_round_matches[2*i+1]
-                    
-                    m_prev1.next_match = match
-                    m_prev1.position_in_next_match = 'team1'
-                    m_prev1.save()
-                    
-                    m_prev2.next_match = match
-                    m_prev2.position_in_next_match = 'team2'
-                    m_prev2.save()
 
-        # 4. Asignar equipos a la Ronda 1 y manejar BYEs
-        first_round_matches = matches_by_round[1]
+        # 4. Conectar los partidos
+        for r in range(1, num_rounds):
+            current_round_matches = matches_by_round[r]
+            next_round_matches = matches_by_round[r+1]
+            
+            for i, match in enumerate(current_round_matches):
+                # El partido i de la ronda r conecta al partido floor(i/2) de la ronda r+1
+                target_match = next_round_matches[i // 2]
+                match.next_match = target_match
+                match.position_in_next_match = 'team1' if i % 2 == 0 else 'team2'
+                match.save()
+
+        # 5. Asignar equipos
         team_idx = 0
         
-        # Algoritmo de distribución:
-        for match in first_round_matches:
-            if team_idx < num_teams:
+        # Caso A: Equipos a la Ronda Preliminar (si existe)
+        if has_preliminary:
+            prelim_matches = matches_by_round[1]
+            for match in prelim_matches:
                 match.team1 = teams[team_idx]
                 team_idx += 1
-            
-            if team_idx < num_teams:
                 match.team2 = teams[team_idx]
                 team_idx += 1
-            
-            match.save()
-            
-            # Si el partido tiene solo 1 equipo, es un BYE (avanza automático)
-            if match.team1 and not match.team2:
-                match.status = 'completed'
-                match.winner = match.team1
-                match.score1 = 1 # Score simbólico para BYE
-                match.score2 = 0 # 🔥 Aseguramos que el equipo inexistente tenga 0 goles
                 match.save()
+            
+            # Caso B: Equipos que pasan directo a la Ronda 2 (BYEs)
+            base_round_matches = matches_by_round[2]
+            for match in base_round_matches:
+                # Si el slot no será llenado por un ganador de la preliminar, asignamos equipo directo
+                if not match.team1 and not TournamentMatch.objects.filter(next_match=match, position_in_next_match='team1').exists():
+                    if team_idx < num_teams:
+                        match.team1 = teams[team_idx]
+                        team_idx += 1
                 
-                # Avanzar al ganador inmediatamente
-                if match.next_match:
-                    nm = match.next_match
-                    if match.position_in_next_match == 'team1':
-                        nm.team1 = match.winner
-                    else:
-                        nm.team2 = match.winner
-                    nm.save()
+                if not match.team2 and not TournamentMatch.objects.filter(next_match=match, position_in_next_match='team2').exists():
+                    if team_idx < num_teams:
+                        match.team2 = teams[team_idx]
+                        team_idx += 1
+                match.save()
+        else:
+            # Caso C: Torneo normal (potencia de 2)
+            for match in matches_by_round[1]:
+                match.team1 = teams[team_idx]
+                team_idx += 1
+                match.team2 = teams[team_idx]
+                team_idx += 1
+                match.save()
 
         tournament.status = 'in_progress'
         tournament.save()
