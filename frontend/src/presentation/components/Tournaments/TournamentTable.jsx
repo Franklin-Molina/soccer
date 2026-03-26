@@ -210,7 +210,7 @@ function TournamentTable({ tournaments, loading, onDelete, onGenerateFixture }) 
   return (
     <div className="space-y-4">
       {/* Vista de tarjetas para móviles */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:hidden gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-1 lg:hidden gap-4">
         {tournaments.map((t) => (
           <TournamentCard key={t.id} t={t} onDelete={onDelete} onGenerateFixture={onGenerateFixture} />
         ))}

@@ -56,7 +56,7 @@ const Notification = ({ message: propMessage, fetchAllBookings, fetchBookingStat
 
     const timer = setTimeout(() => {
       setInternalMessage(null);
-    }, 2000);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [internalMessage]);
@@ -64,10 +64,10 @@ const Notification = ({ message: propMessage, fetchAllBookings, fetchBookingStat
   if (!internalMessage) return null;
 
   return (
-    <div className="fixed top-6 right-6 z-50 animate-slide-in">
+    <div className="fixed top-16 right-6 z-50 animate-slide-in">
       <div
         className="
-          min-w-[320px] flex items-center gap-4 rounded-xl px-6 py-4 shadow-2xl
+          min-w-[320px] flex items-center gap-4 rounded-xl px-6 py-3 shadow-2xl
           border
           bg-white text-gray-800 border-gray-200
           dark:bg-gray-900 dark:text-gray-100 dark:border-green-500/30
