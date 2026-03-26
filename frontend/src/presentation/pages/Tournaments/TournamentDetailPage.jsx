@@ -10,8 +10,10 @@ import TournamentBracket from '../../components/Tournaments/TournamentBracket';
 import { formatPrice } from '../../utils/formatters.js';
 import { useTournamentDetailLogic } from '../../hooks/tournaments/useTournamentDetailLogic';
 import Spinner from '../../components/common/Spinner.jsx';
+import { useAuth } from '../../context/AuthContext';
 
 function TournamentDetailPage() {
+  const { isAuthenticated } = useAuth();
   const {
     tournament,
     loading,
@@ -68,9 +70,9 @@ function TournamentDetailPage() {
         </div>
       </div>
 
-      <div className="mx-auto px-4 sm:px-6 lg:px-8 relative z-30 -mt-24 md:-mt-32">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30 -mt-24 md:-mt-32">
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 md:p-8 flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 md:p-8 flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
@@ -95,7 +97,7 @@ function TournamentDetailPage() {
             </p>
           </div>
 
-          <div className="w-full md:w-auto flex flex-col gap-3 shrink-0">
+          <div className="w-full lg:w-auto flex flex-col gap-3 shrink-0">
             <button
               onClick={handleEnrollClick}
               disabled={isFull || tournament.status !== 'open'}
@@ -128,7 +130,7 @@ function TournamentDetailPage() {
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 dark:border-slate-700 min-h-[400px]">
           {activeTab === 'info' && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in duration-300">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-300">
               <div className="md:col-span-2 space-y-6">
                 <div>
                   <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Sobre el Torneo</h3>
@@ -241,7 +243,7 @@ function TournamentDetailPage() {
       )}
 
       {showRegistrationModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+        <div className={`fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 ${isAuthenticated ? 'md:pl-72' : ''}`}>
           <div className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 animate-in slide-in-from-bottom duration-300">
             <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
               <h2 className="text-xl sm:text-2xl font-bold text-emerald-500 dark:text-emerald-400">Inscripción Oficial</h2>

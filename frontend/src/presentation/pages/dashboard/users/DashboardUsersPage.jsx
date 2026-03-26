@@ -342,7 +342,7 @@ function DashboardUsersPage() {
 
       {/* Modal Eliminar */}
       {showDeleteModal && userToDelete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 md:pl-72">
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 w-full max-w-md">
             <h2 className="text-lg font-bold mb-3 text-red-600 flex items-center gap-2">
               <XCircle className="w-5 h-5" />

@@ -33,7 +33,7 @@ function Header({ children, openAuthModal, onToggleSidebar }) {
     <div className="flex flex-col h-screen overflow-hidden bg-gray-100 dark:bg-gray-900">
       {/* Header Superior - Siempre arriba del todo */}
       {!isAuthenticated ? (
-        <header className="flex h-14 items-center justify-between w-full px-4 sm:px-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 z-50">
+        <header className="flex h-14 items-center justify-between w-full px-4 sm:px-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 z-[65]">
           <div className="flex items-center gap-2 sm:gap-4">
             <Link
               to="/"             
@@ -83,7 +83,7 @@ function Header({ children, openAuthModal, onToggleSidebar }) {
         </header>
       ) : (
         /* Header simplificado para usuarios autenticados */
-       <header className="flex h-14 items-center justify-between w-full px-4 sm:px-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 z-50">
+       <header className="flex h-14 items-center justify-between w-full px-4 sm:px-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 z-[65]">
           <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={toggleSidebar}

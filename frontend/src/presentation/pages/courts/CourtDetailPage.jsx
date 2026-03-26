@@ -14,6 +14,7 @@ import CourtAvailabilityCalendar from "../../components/Courts/CourtAvailability
 import { useCourtDetailLogic } from "../../hooks/courts/useCourtDetailLogic.js";
 import { formatPrice } from "../../utils/formatters.js";
 import GoogleLoginButton from "../../components/Auth/GoogleLoginButton.jsx"
+import { useAuth } from "../../context/AuthContext.jsx";
 
 
 function RegisterForm() {
@@ -41,6 +42,7 @@ function RegisterForm() {
 
 
 function CourtDetailPage({ openAuthModal }) {
+  const { isAuthenticated } = useAuth();
   const {
     court,
     loading,
@@ -196,7 +198,7 @@ function CourtDetailPage({ openAuthModal }) {
 
       {/* Modal de confirmación de reserva */}
       {showConfirmModal && bookingDetailsToConfirm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+        <div className={`fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 ${isAuthenticated ? 'md:pl-72' : ''}`}>
           <div className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 animate-in slide-in-from-bottom duration-300">
             <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
               <h2 className="text-xl sm:text-2xl font-bold text-emerald-500 dark:text-emerald-400">
