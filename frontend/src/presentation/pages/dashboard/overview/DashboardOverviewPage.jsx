@@ -1,12 +1,13 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter, Plus, MapPin, Calendar } from 'lucide-react';
+import { Filter, Plus, MapPin, Calendar, Trophy } from 'lucide-react';
 
 import Spinner from '../../../components/common/Spinner.jsx';
 import FilterPanel from '../../../components/Dashboard/FilterPanel.jsx';
 import StatCards from '../../../components/Dashboard/overview/StatCards.jsx';
 import CourtsManagement from '../../../components/Dashboard/overview/CourtsManagement.jsx';
 import BookingsManagement from '../../../components/Dashboard/overview/BookingsManagement.jsx';
+import TournamentTable from '../../../components/Tournaments/TournamentTable.jsx';
 //import SystemStatus from '../../../components/Dashboard/overview/SystemStatus.jsx';
 
 import { useManageCourtsLogic } from '../../../hooks/courts/useManageCourtsLogic.js';
@@ -16,6 +17,7 @@ import { useFetchAllCourts } from '../../../hooks/courts/useFetchAllCourts.js';
 import useUserStats from '../../../hooks/users/useUserStats.js';
 import useBookingStats from '../../../hooks/bookings/useBookingStats.js';
 import { useBookingsRealtime } from '../../../hooks/bookings/useBookingsRealtime';
+import { useManageTournaments } from '../../../hooks/tournaments/useManageTournaments.js';
 import { toast } from 'react-toastify';
 
 function DashboardOverviewPage() {
@@ -72,6 +74,13 @@ function DashboardOverviewPage() {
   const { courts: allCourts } = useFetchAllCourts();
   const { stats: userStats, fetchUserStats } = useUserStats();
   const { stats: bookingStats, fetchBookingStats } = useBookingStats();
+
+  const {
+    tournaments,
+    loading: loadingTournaments,
+    handleDelete: handleDeleteTournament,
+    handleGenerateFixture,
+  } = useManageTournaments();
 
   // Refrescar datos en tiempo real (las notificaciones se manejan en el componente Notification global)
   useBookingsRealtime(useCallback(() => {
@@ -143,11 +152,13 @@ function DashboardOverviewPage() {
   const activeFilterCount =
     activeTab === 'canchas'
       ? (courtNameFilter ? 1 : 0) + (courtStatusFilter !== 'all' ? 1 : 0)
-      : (bookingSearchFilter ? 1 : 0) +
-        (bookingPaymentStatusFilter !== 'all' ? 1 : 0) +
-        (bookingCourtFilter !== 'all' ? 1 : 0);
+      : activeTab === 'reservas'
+        ? (bookingSearchFilter ? 1 : 0) +
+          (bookingPaymentStatusFilter !== 'all' ? 1 : 0) +
+          (bookingCourtFilter !== 'all' ? 1 : 0)
+        : 0;
 
-  if (loadingCourts || loadingBookings) return <Spinner />;
+  if (loadingCourts || loadingBookings || loadingTournaments) return <Spinner />;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 px-4 sm:px-6 py-4 sm:py-6">
@@ -174,35 +185,53 @@ function DashboardOverviewPage() {
               {/* Title */}
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-                  {activeTab === 'canchas' ? 'Gestión de Canchas' : 'Gestión de Reservas'}
+                  {activeTab === 'canchas' 
+                    ? 'Gestión de Canchas' 
+                    : activeTab === 'reservas' 
+                      ? 'Gestión de Reservas' 
+                      : 'Gestión de Torneos'}
                 </h2>
                 <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
                   {activeTab === 'canchas'
                     ? 'Administra y controla tus espacios deportivos'
-                    : 'Administra y controla las reservas de tus canchas'}
+                    : activeTab === 'reservas'
+                      ? 'Administra y controla las reservas de tus canchas'
+                      : 'Administra los torneos, controla los cupos y genera los fixtures'}
                 </p>
               </div>
 
               {/* ACTION BUTTONS */}
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
 
-                <button
-                  onClick={() => setIsFilterOpen(!isFilterOpen)}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-800
-                             hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700
-                             text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium w-full sm:w-auto"
-                >
-                  <Filter className="w-4 h-4" />
-                  Filtros
-                </button>
+                {activeTab !== 'torneos' && (
+                  <button
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-800
+                               hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700
+                               text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium w-full sm:w-auto"
+                  >
+                    <Filter className="w-4 h-4" />
+                    Filtros
+                  </button>
+                )}
 
                 <button
-                  onClick={activeTab === 'canchas' ? () => navigate('/dashboard/canchas/create') : () => {}}
+                  onClick={
+                    activeTab === 'canchas' 
+                      ? () => navigate('/dashboard/canchas/create') 
+                      : activeTab === 'torneos'
+                        ? () => navigate('/dashboard/tournaments/new')
+                        : () => {}
+                  }
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500
                              text-white rounded-lg text-sm font-semibold shadow-lg shadow-emerald-600/20 w-full sm:w-auto"
                 >
                   <Plus className="w-4 h-4" />
-                  {activeTab === 'canchas' ? 'Nueva Cancha' : 'Nueva Reserva'}
+                  {activeTab === 'canchas' 
+                    ? 'Nueva Cancha' 
+                    : activeTab === 'reservas' 
+                      ? 'Nueva Reserva' 
+                      : 'Nuevo Torneo'}
                 </button>
 
               </div>
@@ -235,6 +264,17 @@ function DashboardOverviewPage() {
                   <Calendar className="w-4 h-4" />
                   Reservas
                 </button>
+                <button
+                  onClick={() => setActiveTab('torneos')}
+                  className={`flex items-center gap-2 px-6 py-2.5 rounded-md text-sm font-semibold transition-all ${
+                    activeTab === 'torneos'
+                      ? 'bg-emerald-600 text-white shadow'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <Trophy className="w-4 h-4" />
+                  Torneos
+                </button>
 
               </div>
             </div>
@@ -242,18 +282,20 @@ function DashboardOverviewPage() {
           </div>
 
           {/* FILTER PANEL */}
-          <FilterPanel
-            isOpen={isFilterOpen}
-            onClose={() => setIsFilterOpen(false)}
-            filters={activeTab === 'canchas' ? courtFilters : bookingFilters}
-            onFilterChange={handleFilterChange}
-            onClearFilters={activeTab === 'canchas' ? clearCourtFilters : clearBookingFilters}
-            activeFilterCount={activeFilterCount}
-          />
+          {activeTab !== 'torneos' && (
+            <FilterPanel
+              isOpen={isFilterOpen}
+              onClose={() => setIsFilterOpen(false)}
+              filters={activeTab === 'canchas' ? courtFilters : bookingFilters}
+              onFilterChange={handleFilterChange}
+              onClearFilters={activeTab === 'canchas' ? clearCourtFilters : clearBookingFilters}
+              activeFilterCount={activeFilterCount}
+            />
+          )}
 
           {/* CONTENT */}
           <div className="overflow-x-auto px-2 sm:px-4 py-4">
-            {activeTab === 'canchas' ? (
+            {activeTab === 'canchas' && (
               <CourtsManagement
                 courts={paginatedCourts}
                 handleModifyRequest={handleModifyRequest}
@@ -268,7 +310,8 @@ function DashboardOverviewPage() {
                 totalCourts={totalCourts}
                 getRowNumber={getRowNumber}
               />
-            ) : (
+            )}
+            {activeTab === 'reservas' && (
               <BookingsManagement
                 bookings={bookings}
                 deleteBooking={deleteBooking}
@@ -279,6 +322,14 @@ function DashboardOverviewPage() {
                 setItemsPerPage={setItemsPerPage}
                 totalBookings={totalBookings}
                 getRowNumber={getRowNumber}
+              />
+            )}
+            {activeTab === 'torneos' && (
+              <TournamentTable
+                tournaments={tournaments}
+                loading={loadingTournaments}
+                onDelete={handleDeleteTournament}
+                onGenerateFixture={handleGenerateFixture}
               />
             )}
           </div>

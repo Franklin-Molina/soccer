@@ -36,13 +36,13 @@ const CourtTableRow = ({ court, index, onModify, onDelete, onToggleActive }) => 
     </td>
     <td className="px-4 py-3 text-right">
       <div className="flex items-center justify-end gap-1">
-        <ActionButton onClick={() => onModify(court)} icon={Edit2} title="Modificar" className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-yellow-500 dark:text-yellow-400 transition-all" />
+        <ActionButton onClick={() => onModify(court)} icon={Edit2} title="Modificar" className="hover:text-blue-500 dark:hover:text-blue-400" />
         <ActionButton onClick={() => onDelete(court)} icon={Trash2} title="Eliminar" className="hover:text-red-500 dark:hover:text-red-400" />
         <ActionButton
           onClick={() => onToggleActive(court.id, !court.is_active)}
           icon={court.is_active ? ShieldOff : ShieldCheck}
           title={court.is_active ? 'Suspender' : 'Reactivar'}
-          className={court.is_active ? 'hover:text-red-500 dark:hover:text-red-400' : 'hover:text-emerald-500 dark:hover:text-emerald-400'}
+          className={court.is_active ? 'hover:text-amber-500 dark:hover:text-amber-400' : 'hover:text-emerald-500 dark:hover:text-emerald-400'}
         />
       </div>
     </td>
