@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifica tu nuevo correo - Sintetíca Iris</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #111111;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #15803d, #16a34a);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .message {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #b0b0b0;
+            margin-bottom: 25px;
+        }
+        .code-box {
+            background-color: #0f1a0f;
+            border: 2px solid #4ade80;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        .code-label {
+            font-size: 12px;
+            color: #4ade80;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .code {
+            font-size: 36px;
+            font-weight: 700;
+            color: #4ade80;
+            letter-spacing: 8px;
+            font-family: 'Courier New', monospace;
+        }
+        .warning {
+            font-size: 13px;
+            color: #888888;
+            line-height: 1.5;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            border-left: 3px solid #f59e0b;
+        }
+        .footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666666;
+            border-top: 1px solid #2a2a2a;
+        }
+        .highlight {
+            color: #4ade80;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Verificación de Correo</h1>
+        </div>
+        <div class="content">
+            <p class="message">
+                Hola <span class="highlight">{{ user.username }}</span>,
+            </p>
+            <p class="message">
+                Has solicitado cambiar tu correo electrónico a <span class="highlight">{{ new_email }}</span>. 
+                Para completar este cambio, por favor ingresa el siguiente código de verificación en la aplicación:
+            </p>
+            
+            <div class="code-box">
+                <div class="code-label">Tu código de verificación</div>
+                <div class="code">{{ verification_code }}</div>
+            </div>
+            
+            <p class="message">
+                Este código expirará en <strong>30 minutos</strong>. Si no solicitaste este cambio, puedes ignorar este correo.
+            </p>
+            
+            <div class="warning">
+                <strong>⚠️ Importante:</strong> Este código es secreto. No lo compartas con nadie.
+            </div>
+        </div>
+        <div class="footer">
+            <p>© 2026 Sintetíca Iris. Todos los derechos reservados.</p>
+            <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
+        </div>
+    </div>
+</body>
+</html>

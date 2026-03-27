@@ -1,7 +1,7 @@
 from rest_framework import permissions, viewsets, status, views # Añadir status y views
 from rest_framework.response import Response
 from asgiref.sync import async_to_sync # Importar async_to_sync
-from .serializers import RegisterSerializer, UserSerializer, PerfilSocialSerializer, AdminRegisterSerializer
+from .serializers import RegisterSerializer, UserSerializer, PerfilSocialSerializer, AdminRegisterSerializer, EmailChangeRequestSerializer, EmailChangeConfirmSerializer
 from django.contrib.auth.models import Group, Permission
 from rest_framework.permissions import IsAdminUser, IsAuthenticated # Importar IsAuthenticated
 from rest_framework.decorators import action # Importar action
@@ -33,6 +33,8 @@ from .application.use_cases.get_user_list import GetUserListUseCase # Nuevo
 from .application.use_cases.update_user_status import UpdateUserStatusUseCase # Nuevo
 from .application.use_cases.delete_user import DeleteUserUseCase # Nuevo
 from .application.use_cases.change_password import ChangePasswordUseCase # Importar caso de uso de cambio de contraseña
+from .application.use_cases.request_email_change import RequestEmailChangeUseCase # Importar caso de uso de solicitud de cambio de correo
+from .application.use_cases.confirm_email_change import ConfirmEmailChangeUseCase # Importar caso de uso de confirmación de cambio de correo
 # Nota: Los casos de uso para login/logout/google se manejan en el frontend
 # y los endpoints de JWT/dj-rest-auth manejan la autenticación en el backend.
 
@@ -659,3 +661,67 @@ class ChangePasswordView(views.APIView):
         except Exception as e:
             print(f"Error interno al cambiar la contraseña: {e}")
             return Response({"error": "Error interno del servidor al cambiar la contraseña."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class EmailChangeRequestView(views.APIView):
+    """
+    Vista para solicitar un cambio de correo electrónico.
+    Envía un código de verificación al nuevo correo.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        serializer = EmailChangeRequestSerializer(data=request.data, context={'request': request})
+
+        if serializer.is_valid():
+            new_email = serializer.validated_data['new_email']
+
+            user_repository = DjangoUserRepository()
+            request_email_change_use_case = RequestEmailChangeUseCase(user_repository)
+
+            try:
+                success, message, _ = async_to_sync(request_email_change_use_case.execute)(
+                    user_id=user.id,
+                    new_email=new_email
+                )
+                if success:
+                    return Response({"detail": message}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"error": message}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                print(f"Error en EmailChangeRequestView: {e}")
+                return Response({"error": "Error interno del servidor al procesar la solicitud."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EmailChangeConfirmView(views.APIView):
+    """
+    Vista para confirmar el cambio de correo electrónico con el código de verificación.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = EmailChangeConfirmSerializer(data=request.data)
+
+        if serializer.is_valid():
+            verification_code = serializer.validated_data['verification_code']
+
+            user_repository = DjangoUserRepository()
+            confirm_email_change_use_case = ConfirmEmailChangeUseCase(user_repository)
+
+            try:
+                success, message, data = async_to_sync(confirm_email_change_use_case.execute)(
+                    verification_code=verification_code,
+                    user_id=request.user.id
+                )
+                if success:
+                    return Response({"detail": message, "new_email": data['new_email']}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"error": message}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                print(f"Error en EmailChangeConfirmView: {e}")
+                return Response({"error": "Error interno del servidor al confirmar el cambio."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -179,3 +179,36 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             'last_name': {'required': False},
             'fecha_nacimiento': {'required': False},
         }
+
+
+class EmailChangeRequestSerializer(serializers.Serializer):
+    """
+    Serializador para solicitar un cambio de correo electrónico.
+    """
+    new_email = serializers.EmailField(required=True)
+
+    def validate_new_email(self, value):
+        """
+        Validar que el nuevo correo no sea igual al actual.
+        El usuario autenticado está disponible en el contexto de la vista.
+        """
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            if request.user.email == value:
+                raise serializers.ValidationError("El nuevo correo debe ser diferente al actual.")
+        return value
+
+
+class EmailChangeConfirmSerializer(serializers.Serializer):
+    """
+    Serializador para confirmar el cambio de correo con el código de verificación.
+    """
+    verification_code = serializers.CharField(max_length=6, required=True)
+
+    def validate_verification_code(self, value):
+        """
+        Validar que el código tenga exactamente 6 dígitos.
+        """
+        if not value.isdigit() or len(value) != 6:
+            raise serializers.ValidationError("El código de verificación debe tener 6 dígitos.")
+        return value

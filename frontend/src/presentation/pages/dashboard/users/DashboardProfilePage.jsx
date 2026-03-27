@@ -2,6 +2,7 @@ import React from 'react';
 import LogoutButton from '../../../components/Auth/LogoutButton.jsx'; // Ruta actualizada
 import { useProfilePageLogic } from '../../../hooks/users/useProfilePageLogic.js'
 import Spinner from '../../../components/common/Spinner.jsx'; // Importar Spinner
+import EmailChangeModal from './EmailChangeModal.jsx'; // New component import
 
 function DashboardProfilePage() {
   const {
@@ -35,6 +36,8 @@ function DashboardProfilePage() {
     handleProfileSubmit,
     handleChangePasswordSubmit,
   } = useProfilePageLogic();
+
+  const [isEmailChangeModalOpen, setIsEmailChangeModalOpen] = React.useState(false);
 
   // Si el usuario está cargando, mostrar Spinner
   if (loading) {
@@ -74,7 +77,7 @@ function DashboardProfilePage() {
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
               {user.username}
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">{user.role}</p>
+           {/*  <p className="text-gray-500 dark:text-gray-400 text-sm">{user.role}</p> */}
           </div>
         </div>
 
@@ -116,8 +119,7 @@ function DashboardProfilePage() {
                 <label className="block text-gray-700 dark:text-gray-300 mb-1 text-sm">Apellido</label>
                 <input
                   type="text"
-                  value={lastName}
-                  readOnly
+                  value={lastName}                  
                   onChange={(e) => setLastName(e.target.value)}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100"
                 />
@@ -168,6 +170,12 @@ function DashboardProfilePage() {
             </div>
 
             <div className="flex flex-col gap-3 pt-4">
+              <button
+                onClick={() => setIsEmailChangeModalOpen(true)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow mb-2"
+              >
+                Cambiar Correo
+              </button>
               <button
                 onClick={handleEditClick}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow"
@@ -255,6 +263,21 @@ function DashboardProfilePage() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Email Change Modal */}
+      {isEmailChangeModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <EmailChangeModal
+            isOpen={isEmailChangeModalOpen}
+            currentEmail={email}
+            onClose={() => setIsEmailChangeModalOpen(false)}
+            onEmailChangeSuccess={(newEmail) => {
+              setEmail(newEmail);
+              setIsEmailChangeModalOpen(false);
+            }}
+          />
         </div>
       )}
 

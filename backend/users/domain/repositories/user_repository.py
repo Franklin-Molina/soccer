@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Any
-from ...models import User, Role # Importar Role
+from datetime import datetime
+from django.utils import timezone
+from ...models import User, Role, EmailChangeRequest # Importar EmailChangeRequest
 
 class IUserRepository(ABC):
     """
@@ -70,3 +72,24 @@ class IUserRepository(ABC):
     # y los endpoints de JWT/dj-rest-auth.
     # Si se necesita una lógica de usuario más compleja (ej. cambiar contraseña, verificar email),
     # se pueden añadir métodos aquí.
+
+    @abstractmethod
+    async def create_email_change_request(self, user_id: int, new_email: str, verification_code: str, expires_at: datetime) -> Optional[EmailChangeRequest]:
+        """
+        Crea una solicitud de cambio de correo electrónico.
+        """
+        pass
+
+    @abstractmethod
+    async def get_email_change_request_by_code(self, code: str) -> Optional[EmailChangeRequest]:
+        """
+        Obtiene una solicitud de cambio de correo por su código de verificación.
+        """
+        pass
+
+    @abstractmethod
+    async def mark_email_change_verified(self, request_id: int) -> Optional[EmailChangeRequest]:
+        """
+        Marca una solicitud de cambio de correo como verificada.
+        """
+        pass

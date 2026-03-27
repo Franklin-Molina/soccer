@@ -3,7 +3,12 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from .views import RegisterView, UserViewSet, GroupViewSet, PermissionViewSet, GoogleLogin, AdminRegisterView, AdminManagementViewSet, UserProfileUpdateView, ChangePasswordView, LoginView, RefreshView, LogoutView, UserStatsView, ValidatePasswordResetTokenView # Añadir LoginView, UserStatsView y ValidatePasswordResetTokenView
+from .views import (
+    RegisterView, UserViewSet, GroupViewSet, PermissionViewSet, GoogleLogin, 
+    AdminRegisterView, AdminManagementViewSet, UserProfileUpdateView, 
+    ChangePasswordView, LoginView, RefreshView, LogoutView, UserStatsView, 
+    ValidatePasswordResetTokenView, EmailChangeRequestView, EmailChangeConfirmView
+)
 from rest_framework import routers
 from .models import User
 from django.urls import path
@@ -38,6 +43,10 @@ urlpatterns = [
 
     # Ruta para validar el token de restablecimiento de contraseña
     path('auth/users/reset_password_confirm/validate_token/', ValidatePasswordResetTokenView.as_view(), name='validate_reset_token'),
+
+    # Rutas para cambio de correo electrónico
+    path('email/change/verification/', EmailChangeRequestView.as_view(), name='email_change_verification'),
+    path('email/change/confirmation/', EmailChangeConfirmView.as_view(), name='email_change_confirmation'),
 
     path('', include(router.urls)),
 ]

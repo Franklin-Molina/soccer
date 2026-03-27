@@ -1,0 +1,17 @@
+Verificación de Cambio de Correo - Sintetíca Iris
+================================================
+
+Hola {{ user.username }},
+
+Has solicitado cambiar tu correo electrónico a {{ new_email }}.
+Para completar este cambio, por favor ingresa el siguiente código de verificación en la aplicación:
+
+CÓDIGO: {{ verification_code }}
+
+Este código expirará en 30 minutos. Si no solicitaste este cambio, puedes ignorar este correo.
+
+IMPORTANTE: Este código es secreto. No lo compartas con nadie.
+
+---
+Este es un correo automático, por favor no respondas a este mensaje.
+© 2026 Sintetíca Iris. Todos los derechos reservados.

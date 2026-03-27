@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from plans.models import Plan
 
 class Role(models.Model):
@@ -92,3 +93,35 @@ class SuscripcionPlan(models.Model):
         """
         if self.start_date and self.end_date and self.start_date > self.end_date:
             raise ValidationError({'end_date': 'La fecha de fin debe ser posterior o igual a la fecha de inicio.'})
+
+
+class EmailChangeRequest(models.Model):
+    """
+    Modelo para gestionar solicitudes de cambio de correo electrónico con verificación.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_change_requests')
+    new_email = models.EmailField()
+    verification_code = models.CharField(max_length=6)
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Solicitud de Cambio de Correo"
+        verbose_name_plural = "Solicitudes de Cambio de Correo"
+        indexes = [
+            models.Index(fields=['verification_code']),
+            models.Index(fields=['user', 'is_verified']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} -> {self.new_email} (verified: {self.is_verified})"
+
+    def is_expired(self):
+        """Verifica si el código de verificación ha expirado."""
+        return timezone.now() > self.expires_at
+
+    def is_valid(self):
+        """Verifica si la solicitud es válida (no verificada, no expirada)."""
+        return not self.is_verified and not self.is_expired()

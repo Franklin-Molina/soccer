@@ -2,7 +2,8 @@ from typing import List, Optional, Dict, Any
 from django.contrib.auth.hashers import make_password # Para hashear contraseñas
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import Group # Importar Group
-from ...models import User, Role # Importar Role
+from django.utils import timezone
+from ...models import User, Role, EmailChangeRequest # Importar EmailChangeRequest
 from ...domain.repositories.user_repository import IUserRepository # Interfaz del Dominio
 
 class DjangoUserRepository(IUserRepository):
@@ -153,3 +154,44 @@ class DjangoUserRepository(IUserRepository):
         """
         user.set_password(new_password)
         user.save()
+
+    @sync_to_async
+    def create_email_change_request(self, user_id: int, new_email: str, verification_code: str, expires_at: timezone.datetime) -> Optional[EmailChangeRequest]:
+        """
+        Crea una solicitud de cambio de correo electrónico.
+        """
+        try:
+            user = User.objects.get(pk=user_id)
+            request = EmailChangeRequest.objects.create(
+                user=user,
+                new_email=new_email,
+                verification_code=verification_code,
+                expires_at=expires_at
+            )
+            return request
+        except User.DoesNotExist:
+            return None
+
+    @sync_to_async
+    def get_email_change_request_by_code(self, code: str) -> Optional[EmailChangeRequest]:
+        """
+        Obtiene una solicitud de cambio de correo por su código de verificación.
+        """
+        try:
+            return EmailChangeRequest.objects.select_related('user').get(verification_code=code)
+        except EmailChangeRequest.DoesNotExist:
+            return None
+
+    @sync_to_async
+    def mark_email_change_verified(self, request_id: int) -> Optional[EmailChangeRequest]:
+        """
+        Marca una solicitud de cambio de correo como verificada.
+        """
+        try:
+            request = EmailChangeRequest.objects.get(pk=request_id)
+            request.is_verified = True
+            request.used_at = timezone.now()
+            request.save()
+            return request
+        except EmailChangeRequest.DoesNotExist:
+            return None
