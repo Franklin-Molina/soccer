@@ -167,4 +167,38 @@ export class ApiUserRepository extends IUserRepository {
       throw error;
     }
   }
+
+  /**
+   * Solicita un cambio de correo electrónico enviando un código de verificación.
+   * @param {string} newEmail - Nueva dirección de correo electrónico.
+   * @returns {Promise<object>} Una promesa que resuelve con la respuesta del servidor.
+   */
+  async requestEmailChange(newEmail) {
+    try {
+      const response = await api.post('/api/users/email/change/verification/', {
+        new_email: newEmail,
+      });
+      return response.data;
+    } catch (error) {
+      // console.error('Error al solicitar cambio de correo via API:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Confirma el cambio de correo electrónico con el código de verificación.
+   * @param {string} verificationCode - Código de 6 dígitos recibido por correo.
+   * @returns {Promise<object>} Una promesa que resuelve con { detail: '...', new_email: '...' }.
+   */
+  async confirmEmailChange(verificationCode) {
+    try {
+      const response = await api.post('/api/users/email/change/confirmation/', {
+        verification_code: verificationCode,
+      });
+      return response.data;
+    } catch (error) {
+      // console.error('Error al confirmar cambio de correo via API:', error);
+      throw error;
+    }
+  }
 }

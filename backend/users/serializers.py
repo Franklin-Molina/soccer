@@ -190,7 +190,9 @@ class EmailChangeRequestSerializer(serializers.Serializer):
     def validate_new_email(self, value):
         """
         Validar que el nuevo correo no sea igual al actual.
-        El usuario autenticado está disponible en el contexto de la vista.
+        Nota de Seguridad: No validamos aquí si el correo ya existe por otro usuario
+        para evitar enumeración de cuentas. La lógica de "éxito silencioso" se maneja 
+        en el Caso de Uso.
         """
         request = self.context.get('request')
         if request and request.user.is_authenticated:

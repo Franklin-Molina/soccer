@@ -1,35 +1,10 @@
 import { useState, useEffect, useRef } from "react";
+import { ApiUserRepository } from "../../../../infrastructure/repositories/api-user-repository";
+import { RequestEmailChangeUseCase } from "../../../../application/use-cases/users/request-email-change";
+import { ConfirmEmailChangeUseCase } from "../../../../application/use-cases/users/confirm_email_change";
+import { CheckIcon, Mail, Shield, X, ArrowRight, RefreshCw, Loader2 } from "lucide-react";
 
-
-// --- Icon Placeholders (To be refined/imported from project standard location) ---
-function CheckIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="10" fill="#22c55e" />
-      <path d="M5 10.5l3.5 3.5 6.5-7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
-function MailIcon({ size = 20 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="4" width="20" height="16" rx="3"/>
-      <path d="M2 7l10 7 10-7"/>
-    </svg>
-  );
-}
-
-function ShieldIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2L3 7v6c0 5.25 3.75 10.15 9 11.25C17.25 23.15 21 18.25 21 13V7l-9-5z"/>
-      <path d="M9 12l2 2 4-4"/>
-    </svg>
-  );
-}
-
-function OTPInput({ value, onChange }) {
+function OTPInput({ value, onChange, disabled }) {
   const inputs = useRef([]);
   const digits = value.padEnd(6, "").split("");
 
@@ -66,29 +41,19 @@ function OTPInput({ value, onChange }) {
           inputMode="numeric"
           maxLength={1}
           value={digits[i] || ""}
+          disabled={disabled}
           onChange={(e) => handleChange(e, i)}
           onKeyDown={(e) => handleKey(e, i)}
           onFocus={(e) => e.target.select()}
-          style={{
-            width: 44, height: 52,
-            textAlign: "center",
-            fontSize: 22, fontWeight: 700,
-            fontFamily: "'DM Mono', monospace",
-            background: digits[i] ? "#1a2e1a" : "#0f1a0f",
-            border: digits[i] ? "2px solid #4ade80" : "2px solid #1e3a1e",
-            borderRadius: 10,
-            color: "#4ade80",
-            outline: "none",
-            transition: "all 0.15s",
-            caretColor: "transparent",
-          }}
+          className={`w-11 h-14 text-center text-2xl font-bold rounded-xl border-2 transition-all outline-none 
+            ${disabled ? 'opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700' : 
+              digits[i] ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-500 text-emerald-600 dark:text-emerald-400' : 
+              'bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500'}`}
         />
       ))}
     </div>
   );
 }
-// --- END ICON/UTILITIES PLACEHOLDERS ---
-
 
 export default function EmailChangeModal({ 
     isOpen, 
@@ -96,18 +61,13 @@ export default function EmailChangeModal({
     onClose, 
     onEmailChangeSuccess 
 }) {
-  const [step, setStep] = useState("idle"); // idle | editing | sending | sent | verifying | error
+  const [step, setStep] = useState("idle"); // idle | editing | sending | sent | verifying | verified | error
   const [newEmail, setNewEmail] = useState("");
   const [code, setCode] = useState("");
   const [emailError, setEmailError] = useState("");
   const [codeError, setCodeError] = useState("");
   const [countdown, setCountdown] = useState(0);
   const timerRef = useRef(null);
-
-  // MOCK CODE: Must be replaced by API call result (Step 6 & 7)
-  const MOCK_CODE = "482931"; 
-
-  const validateEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
   const startCountdown = () => {
     setCountdown(30);
@@ -118,80 +78,71 @@ export default function EmailChangeModal({
   };
 
    const handleSend = async () => {
-     if (!validateEmail(newEmail)) { setEmailError("Ingresa un correo válido"); return; }
      if (newEmail === currentEmail) { setEmailError("Este ya es tu correo actual"); return; }
      setEmailError("");
      setStep("sending");
      
      try {
-       const response = await fetch('/api/users/email/change/verification/', {
-         method: 'POST',
-         headers: {
-           'Content-Type': 'application/json',
-         },
-         credentials: 'include',
-         body: JSON.stringify({ new_email: newEmail })
-       });
+       const userRepository = new ApiUserRepository();
+       const requestEmailChangeUseCase = new RequestEmailChangeUseCase(userRepository);
        
-       if (!response.ok) {
-         const errorData = await response.json();
-         setEmailError(errorData.error || 'Error al enviar código de verificación');
-         setStep('editing');
-         return;
-       }
+       await requestEmailChangeUseCase.execute(newEmail);
        
        setStep('sent');
        startCountdown();
        
      } catch (error) {
-       setEmailError('Error de red al enviar código de verificación');
+       let errorMessage = 'Error al enviar código de verificación';
+       if (error.response?.data) {
+           const data = error.response.data;
+           errorMessage = data.new_email?.[0] || data.error || data.detail || errorMessage;
+       } else {
+           errorMessage = error.message || errorMessage;
+       }
+       setEmailError(errorMessage);
        setStep('editing');
      }
    };
 
    const handleVerify = async () => {
-     if (code.replace(/\D/g,"").length < 6) { setCodeError("Ingresa los 6 dígitos"); return; }
      setCodeError("");
      setStep("verifying");
      
      try {
-       const response = await fetch('/api/users/email/change/confirmation/', {
-         method: 'POST',
-         headers: {
-           'Content-Type': 'application/json',
-         },
-         credentials: 'include',
-         body: JSON.stringify({ verification_code: code })
-       });
+       const userRepository = new ApiUserRepository();
+       const confirmEmailChangeUseCase = new ConfirmEmailChangeUseCase(userRepository);
        
-       if (!response.ok) {
-         const errorData = await response.json();
-         setCodeError(errorData.error || 'Código de verificación inválido');
-         setStep('error');
-         return;
-       }
+       const result = await confirmEmailChangeUseCase.execute(code);
        
-       const successData = await response.json();
        setStep('verified');
-       onEmailChangeSuccess(successData.new_email);
+       setTimeout(() => {
+           onEmailChangeSuccess(result.new_email);
+           resetAndClose();
+       }, 2000);
        
      } catch (error) {
-       setCodeError('Error de red al verificar código');
+       let errorMessage = 'Código de verificación inválido';
+       if (error.response?.data) {
+           const data = error.response.data;
+           errorMessage = data.verification_code?.[0] || data.error || data.detail || errorMessage;
+       } else {
+           errorMessage = error.message || errorMessage;
+       }
+       setCodeError(errorMessage);
        setStep('error');
      }
    };
 
   const handleResend = () => {
-    setCode(""); setCodeError(""); setStep("sending");
-    // TODO: Replace setTimeout with API call to request verification again (Step 6)
-    setTimeout(() => { setStep("sent"); startCountdown(); }, 1200);
+    setCode(""); setCodeError(""); 
+    handleSend();
   };
 
   const resetAndClose = () => {
     setStep("idle"); setNewEmail(""); setCode("");
     setEmailError(""); setCodeError(""); setCountdown(0);
     clearInterval(timerRef.current);
-    onClose(); // Close the modal/form on reset/cancel
+    onClose();
   };
 
   const handleCodeChange = (val) => {
@@ -199,137 +150,121 @@ export default function EmailChangeModal({
     if (step === "error") setStep("sent");
   };
 
-  // Effect to clean up timer when component unmounts or isOpen changes to false
   useEffect(() => {
     if (!isOpen) {
         resetAndClose();
     }
     return () => clearInterval(timerRef.current);
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
-    <div style={{
-      // This div acts as the modal overlay/wrapper content container
-      // Real implementation should handle fixed positioning overlay separately
-      width: "100%", maxWidth: 420 
-    }}>
-      {/* Header */}
-      <div style={{ marginBottom: 32, textAlign: "center" }}>
-        <div style={{
-          display: "inline-flex", alignItems: "center", gap: 8,
-          background: "#0f1a0f", border: "1px solid #1e3a1e",
-          borderRadius: 99, padding: "6px 14px", marginBottom: 20,
-          color: "#4ade80", fontSize: 12, fontWeight: 600, letterSpacing: 1,
-        }}>
-          <ShieldIcon /> SEGURIDAD DE CUENTA
-        </div>
-        <h1 style={{ color: "white", fontSize: 26, fontWeight: 700, margin: 0, lineHeight: 1.2 }}>
-          Cambiar correo electrónico
-        </h1>
-        <p style={{ color: "#4b5e4b", fontSize: 14, marginTop: 8, fontWeight: 400 }}>
-          Verificamos tu nuevo correo antes de hacer el cambio
-        </p>
-      </div>
-
-      {/* Card */}
-      <div style={{
-        background: "#0d150d",
-        border: "1px solid #1a2e1a",
-        borderRadius: 20,
-        overflow: "hidden",
-      }}>
-
-        {/* Current email row */}
-        <div style={{
-          padding: "16px 24px",
-          borderBottom: "1px solid #1a2e1a",
-          display: "flex", alignItems: "center", gap: 12,
-        }}>
-          <div style={{ color: "#2d4a2d" }}><MailIcon /></div>
-          <div>
-            <div style={{ fontSize: 11, color: "#2d4a2d", fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase" }}>
-              Correo actual
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 animate-in slide-in-from-bottom duration-300 overflow-hidden">
+        
+        {/* Header */}
+        <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-500/10 rounded-lg">
+              <Shield className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
             </div>
-            <div style={{ fontSize: 14, color: "#6b8f6b", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
-              {currentEmail}
-            </div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Seguridad de Cuenta</h2>
           </div>
-          {step === "verified" && (
-            <div style={{ marginLeft: "auto" }}><CheckIcon /></div>
-          )}
+          <button onClick={resetAndClose} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors rounded-full hover:bg-slate-200 dark:hover:bg-slate-700">
+            <X size={20} />
+          </button>
         </div>
 
-        <div style={{ padding: 24 }}>
+        <div className="p-6 md:p-8">
+          {/* Progress Steps (visual only) */}
+          {step !== "verified" && (
+            <div className="flex items-center justify-between mb-8 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">
+                <div className={`flex flex-col items-center gap-2 ${step === "idle" || step === "editing" || step === "sending" ? "text-emerald-500" : "text-emerald-600"}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${step === "idle" || step === "editing" || step === "sending" ? "border-emerald-500 bg-white dark:bg-slate-800" : "bg-emerald-500 border-emerald-500 text-white"}`}>
+                        {step !== "idle" && step !== "editing" && step !== "sending" ? <CheckIcon size={16} /> : "1"}
+                    </div>
+                    <span>Solicitud</span>
+                </div>
+                <div className="flex-1 h-0.5 mx-4 bg-slate-200 dark:bg-slate-700 -mt-6">
+                    <div className={`h-full bg-emerald-500 transition-all duration-500 ${step === "sent" || step === "verifying" || step === "error" ? "w-full" : "w-0"}`}></div>
+                </div>
+                <div className={`flex flex-col items-center gap-2 ${step === "sent" || step === "verifying" || step === "error" ? "text-emerald-500" : ""}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${step === "sent" || step === "verifying" || step === "error" ? "border-emerald-500 bg-white dark:bg-slate-800" : "border-slate-200 dark:border-slate-700"}`}>
+                        2
+                    </div>
+                    <span>Verificación</span>
+                </div>
+            </div>
+          )}
 
           {/* STEP: IDLE */}
           {step === "idle" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <p style={{ color: "#4b5e4b", fontSize: 13, lineHeight: 1.6, margin: 0 }}>
-                Al cambiar tu correo, te enviaremos un código de verificación a la nueva dirección. Tu correo actual seguirá activo hasta confirmar el cambio.
-              </p>
-              <button onClick={() => setStep("editing")} style={{
-                background: "linear-gradient(135deg, #16a34a, #15803d)",
-                color: "white", border: "none", borderRadius: 12,
-                padding: "13px 20px", fontFamily: "'DM Sans', sans-serif",
-                fontSize: 14, fontWeight: 600, cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                transition: "opacity 0.2s",
-              }}>
-                <MailIcon size={16}/> Cambiar correo electrónico
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="text-center space-y-2">
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white">Cambiar Correo</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">
+                  Protegemos tu cuenta validando cada cambio importante.
+                </p>
+              </div>
+
+              <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Tu correo actual</p>
+                <p className="font-bold text-slate-900 dark:text-white truncate">{currentEmail}</p>
+              </div>
+
+              <button 
+                onClick={() => setStep("editing")} 
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-6 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-2"
+              >
+                Continuar <ArrowRight size={18} />
               </button>
             </div>
           )}
 
           {/* STEP: EDITING / SENDING */}
           {(step === "editing" || step === "sending") && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <div>
-                <label style={{ fontSize: 12, color: "#4b5e4b", fontWeight: 600, display: "block", marginBottom: 6, letterSpacing: 0.3 }}>
-                  NUEVO CORREO
-                </label>
-                <input
-                  type="email"
-                  value={newEmail}
-                  onChange={(e) => { setNewEmail(e.target.value); setEmailError(""); }}
-                  placeholder="nuevo@correo.com"
-                  autoFocus
-                  style={{
-                    width: "100%", padding: "12px 14px", borderRadius: 10,
-                    background: "#0f1a0f", border: emailError ? "1.5px solid #ef4444" : "1.5px solid #1e3a1e",
-                    color: "white", fontSize: 14, fontFamily: "'DM Mono', monospace",
-                    outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
-                  }}
-                  onFocus={e => { if (!emailError) e.target.style.borderColor = "#166534"; }}
-                  onBlur={e => { if (!emailError) e.target.style.borderColor = "#1e3a1e"; }}
-                />
-                {emailError && <p style={{ color: "#ef4444", fontSize: 12, marginTop: 5 }}>{emailError}</p>}
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="text-center space-y-2">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Ingresa tu nuevo correo</h3>
+                <p className="text-amber-500 dark:text-amber-400 text-sm italic">
+                  Si el correo es válido, recibirás un código de verificación.
+                </p>
               </div>
-              <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={resetAndClose} style={{
-                  flex: 1, background: "transparent", border: "1.5px solid #1e3a1e",
-                  color: "#4b5e4b", borderRadius: 10, padding: "12px", fontSize: 14,
-                  fontFamily: "'DM Sans', sans-serif", cursor: "pointer", fontWeight: 500,
-                }}>
-                  Cancelar
+
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Nuevo Email</label>
+                <div className="relative group">
+                    <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${emailError ? 'text-red-400' : 'text-slate-400 group-focus-within:text-emerald-500'}`} />
+                    <input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => { setNewEmail(e.target.value); setEmailError(""); }}
+                      placeholder="ejemplo@correo.com"
+                      disabled={step === "sending"}
+                      className={`w-full pl-12 pr-4 py-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border-2 transition-all outline-none text-slate-900 dark:text-white
+                        ${emailError ? 'border-red-500/50 focus:border-red-500 ring-red-500/10' : 'border-slate-100 dark:border-slate-700 focus:border-emerald-500 ring-emerald-500/10'}
+                        focus:ring-4`}
+                    />
+                </div>
+                {emailError && <p className="text-red-500 text-xs font-bold px-1 animate-in slide-in-from-top-1">{emailError}</p>}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button 
+                    onClick={() => setStep("idle")} 
+                    disabled={step === "sending"}
+                    className="flex-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-white px-6 py-4 rounded-xl font-bold transition-all hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-50"
+                >
+                  Atrás
                 </button>
-                <button onClick={handleSend} disabled={step === "sending"} style={{
-                  flex: 2,
-                  background: step === "sending" ? "#1a2e1a" : "linear-gradient(135deg, #16a34a, #15803d)",
-                  color: step === "sending" ? "#4b5e4b" : "white",
-                  border: "none", borderRadius: 10, padding: "12px",
-                  fontSize: 14, fontFamily: "'DM Sans', sans-serif",
-                  fontWeight: 600, cursor: step === "sending" ? "not-allowed" : "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  transition: "all 0.2s",
-                }}>
-                  {step === "sending" ? (
-                    <>
-                      <span style={{ display: "inline-block", width: 14, height: 14, border: "2px solid #4b5e4b", borderTopColor: "#4ade80", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}/>
-                      Enviando...
-                    </>
-                  ) : "Enviar código →"}
+                <button 
+                    onClick={handleSend} 
+                    disabled={step === "sending" || !newEmail}
+                    className="flex-[2] bg-slate-900 dark:bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold transition-all hover:bg-slate-800 dark:hover:bg-emerald-500 shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {step === "sending" ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowRight size={18} />}
+                  {step === "sending" ? "Enviando..." : "Enviar Código"}
                 </button>
               </div>
             </div>
@@ -337,153 +272,65 @@ export default function EmailChangeModal({
 
           {/* STEP: SENT / VERIFYING / ERROR */}
           {(step === "sent" || step === "verifying" || step === "error") && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              <div style={{
-                background: "#0a160a", border: "1px solid #1a2e1a",
-                borderRadius: 10, padding: "12px 14px",
-                display: "flex", alignItems: "flex-start", gap: 10,
-              }}>
-                <div style={{ color: "#4ade80", marginTop: 1 }}><MailIcon size={16}/></div>
-                <div>
-                  <p style={{ color: "#4b5e4b", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
-                    Enviamos un código de 6 dígitos a
-                  </p>
-                  <p style={{ color: "#4ade80", fontSize: 13, fontFamily: "'DM Mono', monospace", margin: "2px 0 0" }}>
-                    {newEmail}
-                  </p>
-                </div>
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="text-center space-y-2">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Verifica tu correo</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">
+                  Hemos enviado un código de 6 dígitos a <span className="font-bold text-emerald-600 dark:text-emerald-400">{newEmail}</span>
+                </p>
               </div>
 
-              
-              <div>
-                <label style={{ fontSize: 12, color: "#4b5e4b", fontWeight: 600, display: "block", marginBottom: 12, textAlign: "center", letterSpacing: 0.3 }}>
-                  INGRESA EL CÓDIGO
-                </label>
-                <OTPInput value={code} onChange={handleCodeChange} />
-                {codeError && (
-                  <p style={{ color: "#ef4444", fontSize: 12, marginTop: 10, textAlign: "center" }}>{codeError}</p>
-                )}
+              <div className="space-y-4">
+                <OTPInput value={code} onChange={handleCodeChange} disabled={step === "verifying"} />
+                {codeError && <p className="text-red-500 text-xs font-bold text-center animate-in shake-1">{codeError}</p>}
               </div>
 
-              <button onClick={handleVerify} disabled={step === "verifying"} style={{
-                background: step === "verifying" ? "#1a2e1a" : code.replace(/\D/g,"").length === 6 ? "linear-gradient(135deg, #16a34a, #15803d)" : "#1a2e1a",
-                color: code.replace(/\D/g,"").length === 6 && step !== "verifying" ? "white" : "#4b5e4b",
-                border: "none", borderRadius: 12, padding: "14px",
-                fontSize: 14, fontFamily: "'DM Sans', sans-serif",
-                fontWeight: 600, cursor: step === "verifying" ? "not-allowed" : "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                transition: "all 0.25s",
-              }}>
-                {step === "verifying" ? (
-                  <>
-                    <span style={{ display: "inline-block", width: 14, height: 14, border: "2px solid #4b5e4b", borderTopColor: "#4ade80", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}/>
-                    Verificando...
-                  </>
-                ) : "Confirmar cambio →"}
+              <button 
+                onClick={handleVerify} 
+                disabled={step === "verifying" || code.length < 6}
+                className={`w-full py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95
+                  ${step === "verifying" || code.length < 6 
+                    ? 'bg-slate-100 dark:bg-slate-700 text-slate-400' 
+                    : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-emerald-500/20'}`}
+              >
+                {step === "verifying" ? <Loader2 className="w-5 h-5 animate-spin" /> : "Confirmar e Inscribir"}
               </button>
 
-              <div style={{ textAlign: "center" }}>
+              <div className="text-center">
                 {countdown > 0 ? (
-                  <p style={{ color: "#2d4a2d", fontSize: 12 }}>
-                    Reenviar código en <span style={{ color: "#4b5e4b", fontWeight: 600 }}>{countdown}s</span>
+                  <p className="text-slate-500 text-xs font-medium flex items-center justify-center gap-1.5">
+                    <RefreshCw size={12} className="animate-spin-slow" /> Reenviar en <span className="text-slate-900 dark:text-white font-bold">{countdown}s</span>
                   </p>
                 ) : (
-                  <button onClick={handleResend} style={{
-                    background: "none", border: "none", color: "#4b5e4b",
-                    fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-                    textDecoration: "underline",
-                  }}>
-                    ¿No llegó? Reenviar código
+                  <button onClick={handleResend} className="text-emerald-600 dark:text-emerald-400 text-xs font-bold hover:underline">
+                    ¿No recibiste el código? Reenviar
                   </button>
                 )}
               </div>
-
-              <button onClick={resetAndClose} style={{
-                background: "none", border: "none", color: "#2d4a2d",
-                fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-                textAlign: "center",
-              }}>
-                ← Cancelar y volver
-              </button>
             </div>
           )}
 
           {/* STEP: VERIFIED */}
           {step === "verified" && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "8px 0" }}>
-              <div style={{
-                width: 64, height: 64, borderRadius: "50%",
-                background: "#0f1a0f", border: "2px solid #166534",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                animation: "popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-              }}>
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 13l4 4L19 7"/>
-                </svg>
+            <div className="py-8 text-center space-y-6 animate-in zoom-in-95 duration-500">
+              <div className="w-24 h-24 bg-emerald-500 dark:bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/40 border-4 border-white dark:border-slate-800">
+                <CheckIcon size={48} className="text-white dark:text-emerald-400" />
               </div>
-              <div style={{ textAlign: "center" }}>
-                <h3 style={{ color: "white", fontSize: 18, fontWeight: 700, margin: "0 0 6px" }}>
-                  ¡Correo actualizado!
-                </h3>
-                <p style={{ color: "#4b5e4b", fontSize: 13, margin: 0, lineHeight: 1.6 }}>
-                  Tu correo fue cambiado exitosamente a
-                </p>
-                <p style={{ color: "#4ade80", fontFamily: "'DM Mono', monospace", fontSize: 13, margin: "4px 0 0", fontWeight: 600 }}>
-                  {currentEmail}
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white">¡Éxito Total!</h3>
+                <p className="text-slate-600 dark:text-slate-300">
+                  Tu correo ha sido actualizado correctamente.
                 </p>
               </div>
-              <button onClick={resetAndClose} style={{
-                background: "transparent", border: "1.5px solid #1e3a1e",
-                color: "#4b5e4b", borderRadius: 10, padding: "10px 20px",
-                fontSize: 13, fontFamily: "'DM Sans', sans-serif",
-                cursor: "pointer", fontWeight: 500, marginTop: 4,
-              }}>
-                Volver a configuración
-              </button>
+              <div className="p-4 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                <p className="text-[10px] text-emerald-600 dark:text-emerald-500 uppercase font-black tracking-widest mb-1">Nueva Dirección</p>
+                <p className="font-bold text-slate-900 dark:text-white">{newEmail}</p>
+              </div>
             </div>
           )}
+
         </div>
       </div>
-
-      {/* Steps indicator */}
-      {step !== "idle" && step !== "verified" && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginTop: 24 }}>
-          {[
-            { key: "editing", label: "Nuevo correo" },
-            { key: "sent", label: "Verificar código" },
-          ].map((s, i) => {
-            const isActive = (s.key === "editing" && (step === "editing" || step === "sending"))
-              || (s.key === "sent" && (step === "sent" || step === "verifying" || step === "error"));
-            const isDone = (s.key === "editing" && (step === "sent" || step === "verifying" || step === "error"));
-            return (
-              <div key={s.key} style={{ display: "flex", alignItems: "center" }}>
-                {i > 0 && <div style={{ width: 40, height: 1, background: isDone ? "#166534" : "#1a2e1a" }}/>}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                  <div style={{
-                    width: 28, height: 28, borderRadius: "50%",
-                    background: isDone ? "#166534" : isActive ? "#1a2e1a" : "#0d150d",
-                    border: isDone ? "none" : isActive ? "2px solid #4ade80" : "1.5px solid #1a2e1a",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 11, fontWeight: 700, color: isDone ? "white" : isActive ? "#4ade80" : "#2d4a2d",
-                    transition: "all 0.3s",
-                  }}>
-                    {isDone ? "✓" : i + 1}
-                  </div>
-                  <span style={{ fontSize: 10, color: isActive ? "#4b5e4b" : "#2d4a2d", fontWeight: 500 }}>
-                    {s.label}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        input::placeholder { color: #2d4a2d; }
-      `}</style>
     </div>
   );
 }

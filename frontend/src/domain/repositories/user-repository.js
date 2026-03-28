@@ -42,6 +42,22 @@ export class IUserRepository {
   async deleteUser(userId) {
     throw new Error('Method not implemented.');
   }
-  
-  // Otros métodos relacionados con usuarios si son necesarios
+
+  /**
+   * Solicita un cambio de correo electrónico enviando un código de verificación.
+   * @param {string} newEmail - Nueva dirección de correo electrónico.
+   * @returns {Promise<object>} Una promesa que resuelve con la respuesta del servidor (ej. { detail: '...' }).
+   */
+  async requestEmailChange(newEmail) {
+    throw new Error('Method not implemented.');
+  }
+
+  /**
+   * Confirma el cambio de correo electrónico con el código de verificación.
+   * @param {string} verificationCode - Código de 6 dígitos recibido por correo.
+   * @returns {Promise<object>} Una promesa que resuelve con { detail: '...', new_email: '...' }.
+   */
+  async confirmEmailChange(verificationCode) {
+    throw new Error('Method not implemented.');
+  }
 }

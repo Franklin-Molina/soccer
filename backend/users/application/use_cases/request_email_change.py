@@ -7,7 +7,7 @@ from django.conf import settings
 from typing import Optional
 from asgiref.sync import sync_to_async
 from ...domain.repositories.user_repository import IUserRepository
-from ...models import EmailChangeRequest
+from ...models import EmailChangeRequest, User
 
 
 class RequestEmailChangeUseCase:
@@ -41,6 +41,13 @@ class RequestEmailChangeUseCase:
         # Validar que el nuevo correo no sea igual al actual
         if user.email == new_email:
             return False, "El nuevo correo debe ser diferente al actual.", None
+
+        # SEGURIDAD: Verificar si el nuevo correo ya está registrado por otro usuario.
+        # Si ya existe, simulamos éxito para evitar enumeración de usuarios.
+        email_exists = await sync_to_async(User.objects.filter(email=new_email).exclude(id=user_id).exists)()
+        if email_exists:
+            # Simulamos éxito total pero no hacemos nada internamente.
+            return True, "Código de verificación enviado a tu nuevo correo.", None
 
         # Verificar si ya existe una solicitud pendiente para este usuario con el mismo nuevo correo
         existing_requests = await sync_to_async(lambda: list(EmailChangeRequest.objects.filter(
