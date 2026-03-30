@@ -173,8 +173,8 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'first_name', 'last_name', 'email', 'fecha_nacimiento')
         extra_kwargs = {
-            'email': {'required': False},
-            'username': {'required': False},
+            'email': {'read_only': True},
+            'username': {'read_only': True},
             'first_name': {'required': False},
             'last_name': {'required': False},
             'fecha_nacimiento': {'required': False},

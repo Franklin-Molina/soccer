@@ -227,15 +227,15 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "digitaldxz1@gmail.com")
 
 
 
-DATABASES = {
+""" DATABASES = {
     "default": dj_database_url.config(
         default=os.getenv("DATABASE_URL"),
         conn_max_age=600,
         ssl_require=True
     )
-} 
+}  """
 
-""" DATABASES = {
+DATABASES = {
     "default": {
         "ENGINE": os.environ.get("DB_ENGINE", "django.db.backends.postgresql"),
         "NAME": os.environ.get("DB_NAME"),
@@ -244,7 +244,7 @@ DATABASES = {
         "HOST": os.environ.get("DB_HOST", "db"),  # This will now be 'db'
         "PORT": os.environ.get("DB_PORT"),
     }
-} """
+}
 
 
 # Configuración de Djoser

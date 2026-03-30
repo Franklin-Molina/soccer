@@ -33,11 +33,13 @@ class UpdateUserProfileUseCase:
             Optional[User]: El objeto User actualizado si la operación fue exitosa,
                             o None si el usuario no fue encontrado o la actualización falló.
         """
-        # Eliminar 'username' de los datos si está presente para evitar su modificación
+        # Eliminar 'username' y 'email' de los datos si están presentes para evitar su modificación
         if 'username' in user_data:
             del user_data['username']
+        if 'email' in user_data:
+            del user_data['email']
 
-        # Si no quedan datos para actualizar después de eliminar el username, retornar el usuario actual
+        # Si no quedan datos para actualizar después de eliminar el username/email, retornar el usuario actual
         if not user_data:
             return await self.user_repository.get_by_id(user_id)
 

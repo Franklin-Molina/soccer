@@ -77,7 +77,7 @@ function DashboardProfilePage() {
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
               {user.username}
             </h2>
-           {/*  <p className="text-gray-500 dark:text-gray-400 text-sm">{user.role}</p> */}
+            {/*  <p className="text-gray-500 dark:text-gray-400 text-sm">{user.role}</p> */}
           </div>
         </div>
 
@@ -119,7 +119,7 @@ function DashboardProfilePage() {
                 <label className="block text-gray-700 dark:text-gray-300 mb-1 text-sm">Apellido</label>
                 <input
                   type="text"
-                  value={lastName}                  
+                  value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100"
                 />
@@ -129,8 +129,8 @@ function DashboardProfilePage() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100"
+                  readOnly // Campo de correo no modificable directamente
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed opacity-70"
                 />
               </div>
             </div>
@@ -169,22 +169,24 @@ function DashboardProfilePage() {
               <span>{user.email}</span>
             </div>
 
-            <div className="flex flex-col gap-3 pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4">
               <button
                 onClick={() => setIsEmailChangeModalOpen(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow mb-2"
+                className="w-full bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg shadow"
               >
                 Cambiar Correo
               </button>
+
               <button
                 onClick={handleEditClick}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow"
               >
                 Editar Perfil
               </button>
+
               <button
                 onClick={() => setIsPasswordModalOpen(true)}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg shadow"
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg shadow"
               >
                 Cambiar Contraseña
               </button>
