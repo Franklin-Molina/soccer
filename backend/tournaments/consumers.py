@@ -1,6 +1,26 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 
+class TournamentListConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.room_group_name = 'tournaments_list'
+        if self.channel_layer:
+            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        if hasattr(self, 'room_group_name') and self.channel_layer:
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
+    async def tournament_created(self, event):
+        await self.send(text_data=json.dumps(event))
+
+    async def tournament_updated(self, event):
+        await self.send(text_data=json.dumps(event))
+
+    async def tournament_deleted(self, event):
+        await self.send(text_data=json.dumps(event))
+
 class TournamentConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         try:
@@ -52,3 +72,11 @@ class TournamentConsumer(AsyncWebsocketConsumer):
             'type': 'match_updated',
             'match': event['match']
         }))
+
+    async def tournament_updated(self, event):
+        """Enviar notificación de torneo actualizado"""
+        await self.send(text_data=json.dumps(event))
+
+    async def tournament_deleted(self, event):
+        """Enviar notificación de torneo eliminado"""
+        await self.send(text_data=json.dumps(event))

@@ -2,7 +2,9 @@ from django.urls import path
 from . import consumers
 
 websocket_urlpatterns = [
-    # Usamos 'path' en lugar de 're_path'. Es más fácil de leer y no falla.
+    # Endpoint para la lista general de torneos
+    path('ws/tournaments/', consumers.TournamentListConsumer.as_asgi()),
+    # Endpoint para un torneo específico (partidos)
     path('ws/tournaments/<int:tournament_id>/', consumers.TournamentConsumer.as_asgi()),
 ]
 

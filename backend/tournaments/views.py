@@ -48,6 +48,8 @@ class TournamentMatchViewSet(viewsets.ModelViewSet):
                 tournament = instance.tournament
                 tournament.status = 'finished'
                 tournament.save()
+                # Notificar que el torneo finalizó
+                tournament_notifier.notify_tournament_updated(tournament)
         
         # Notificar vía WebSocket el partido actual
         tournament_notifier.notify_match_updated(instance)
@@ -67,7 +69,8 @@ class TournamentViewSet(viewsets.ModelViewSet):
             from utils.supabase_storage import supabase_storage
             url = supabase_storage.upload_image(cover_image_file, folder="tournaments")
             
-        serializer.save(cover_image=url)
+        instance = serializer.save(cover_image=url)
+        tournament_notifier.notify_tournament_created(instance)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -85,11 +88,17 @@ class TournamentViewSet(viewsets.ModelViewSet):
                 supabase_storage.delete_image(instance.cover_image)
             
             url = supabase_storage.upload_image(cover_image_file, folder="tournaments")
-            serializer.save(cover_image=url)
+            instance = serializer.save(cover_image=url)
         else:
-            serializer.save()
+            instance = serializer.save()
             
+        tournament_notifier.notify_tournament_updated(instance)
         return Response(serializer.data)
+
+    def perform_destroy(self, instance):
+        tournament_id = instance.id
+        instance.delete()
+        tournament_notifier.notify_tournament_deleted(tournament_id)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def enroll(self, request, pk=None):
@@ -117,6 +126,9 @@ class TournamentViewSet(viewsets.ModelViewSet):
                 name=team_name,
                 captain=request.user
             )
+            
+            # Notificar que el torneo se actualizó (nuevo equipo inscrito)
+            tournament_notifier.notify_tournament_updated(tournament)
             
             return Response(
                 {"message": f"Equipo '{team_name}' inscrito correctamente. Pendiente de pago.", "team_id": team.id},
@@ -239,6 +251,9 @@ class TournamentViewSet(viewsets.ModelViewSet):
 
         tournament.status = 'in_progress'
         tournament.save()
+        
+        # Notificar cambio a todos
+        tournament_notifier.notify_tournament_updated(tournament)
         
         return Response(
             {"message": f"Bracket de {num_rounds} rondas generado con éxito."},

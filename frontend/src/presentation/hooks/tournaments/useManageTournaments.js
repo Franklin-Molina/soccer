@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
+import { tournamentsWebSocket } from '../../../infrastructure/websocket/tournamentsWebSocket';
 // 🔥 Importación corregida (en plural)
 import { useUseCases } from '../../context/UseCaseContext'; 
 
@@ -29,6 +30,20 @@ export function useManageTournaments() {
 
   useEffect(() => {
     fetchTournaments();
+
+    // Sincronización en tiempo real
+    tournamentsWebSocket.connect();
+    const unsubscribe = tournamentsWebSocket.subscribe((data) => {
+      if (data.type === 'tournament_created') {
+        setTournaments(prev => [data.tournament, ...prev]);
+      } else if (data.type === 'tournament_updated') {
+        setTournaments(prev => prev.map(t => t.id === data.tournament.id ? data.tournament : t));
+      } else if (data.type === 'tournament_deleted') {
+        setTournaments(prev => prev.filter(t => t.id !== data.tournament_id));
+      }
+    });
+
+    return () => unsubscribe();
   }, [fetchTournaments]);
 
   const handleDelete = async (id) => {

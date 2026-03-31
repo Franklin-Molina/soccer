@@ -166,7 +166,7 @@ const TournamentCard = ({ t, onDelete, onGenerateFixture }) => {
         </div>
         <div>
           <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Premio</p>
-          <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{t.prize}</p>
+          <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{formatPrice(t.prize)}</p>
         </div>
       </div>
 

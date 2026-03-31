@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useUseCases } from '../../context/UseCaseContext';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -7,6 +7,7 @@ import { useTournamentsWebSocket } from './useTournamentsWebSocket';
 
 export const useTournamentDetailLogic = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { getTournamentByIdUseCase, enrollTeamUseCase, generateFixtureUseCase } = useUseCases();
   
@@ -39,10 +40,13 @@ export const useTournamentDetailLogic = () => {
 
   // WebSocket logic
   useTournamentsWebSocket(id, useCallback((data) => {
-    if (data.type === 'match_updated') {
+    if (data.type === 'match_updated' || data.type === 'tournament_updated') {
       fetchTournamentDetail(true);
+    } else if (data.type === 'tournament_deleted') {
+      toast.info('Este torneo ha sido eliminado');
+      navigate('/tournaments');
     }
-  }, [fetchTournamentDetail]));
+  }, [fetchTournamentDetail, navigate]));
 
   const handleEnrollClick = () => {
     if (!user) {

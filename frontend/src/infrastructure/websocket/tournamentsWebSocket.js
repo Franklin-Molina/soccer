@@ -34,13 +34,17 @@ class TournamentsWebSocket {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     const host = apiUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${host}/ws/tournaments/${tournamentId}/`;
+    
+    // Si hay tournamentId, conectamos al socket del torneo, si no, a la lista general
+    const wsUrl = tournamentId 
+      ? `${wsProtocol}//${host}/ws/tournaments/${tournamentId}/`
+      : `${wsProtocol}//${host}/ws/tournaments/`;
 
     try {
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
-        // console.log(`✅ Tournaments WebSocket conectado al torneo ${tournamentId}`);
+        // console.log(`✅ Tournaments WebSocket conectado ${tournamentId ? 'al torneo ' + tournamentId : 'a la lista general'}`);
         this.reconnectAttempts = 0;
         this.connecting = false;
       };
