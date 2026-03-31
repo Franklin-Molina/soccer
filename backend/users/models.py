@@ -34,6 +34,7 @@ class User(AbstractUser):
     
     fecha_nacimiento = models.DateField(null=True, blank=True)
     is_staff = models.BooleanField(default=False)
+    registered_with_google = models.BooleanField(default=False)
  
     groups = models.ManyToManyField(
         Group,

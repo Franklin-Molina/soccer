@@ -35,6 +35,7 @@ function DashboardProfilePage() {
     handleCancelClick,
     handleProfileSubmit,
     handleChangePasswordSubmit,
+    updateUser, // Función para actualizar el AuthContext
   } = useProfilePageLogic();
 
   const [isEmailChangeModalOpen, setIsEmailChangeModalOpen] = React.useState(false);
@@ -170,12 +171,19 @@ function DashboardProfilePage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4">
-              <button
-                onClick={() => setIsEmailChangeModalOpen(true)}
-                className="w-full bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg shadow"
-              >
-                Cambiar Correo
-              </button>
+              {/* Botón de Cambiar Correo - Solo visible para usuarios no registrados con Google */}
+              {!user.registered_with_google ? (
+                <button
+                  onClick={() => setIsEmailChangeModalOpen(true)}
+                  className="w-full bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg shadow"
+                >
+                  Cambiar Correo
+                </button>
+              ) : (
+                <div className="w-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-4 py-2 rounded-lg shadow text-center">
+                  <p className="text-xs">Correo vinculado a Google</p>
+                </div>
+              )}
 
               <button
                 onClick={handleEditClick}
@@ -191,6 +199,15 @@ function DashboardProfilePage() {
                 Cambiar Contraseña
               </button>
             </div>
+
+            {/* Mensaje informativo para usuarios registrados con Google */}
+            {user.registered_with_google && (
+              <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  <strong>Nota:</strong> Tu cuenta fue registrada mediante Google. Por seguridad, no es posible cambiar el correo electrónico. Si necesitas modificar tu correo, debes registrarte nuevamente de forma manual.
+                </p>
+              </div>
+            )}
 
           </div>
         )}
@@ -275,6 +292,7 @@ function DashboardProfilePage() {
         onClose={() => setIsEmailChangeModalOpen(false)}
         onEmailChangeSuccess={(newEmail) => {
           setEmail(newEmail);
+          updateUser({ email: newEmail }); // Actualizar el AuthContext en tiempo real
           setIsEmailChangeModalOpen(false);
         }}
       />

@@ -365,6 +365,11 @@ class GoogleLogin(SocialLoginView):
         print("⏳ 1. Iniciando process_login con Google...")
         start_time = time.time()
 
+        # Detectar si es un usuario nuevo antes del login
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        is_new_user = not User.objects.filter(email=self.request.data.get('user', {}).get('email')).exists()
+
         # AQUÍ ESTÁ LA MAGIA: Forzamos a que el código síncrono de allauth 
         # corra en un hilo separado seguro para ASGI
         try:
@@ -375,6 +380,11 @@ class GoogleLogin(SocialLoginView):
         
         mid_time = time.time()
         print(f"⏱️ 2. Validar con Google y Allauth tardó: {mid_time - start_time:.2f} segundos")
+
+        # Marcar usuario como registrado con Google
+        if not self.user.registered_with_google:
+            self.user.registered_with_google = True
+            self.user.save()
 
         if not getattr(self.user, 'role', None):
             try:

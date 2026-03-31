@@ -38,6 +38,10 @@ class RequestEmailChangeUseCase:
         if not user:
             return False, "Usuario no encontrado.", None
 
+        # Validar que el usuario no haya sido registrado con Google
+        if getattr(user, 'registered_with_google', False):
+            return False, "Los usuarios registrados con Google no pueden cambiar su correo electrónico.", None
+
         # Validar que el nuevo correo no sea igual al actual
         if user.email == new_email:
             return False, "El nuevo correo debe ser diferente al actual.", None

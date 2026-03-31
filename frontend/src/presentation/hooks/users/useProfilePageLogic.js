@@ -189,5 +189,6 @@ export const useProfilePageLogic = () => {
     handleCancelClick,
     handleProfileSubmit,
     handleChangePasswordSubmit,
+    updateUser,  // Exportar updateUser para poder actualizar el AuthContext
   };
 };

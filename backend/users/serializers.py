@@ -20,7 +20,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'is_staff', 'is_active', 'fecha_nacimiento', 'date_joined')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'is_staff', 'is_active', 'fecha_nacimiento', 'date_joined', 'registered_with_google')
 
 class UserPublicSerializer(serializers.ModelSerializer):
     """Serializador público y ligero para el usuario (evita over-fetching y protege datos sensibles)"""
