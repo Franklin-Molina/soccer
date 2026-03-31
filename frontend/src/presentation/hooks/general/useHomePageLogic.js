@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { GetCourtsUseCase } from '../../../application/use-cases/courts/get-courts.js';
 import { ApiCourtRepository } from '../../../infrastructure/repositories/api-court-repository.js';
+import { courtsWebSocket } from '../../../infrastructure/websocket/courtsWebSocket';
 
 /**
  * Hook personalizado para la lógica de la página de inicio (HomePage).
@@ -36,6 +37,37 @@ export const useHomePageLogic = () => {
     };
 
     fetchCourts();
+
+    // Conectar al WebSocket de la lista de canchas
+    courtsWebSocket.connect();
+
+    const unsubscribe = courtsWebSocket.subscribe((data) => {
+      if (data.type === 'court_created') {
+        // Solo agregar si está activa (como en el fetch inicial)
+        if (data.court.is_active) {
+          setAllCourts(prev => [...prev, data.court]);
+        }
+      } else if (data.type === 'court_updated') {
+        setAllCourts(prev => {
+          const exists = prev.find(c => c.id === data.court.id);
+          if (data.court.is_active) {
+            if (exists) {
+              return prev.map(c => c.id === data.court.id ? data.court : c);
+            } else {
+              return [...prev, data.court];
+            }
+          } else {
+            return prev.filter(c => c.id !== data.court.id);
+          }
+        });
+      } else if (data.type === 'court_deleted') {
+        setAllCourts(prev => prev.filter(c => c.id !== data.court_id));
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []); // Se ejecuta solo una vez al montar el componente
 
   const totalItems = allCourts.length;

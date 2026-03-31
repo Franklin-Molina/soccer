@@ -4,6 +4,8 @@ import { format, startOfWeek, addDays, setHours, setMinutes } from 'date-fns';
 import { useRepositories } from '../../context/RepositoryContext';
 import { useUseCases } from '../../context/UseCaseContext';
 import { useBookingsRealtime } from '../bookings/useBookingsRealtime';
+import { courtsWebSocket } from '../../../infrastructure/websocket/courtsWebSocket';
+import { toast } from 'react-toastify';
 
 /**
  * Hook personalizado para la lógica de la página de detalles de la cancha.
@@ -116,6 +118,26 @@ export const useCourtDetailLogic = () => {
       fetchWeeklyAvailability();
     }
   }, [court, fetchWeeklyAvailability]);
+
+  // WebSocket para actualizaciones de la cancha
+  useEffect(() => {
+    if (!courtId) return;
+
+    courtsWebSocket.connect(courtId);
+
+    const unsubscribe = courtsWebSocket.subscribe((data) => {
+      if (data.type === 'court_updated') {
+        fetchCourtDetails();
+      } else if (data.type === 'court_deleted') {
+        toast.info('Esta cancha ha sido eliminada');
+        navigate('/courts');
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [courtId, fetchCourtDetails, navigate]);
 
   // Actualización en tiempo real vía WebSocket para la disponibilidad
   useBookingsRealtime(useCallback((event) => {

@@ -5,6 +5,7 @@ import { ApiCourtRepository } from '../../../infrastructure/repositories/api-cou
 import { GetCourtsUseCase } from '../../../application/use-cases/courts/get-courts.js'; // Importar el caso de uso
 import { toast } from 'react-toastify'; // Importar toast de react-toastify
 import Swal from 'sweetalert2'; // Importar Swal
+import { courtsWebSocket } from '../../../infrastructure/websocket/courtsWebSocket';
 
 /**
  * Hook personalizado para la lógica de la página de gestión de canchas.
@@ -70,6 +71,23 @@ export const useManageCourtsLogic = () => {
       fetchCourts();
       hasFetchedCourts.current = true;
     }
+
+    // Conectar al WebSocket de la lista de canchas
+    courtsWebSocket.connect();
+
+    const unsubscribe = courtsWebSocket.subscribe((data) => {
+      if (data.type === 'court_created') {
+        setCourts(prev => [...prev, data.court]);
+      } else if (data.type === 'court_updated') {
+        setCourts(prev => prev.map(c => c.id === data.court.id ? data.court : c));
+      } else if (data.type === 'court_deleted') {
+        setCourts(prev => prev.filter(c => c.id !== data.court_id));
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, [courtRepository]);
 
   const [isSuspending, handleSuspendCourtClick] = useButtonDisable(async (courtId) => {

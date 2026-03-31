@@ -28,8 +28,9 @@ from bookings.routing import websocket_urlpatterns as bookings_ws
 from users.routing import websocket_urlpatterns as users_ws
 from chat.routing import websocket_urlpatterns as chat_ws
 from tournaments.routing import websocket_urlpatterns as tournaments_ws
+from courts.routing import websocket_urlpatterns as courts_ws
 
-combined_ws_urlpatterns = matches_ws + bookings_ws + users_ws + chat_ws + tournaments_ws   
+combined_ws_urlpatterns = matches_ws + bookings_ws + users_ws + chat_ws + tournaments_ws + courts_ws   
 
 application = ProtocolTypeRouter({
     # HTTP normal usa Django ASGI

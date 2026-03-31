@@ -6,6 +6,7 @@ from asgiref.sync import async_to_sync # Importar async_to_sync
 from .models import Court, CourtImage, Category # Importar Category
 from bookings.models import Booking # Necesario para CourtAvailabilityView si no se refactoriza completamente
 from .serializers import CourtSerializer, CourtImageSerializer, CategorySerializer # Importar CategorySerializer
+from .utils import court_notifier
 from .filters import CourtFilter
 from datetime import datetime, timedelta # Importar timedelta también para usarlo en la vista
 from django.utils import timezone # Importar timezone
@@ -54,6 +55,10 @@ class CourtList(views.APIView): # Cambiar a APIView para manejar la lógica manu
             try:
                 # Envolver la llamada asíncrona con async_to_sync
                 court = async_to_sync(create_court_use_case.execute)(court_data, images_data)
+                
+                # Notificar vía WebSocket
+                court_notifier.notify_court_created(court)
+                
                 response_serializer = CourtSerializer(court, context={'request': request})
                 return Response(response_serializer.data, status=status.HTTP_201_CREATED)
             except Exception as e:
@@ -92,6 +97,9 @@ class CourtDetail(views.APIView):
                 # Envolver la llamada asíncrona con async_to_sync
                 court = async_to_sync(update_court_use_case.execute)(court_id=pk, court_data=court_data, images_data=images_data)
                 if court:
+                    # Notificar vía WebSocket
+                    court_notifier.notify_court_updated(court)
+                    
                     response_serializer = CourtSerializer(court, context={'request': request})
                     return Response(response_serializer.data)
                 return Response(status=status.HTTP_404_NOT_FOUND) # Si la cancha no se encontró para actualizar
@@ -125,6 +133,10 @@ class CourtDetail(views.APIView):
                     images_data=images_data,
                     images_to_delete=images_to_delete # Pasar los IDs de las imágenes a eliminar
                 )
+                
+                # Notificar vía WebSocket
+                court_notifier.notify_court_updated(court)
+                
                 response_serializer = CourtSerializer(court, context={'request': request})
                 return Response(response_serializer.data)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -139,6 +151,9 @@ class CourtDetail(views.APIView):
             # Envolver la llamada asíncrona con async_to_sync
             success = async_to_sync(delete_court_use_case.execute)(court_id=pk)
             if success:
+                # Notificar vía WebSocket
+                court_notifier.notify_court_deleted(pk)
+                
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
