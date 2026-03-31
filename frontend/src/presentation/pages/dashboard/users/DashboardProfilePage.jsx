@@ -269,19 +269,15 @@ function DashboardProfilePage() {
       )}
 
       {/* Email Change Modal */}
-      {isEmailChangeModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <EmailChangeModal
-            isOpen={isEmailChangeModalOpen}
-            currentEmail={email}
-            onClose={() => setIsEmailChangeModalOpen(false)}
-            onEmailChangeSuccess={(newEmail) => {
-              setEmail(newEmail);
-              setIsEmailChangeModalOpen(false);
-            }}
-          />
-        </div>
-      )}
+      <EmailChangeModal
+        isOpen={isEmailChangeModalOpen}
+        currentEmail={email}
+        onClose={() => setIsEmailChangeModalOpen(false)}
+        onEmailChangeSuccess={(newEmail) => {
+          setEmail(newEmail);
+          setIsEmailChangeModalOpen(false);
+        }}
+      />
 
       {/* Cuentas vinculadas */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 p-6 mt-6">
