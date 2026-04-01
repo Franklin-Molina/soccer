@@ -1,18 +1,24 @@
-- [x] Analizar requisitos de diseño para el correo (2026-02-11)
-- [x] Localizar archivos de plantillas de correo existentes (2026-02-11)
-- [x] Diseñar plantilla HTML profesional para recuperación de contraseña (2026-02-11)
-- [x] Implementar la lógica para incluir el link de cambio de contraseña en el correo (2026-02-11)
-- [x] Realizar pruebas de envío de correo con el nuevo diseño (2026-02-11)
-- [x] Verificar diseño visual y redirección inicial (2026-02-11)
-- [x] Asegurar que el flujo sea funcional (envío desde la app real) (2026-02-11)
-- [x] Limpiar archivos de prueba (2026-02-11)
+El problema ocurre porque cuando un pago es rechazado (por ejemplo, por un número de Nequi inválido), el sistema actualiza el estado del **Pago** a "fallido", pero deja la **Reserva** en estado "pendiente". Dado que la lógica de disponibilidad considera que cualquier reserva que no esté "cancelada" ocupa el espacio, la cancha sigue apareciendo como ocupada.
 
-## Detectadas durante el trabajo
-- [x] Validar que el link generado en el correo redirija correctamente al frontend según la configuración de `DOMAIN` y `PROTOCOL` en `DJOSER`. (2026-02-11)
-- [x] Corregir ImportError: Module "users.email" does not define a "PasswordChangedConfirmationEmail" attribute/class (2026-02-11)
-- [x] Corregir errores de sintaxis en settings.py por conflictos de merge (2026-02-11)
-- [x] Cambiar plantilla de correo password_reset_email.html a modo claro (2026-02-12)
-- [x] Cambiar plantilla de correo password_changed_confirmation_email.html a modo claro (2026-02-12)
-- [x] Corregir error `useCallback is not defined` en `useDashboardUsersLogic.js` (2026-02-13)
-- [x] Conectar botones de suspender/reactivar con la lógica del hook en `DashboardUsersPage.jsx` (2026-02-13)
-- [x] Corregir bug que impedía acciones en el primer usuario (ID 0) por validación de falsy (2026-02-13)
+Para solucionar esto, implementaré los siguientes cambios:
+
+### Overview
+Ajustaremos el procesamiento de las notificaciones de Wompi (Webhook) para que, si un pago es rechazado o falla, la reserva asociada se cancele automáticamente, liberando así el horario para otros usuarios. También me aseguraré de mapear todos los posibles estados de error de Wompi.
+
+### Key Changes
+- `backend/payments/views.py`: Actualizar `WompiWebhookView` para que cambie el estado de la reserva a `cancelled` si el pago es `failed` o `error`.
+- `backend/payments/services/wompi_service.py`: Asegurar que el mapeo de estados de Wompi incluya `ERROR`.
+
+### Implementation Steps
+1. **Modificar `WompiWebhookView`**: Añadir lógica para que si `payment_status` es `failed`, se actualice `payment.booking.status = "cancelled"`.
+2. **Mejorar el mapeo de estados**: Incluir el estado `ERROR` de Wompi para que también resulte en un pago fallido y liberación de la reserva.
+3. **Notificación de liberación**: Al cancelar la reserva desde el webhook, disparar la notificación de WebSocket para que el frontend se actualice en tiempo real y la celda vuelva a aparecer disponible.
+
+### Technical Considerations
+- **Consistencia**: Al cancelar la reserva, otros usuarios podrán ver el espacio disponible inmediatamente gracias a los WebSockets.
+- **Reservas abandonadas**: Si un usuario cierra la pestaña sin pagar, la reserva quedará en `pending`. Por ahora nos enfocamos en el error explícito que reportaste, pero a futuro sería ideal un proceso de limpieza de reservas pendientes antiguas.
+
+### Success Criteria
+- Si un pago de Nequi falla (por número inválido), la reserva debe pasar a estado "Cancelada".
+- Al revisar el calendario, el horario de la reserva fallida debe aparecer nuevamente como disponible.
+

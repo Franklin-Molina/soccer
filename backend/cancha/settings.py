@@ -446,3 +446,6 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "images")
+
+# Configuración del Frontend
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")

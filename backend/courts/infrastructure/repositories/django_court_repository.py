@@ -122,7 +122,7 @@ class DjangoCourtRepository(ICourtRepository):
         for court_obj in courts_to_check: # Renombrar variable para evitar conflicto con el modelo Court
             overlapping_bookings = court_obj.booking_set.filter(
                 Q(start_time__lt=end_dt) & Q(end_time__gt=start_dt) &
-                ~Q(status='CANCELLED')
+                ~Q(status='cancelled')
             ).exists()
 
             availability_results.append({
@@ -153,13 +153,13 @@ class DjangoCourtRepository(ICourtRepository):
             current_date += timedelta(days=1)
 
         # Obtener todas las reservas para la cancha en el rango de fechas
-        # Considerar solo reservas CONFIRMED o PENDING
+        # Considerar solo reservas confirmed o pending
      #   print(f"DEBUG: Consultando reservas para cancha {court_id} ({court.name}) en el rango de {start_date} a {end_date}") # Debug print
         bookings = Booking.objects.filter(
             court=court,
             start_time__lt=end_date,
             end_time__gt=start_date
-        ).exclude(status='CANCELLED') # Excluir reservas canceladas
+        ).exclude(status='cancelled') # Excluir reservas canceladas
 
         # Marcar las horas ocupadas
     #    print(f"DEBUG: Procesando {len(bookings)} reservas para la cancha {court_id} en el rango {start_date} a {end_date}") # Debug print

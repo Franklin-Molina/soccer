@@ -6,6 +6,7 @@ import { useUseCases } from '../../context/UseCaseContext';
 import { useBookingsRealtime } from '../bookings/useBookingsRealtime';
 import { courtsWebSocket } from '../../../infrastructure/websocket/courtsWebSocket';
 import { toast } from 'react-toastify';
+import { ApiPaymentRepository } from '../../../infrastructure/repositories/api-payment-repository';
 
 /**
  * Hook personalizado para la lógica de la página de detalles de la cancha.
@@ -213,32 +214,40 @@ export const useCourtDetailLogic = () => {
     setShowConfirmModal(false);
 
     try {
-      await createBookingUseCase.execute({ // Pasar un objeto con los datos de la reserva
+      // Paso 1: Crear la reserva
+      const createdBooking = await createBookingUseCase.execute({
         courtId: bookingDetailsToConfirm.courtId,
         startDateTime: bookingDetailsToConfirm.formattedStartTime,
         endDateTime: bookingDetailsToConfirm.formattedEndTime,
-        paymentPercentage: bookingDetailsToConfirm.paymentPercentage, // Pasa el porcentaje al caso de uso
+        paymentPercentage: bookingDetailsToConfirm.paymentPercentage,
       });
-      setBookingSuccess(true);
-      fetchWeeklyAvailability();
-    } catch (err) {
-    //  console.log("DEBUG: Error en confirmBooking:", err);
-    //  console.log("DEBUG: err.response:", err.response);
-     // console.log("DEBUG: err.response.status:", err.response ? err.response.status : 'N/A');
-     // console.log("DEBUG: err.message:", err.message);
 
-      if ((err.response && err.response.status === 401) || (err.message === "No se pudo crear la reserva.")) {
+      const bookingId = createdBooking.id;
+
+      // Paso 2: Iniciar checkout con Wompi
+      const paymentRepository = new ApiPaymentRepository();
+      const checkoutResponse = await paymentRepository.createWompiCheckout(bookingId);
+
+      // Paso 3: Redirigir al usuario a la página de pago de Wompi
+      if (checkoutResponse.payment_url) {
+        window.location.href = checkoutResponse.payment_url;
+      } else {
+        throw new Error('No se pudo obtener la URL de pago');
+      }
+    } catch (err) {
+      if ((err.response && err.response.status === 401) || err.message === "No se pudo crear la reserva.") {
         setBookingError(null);
         setShowLoginModal(true);
+      } else if (err.message && err.message.includes('Wompi')) {
+        setBookingError(err.message);
       } else {
-        setBookingError("Error al crear la reserva. Inténtalo de nuevo.");
+        setBookingError("Error al procesar el pago. Inténtalo de nuevo.");
       }
-     // console.error('Error creating booking:', err.response ? err.response.data : err.message);
     } finally {
       setIsBooking(false);
       setBookingDetailsToConfirm(null);
-      setSelectedSlot(null); // Limpiar selectedSlot después de la confirmación
-      setPaymentPercentage(100); // Resetear el porcentaje de pago
+      setSelectedSlot(null);
+      setPaymentPercentage(100);
     }
   };
 

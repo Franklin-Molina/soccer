@@ -61,7 +61,7 @@ class DjangoBookingRepository(IBookingRepository):
             court=court,
             start_time=start_time,
             end_time=end_time,
-            status='PENDING', # Estado inicial de la reserva
+            status='pending', # Estado inicial de la reserva
             payment=None # Dejar el pago como None por ahora
         )
 
@@ -77,7 +77,7 @@ class DjangoBookingRepository(IBookingRepository):
             user=user,
             booking=booking, # Asignar la reserva
             amount=payment_amount,
-            status='PENDING', # O 'COMPLETED' si se procesa inmediatamente
+            status='pending', # O 'completed' si se procesa inmediatamente
             method='other' # Cambiado de 'payment_method' a 'method' y de 'ONLINE' a 'other'
         )
 
@@ -98,9 +98,9 @@ class DjangoBookingRepository(IBookingRepository):
                 return None # O lanzar un error de permiso
 
             booking.status = status
-            # Lógica adicional si el estado es 'CANCELLED' (ej. reembolsar pago)
-            if status == 'CANCELLED' and booking.payment:
-                booking.payment.status = 'REFUNDED' # O un estado similar
+            # Lógica adicional si el estado es 'cancelled' (ej. reembolsar pago)
+            if status == 'cancelled' and booking.payment:
+                booking.payment.status = 'refunded' # O un estado similar
                 booking.payment.save()
             
             booking.save()
