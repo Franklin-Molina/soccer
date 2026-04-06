@@ -11,6 +11,8 @@ from django.utils.decorators import method_decorator
 from .models import Payment
 from .serializers import PaymentSerializer
 from .services.wompi_service import wompi_service
+from bookings.utils.websocket_notifier import booking_notifier
+from bookings.serializers import BookingSerializer
 
 # Importar casos de uso y repositorio
 from .infrastructure.repositories.django_payment_repository import DjangoPaymentRepository
@@ -192,12 +194,15 @@ class WompiWebhookView(views.APIView):
             if event_info.get("action") == "payment_status_update":
                 reference = event_info.get("reference")
                 new_status = event_info.get("status")
+                transaction_id = event_info.get("transaction_id")
                 
+                logger.info(f"Procesando webhook para referencia: {reference}, status: {new_status}, transaction_id: {transaction_id}")
+
                 # Mapear estado de Wompi a nuestro modelo
                 status_map = {
                     "APPROVED": "completed",
                     "DECLINED": "failed",
-                    "VOIDED": "failed", # Si se anula, liberamos la reserva
+                    "VOIDED": "failed", 
                     "ERROR": "failed",
                 }
                 payment_status = status_map.get(new_status, "pending")
@@ -205,8 +210,12 @@ class WompiWebhookView(views.APIView):
                 # Actualizar pago y reserva de forma atómica
                 try:
                     with transaction.atomic():
-                        payment = Payment.objects.select_for_update().get(reference=reference)
+                        # Usar iexact para evitar problemas de mayúsculas/minúsculas
+                        payment = Payment.objects.select_for_update().get(reference__iexact=reference)
+                        logger.info(f"Pago encontrado ID: {payment.id}, estado actual: {payment.status}")
+                        
                         payment.status = payment_status
+                        payment.transaction_id = transaction_id
                         payment.method = event_info.get("payment_method", "other")
                         payment.gateway_data = event_data
                         payment.save()
@@ -215,8 +224,14 @@ class WompiWebhookView(views.APIView):
                         booking = payment.booking
                         if payment_status == "completed":
                             booking.status = "confirmed"
+                            booking.payment = payment  # Vincular el pago exitoso
                             booking.save()
                             logger.info(f"Reserva {booking.id} CONFIRMADA por pago {reference}")
+                            
+                            # Notificar actualización de reserva via WebSocket
+                            serializer = BookingSerializer(booking)
+                            transaction.on_commit(lambda: booking_notifier.notify_booking_updated(serializer.data))
+                            
                         elif payment_status == "failed":
                             booking.status = "cancelled"
                             booking.save()
@@ -234,4 +249,86 @@ class WompiWebhookView(views.APIView):
 
         except Exception as e:
             logger.error(f"Error procesando webhook de Wompi: {str(e)}")
+            return Response({"error": "Error interno"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class WompiVerifyPaymentView(views.APIView):
+    """
+    Vista para verificar el estado de un pago manualmente usando el transaction_id.
+    Útil para el flujo de redirección (Success Page).
+    """
+    permission_classes = [AllowAny]
+    authentication_classes = [] # Deshabilitar para evitar problemas de CSRF/Cookies en la redirección
+
+    def get(self, request, transaction_id, *args, **kwargs):
+        logger.info(f"VERIFICACIÓN MANUAL - Recibido ID: {transaction_id}")
+        
+        # Consultar estado en Wompi API
+        result = wompi_service.verify_payment(transaction_id)
+        
+        if not result.get("success"):
+            logger.error(f"VERIFICACIÓN MANUAL - Falló consulta a Wompi: {result.get('error')}")
+            return Response({"error": result.get("error", "Error al verificar el pago")}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        reference = result.get("reference")
+        new_status = result.get("status") # APPROVED, DECLINED, etc.
+        logger.info(f"VERIFICACIÓN MANUAL - Wompi responde: status={new_status}, reference={reference}")
+        
+        # Mapear estado
+        status_map = {
+            "APPROVED": "completed",
+            "DECLINED": "failed",
+            "VOIDED": "failed",
+            "ERROR": "failed",
+        }
+        payment_status = status_map.get(new_status, "pending")
+
+        try:
+            with transaction.atomic():
+                # Buscar el pago por referencia (iexact para mayor compatibilidad)
+                payment = Payment.objects.select_for_update().get(reference__iexact=reference)
+                logger.info(f"VERIFICACIÓN MANUAL - Pago local encontrado ID: {payment.id}, DB Status: {payment.status}")
+                
+                # Siempre guardamos el transaction_id si no estaba o si el estado cambió
+                if payment.status != payment_status or payment.transaction_id != transaction_id:
+                    payment.status = payment_status
+                    payment.transaction_id = transaction_id
+                    payment.method = result.get("payment_method", "other")
+                    payment.gateway_data = result.get("raw_response")
+                    payment.save()
+                    logger.info(f"VERIFICACIÓN MANUAL - Registro de pago actualizado a {payment_status}")
+
+                    # Actualizar reserva
+                    booking = payment.booking
+                    if payment_status == "completed" and booking.status != "confirmed":
+                        booking.status = "confirmed"
+                        booking.payment = payment
+                        booking.save()
+                        
+                        # Notificar
+                        serializer = BookingSerializer(booking)
+                        transaction.on_commit(lambda: booking_notifier.notify_booking_updated(serializer.data))
+                        logger.info(f"Reserva {booking.id} CONFIRMADA vía verificación manual")
+                        
+                    elif payment_status == "failed" and booking.status != "cancelled":
+                        booking.status = "cancelled"
+                        booking.save()
+                        
+                        # Notificar
+                        transaction.on_commit(lambda: booking_notifier.notify_booking_cancelled(booking.id))
+                        logger.info(f"Reserva {booking.id} CANCELADA vía verificación manual")
+
+            return Response({
+                "status": payment_status,
+                "wompi_status": new_status,
+                "reference": reference,
+                "booking_status": booking.status if 'booking' in locals() else None
+            }, status=status.HTTP_200_OK)
+
+        except Payment.DoesNotExist:
+            logger.error(f"Pago con referencia {reference} no encontrado durante verificación manual")
+            return Response({"error": "Pago no encontrado en base de datos local"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Error en verificación manual de pago: {str(e)}")
             return Response({"error": "Error interno"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

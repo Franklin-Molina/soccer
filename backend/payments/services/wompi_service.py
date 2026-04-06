@@ -140,6 +140,7 @@ class WompiService:
             )
             response.raise_for_status()
             data = response.json()
+            logger.info(f"Respuesta de Wompi API para {transaction_id}: {data}")
             
             return {
                 "success": True,
