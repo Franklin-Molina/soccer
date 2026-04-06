@@ -13,6 +13,7 @@ class Booking(models.Model):
         ('pending', 'Pendiente'),
         ('confirmed', 'Confirmada'),
         ('cancelled', 'Cancelada'),
+        ('expired', 'Expirada'),
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -26,6 +27,21 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"Reserva de {self.court.name} por {self.user.username} ({self.start_time.strftime('%Y-%m-%d %H:%M')})"
+
+    @property
+    def is_expired(self):
+        """
+        Verifica si la reserva ha expirado (más de 5 minutos desde su creación).
+        Solo aplica para reservas en estado 'pending'.
+        """
+        if self.status != 'pending':
+            return False
+        
+        from django.utils import timezone
+        from datetime import timedelta
+        # Consideramos 5 minutos de tiempo límite
+        expiration_time = self.created_at + timedelta(minutes=5)
+        return timezone.now() > expiration_time
 
     def clean(self):
         """

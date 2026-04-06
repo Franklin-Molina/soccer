@@ -47,6 +47,10 @@ class BookingSerializer(serializers.ModelSerializer):
         if not court or not start_time or not end_time:
             return data
 
+        # Limpiar reservas expiradas antes de validar disponibilidad
+        from .utils.cleanup import cancel_expired_bookings
+        cancel_expired_bookings()
+
         instance = self.instance
         if instance:
             overlapping_bookings = Booking.objects.filter(

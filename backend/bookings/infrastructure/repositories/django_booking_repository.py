@@ -18,6 +18,10 @@ class DjangoBookingRepository(IBookingRepository):
 
     @sync_to_async
     def get_all(self, user_id: Optional[int] = None, filters: Optional[Dict[str, Any]] = None) -> List[Booking]:
+        # Limpieza de reservas expiradas
+        from ..utils.cleanup import cancel_expired_bookings
+        cancel_expired_bookings()
+
         queryset = Booking.objects.all().select_related('court', 'user', 'payment')
         if user_id:
             queryset = queryset.filter(user_id=user_id)

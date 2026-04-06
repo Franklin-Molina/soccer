@@ -126,6 +126,15 @@ class WompiCheckoutView(views.APIView):
         if existing_payment:
             return Response({"error": "Esta reserva ya está pagada."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Verificar si la reserva ha expirado (Capa 2 de seguridad)
+        if booking.is_expired:
+            booking.status = 'expired'
+            booking.save()
+            return Response({
+                "error": "RESERVA_EXPIRADA",
+                "message": "El tiempo para pagar ha finalizado. Por favor, selecciona el horario nuevamente."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         # Generar referencia única
         reference = f"booking-{booking.id}-{uuid.uuid4().hex[:8]}"
         
@@ -223,6 +232,14 @@ class WompiWebhookView(views.APIView):
                         # Actualizar reserva según el estado del pago
                         booking = payment.booking
                         if payment_status == "completed":
+                            # 🔥 VALIDACIÓN FINAL: Defensa contra pagos tardíos (Capa 4)
+                            if booking.is_expired:
+                                logger.warning(f"PAGO TARDÍO RECIBIDO vía Webhook: Reserva {booking.id} ya expiró. Marcando pago como late_payment.")
+                                payment.status = 'late_payment'
+                                payment.save()
+                                # No confirmamos la reserva
+                                return Response({"status": "ignored", "detail": "Late payment for expired booking"}, status=status.HTTP_200_OK)
+
                             booking.status = "confirmed"
                             booking.payment = payment  # Vincular el pago exitoso
                             booking.save()
@@ -302,6 +319,18 @@ class WompiVerifyPaymentView(views.APIView):
                     # Actualizar reserva
                     booking = payment.booking
                     if payment_status == "completed" and booking.status != "confirmed":
+                        # 🔥 VALIDACIÓN FINAL: Defensa contra pagos tardíos (Capa 4)
+                        if booking.is_expired:
+                            logger.warning(f"PAGO TARDÍO RECIBIDO vía Verificación: Reserva {booking.id} ya expiró. Marcando pago como late_payment.")
+                            payment.status = 'late_payment'
+                            payment.save()
+                            # No confirmamos la reserva, pero informamos al usuario
+                            return Response({
+                                "status": "late_payment",
+                                "message": "El pago fue exitoso pero se realizó fuera del tiempo límite. La reserva no pudo ser confirmada.",
+                                "reference": reference
+                            }, status=status.HTTP_200_OK)
+
                         booking.status = "confirmed"
                         booking.payment = payment
                         booking.save()

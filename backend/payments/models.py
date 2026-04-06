@@ -12,6 +12,7 @@ class Payment(models.Model):
         ('completed', 'Completado'),
         ('failed', 'Fallido'),
         ('refunded', 'Reembolsado'),
+        ('late_payment', 'Pago Tardío'),
     ]
 
     METHOD_CHOICES = [

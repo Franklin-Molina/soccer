@@ -66,6 +66,9 @@ export const useCourtDetailLogic = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [bookingDetailsToConfirm, setBookingDetailsToConfirm] = useState(null);
   const [paymentPercentage, setPaymentPercentage] = useState(100); // Nuevo estado para el porcentaje de pago
+  
+  const [timeLeft, setTimeLeft] = useState(null); // Temporizador para expiración
+  const [isExpired, setIsExpired] = useState(false);
 
   const [weeklyAvailability, setWeeklyAvailability] = useState({});
   const [loadingWeeklyAvailability, setLoadingWeeklyAvailability] = useState(false);
@@ -205,13 +208,28 @@ export const useCourtDetailLogic = () => {
     }
   };
 
-  const confirmBooking = async () => { // Ya no recibe el porcentaje como argumento, lo toma de bookingDetailsToConfirm
-    if (!bookingDetailsToConfirm) return;
+  // Lógica del temporizador de 5 minutos (300 segundos)
+  useEffect(() => {
+    let interval = null;
+    if (timeLeft !== null && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      setIsExpired(true);
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [timeLeft]);
+
+  const confirmBooking = async () => { 
+    if (!bookingDetailsToConfirm || isExpired) return;
 
     setIsBooking(true);
     setBookingError(null);
     setBookingSuccess(false);
-    setShowConfirmModal(false);
+    // No cerramos el modal inmediatamente para mostrar el proceso si es necesario
+    // setShowConfirmModal(false); 
 
     try {
       // Paso 1: Crear la reserva
@@ -223,6 +241,9 @@ export const useCourtDetailLogic = () => {
       });
 
       const bookingId = createdBooking.id;
+      
+      // Iniciamos contador de 5 minutos una vez creada la reserva en el servidor
+      setTimeLeft(300); 
 
       // Paso 2: Iniciar checkout con Wompi
       const paymentRepository = new ApiPaymentRepository();
@@ -235,6 +256,7 @@ export const useCourtDetailLogic = () => {
         throw new Error('No se pudo obtener la URL de pago');
       }
     } catch (err) {
+      setShowConfirmModal(false); // Si hay error, cerramos el modal
       if ((err.response && err.response.status === 401) || err.message === "No se pudo crear la reserva.") {
         setBookingError(null);
         setShowLoginModal(true);
@@ -361,5 +383,7 @@ export const useCourtDetailLogic = () => {
     zoom, // Retornar estado de zoom
     handleZoomIn, // Retornar función de zoom in
     handleZoomOut, // Retornar función de zoom out
+    timeLeft, // Retornar tiempo restante
+    isExpired, // Retornar si expiró
   };
 };
