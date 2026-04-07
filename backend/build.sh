@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
-# exit on error
 set -o errexit
 
 pip install -r requirements.txt
 
 python manage.py collectstatic --no-input
 python manage.py migrate
-#!/bin/sh
-
 
 echo "Creando superusuario si no existe..."
 python manage.py shell << END
@@ -28,4 +25,4 @@ if username and password:
 END
 
 echo "Iniciando servidor..."
-daphne -b 0.0.0.0 -p 8000 cancha.asgi:application
+daphne -b 0.0.0.0 -p $PORT cancha.asgi:application
