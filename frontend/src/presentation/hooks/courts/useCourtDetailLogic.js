@@ -6,6 +6,7 @@ import { useUseCases } from '../../context/UseCaseContext';
 import { useBookingsRealtime } from '../bookings/useBookingsRealtime';
 import { courtsWebSocket } from '../../../infrastructure/websocket/courtsWebSocket';
 import { toast } from 'react-toastify';
+import { ApiPaymentRepository } from '../../../infrastructure/repositories/api-payment-repository';
 
 /**
  * Hook personalizado para la lógica de la página de detalles de la cancha.
@@ -65,6 +66,9 @@ export const useCourtDetailLogic = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [bookingDetailsToConfirm, setBookingDetailsToConfirm] = useState(null);
   const [paymentPercentage, setPaymentPercentage] = useState(100); // Nuevo estado para el porcentaje de pago
+  
+  const [timeLeft, setTimeLeft] = useState(null); // Temporizador para expiración
+  const [isExpired, setIsExpired] = useState(false);
 
   const [weeklyAvailability, setWeeklyAvailability] = useState({});
   const [loadingWeeklyAvailability, setLoadingWeeklyAvailability] = useState(false);
@@ -204,41 +208,68 @@ export const useCourtDetailLogic = () => {
     }
   };
 
-  const confirmBooking = async () => { // Ya no recibe el porcentaje como argumento, lo toma de bookingDetailsToConfirm
-    if (!bookingDetailsToConfirm) return;
+  // Lógica del temporizador de 5 minutos (300 segundos)
+  useEffect(() => {
+    let interval = null;
+    if (timeLeft !== null && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      setIsExpired(true);
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [timeLeft]);
+
+  const confirmBooking = async () => { 
+    if (!bookingDetailsToConfirm || isExpired) return;
 
     setIsBooking(true);
     setBookingError(null);
     setBookingSuccess(false);
-    setShowConfirmModal(false);
+    // No cerramos el modal inmediatamente para mostrar el proceso si es necesario
+    // setShowConfirmModal(false); 
 
     try {
-      await createBookingUseCase.execute({ // Pasar un objeto con los datos de la reserva
+      // Paso 1: Crear la reserva
+      const createdBooking = await createBookingUseCase.execute({
         courtId: bookingDetailsToConfirm.courtId,
         startDateTime: bookingDetailsToConfirm.formattedStartTime,
         endDateTime: bookingDetailsToConfirm.formattedEndTime,
-        paymentPercentage: bookingDetailsToConfirm.paymentPercentage, // Pasa el porcentaje al caso de uso
+        paymentPercentage: bookingDetailsToConfirm.paymentPercentage,
       });
-      setBookingSuccess(true);
-      fetchWeeklyAvailability();
-    } catch (err) {
-    //  console.log("DEBUG: Error en confirmBooking:", err);
-    //  console.log("DEBUG: err.response:", err.response);
-     // console.log("DEBUG: err.response.status:", err.response ? err.response.status : 'N/A');
-     // console.log("DEBUG: err.message:", err.message);
 
-      if ((err.response && err.response.status === 401) || (err.message === "No se pudo crear la reserva.")) {
+      const bookingId = createdBooking.id;
+      
+      // Iniciamos contador de 5 minutos una vez creada la reserva en el servidor
+      setTimeLeft(300); 
+
+      // Paso 2: Iniciar checkout con Wompi
+      const paymentRepository = new ApiPaymentRepository();
+      const checkoutResponse = await paymentRepository.createWompiCheckout(bookingId);
+
+      // Paso 3: Redirigir al usuario a la página de pago de Wompi
+      if (checkoutResponse.payment_url) {
+        window.location.href = checkoutResponse.payment_url;
+      } else {
+        throw new Error('No se pudo obtener la URL de pago');
+      }
+    } catch (err) {
+      setShowConfirmModal(false); // Si hay error, cerramos el modal
+      if ((err.response && err.response.status === 401) || err.message === "No se pudo crear la reserva.") {
         setBookingError(null);
         setShowLoginModal(true);
+      } else if (err.message && err.message.includes('Wompi')) {
+        setBookingError(err.message);
       } else {
-        setBookingError("Error al crear la reserva. Inténtalo de nuevo.");
+        setBookingError("Error al procesar el pago. Inténtalo de nuevo.");
       }
-     // console.error('Error creating booking:', err.response ? err.response.data : err.message);
     } finally {
       setIsBooking(false);
       setBookingDetailsToConfirm(null);
-      setSelectedSlot(null); // Limpiar selectedSlot después de la confirmación
-      setPaymentPercentage(100); // Resetear el porcentaje de pago
+      setSelectedSlot(null);
+      setPaymentPercentage(100);
     }
   };
 
@@ -352,5 +383,7 @@ export const useCourtDetailLogic = () => {
     zoom, // Retornar estado de zoom
     handleZoomIn, // Retornar función de zoom in
     handleZoomOut, // Retornar función de zoom out
+    timeLeft, // Retornar tiempo restante
+    isExpired, // Retornar si expiró
   };
 };

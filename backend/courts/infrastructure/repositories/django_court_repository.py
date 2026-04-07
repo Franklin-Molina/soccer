@@ -111,6 +111,10 @@ class DjangoCourtRepository(ICourtRepository):
 
     @sync_to_async
     def _check_availability_sync(self, start_time_str: str, end_time_str: str, court_id: Optional[int] = None) -> List[Dict[str, Any]]:
+        # Ejecutar limpieza de reservas expiradas antes de verificar disponibilidad
+        from bookings.utils.cleanup import cancel_expired_bookings
+        cancel_expired_bookings()
+
         start_dt = timezone.datetime.fromisoformat(start_time_str.replace('Z', '+00:00'))
         end_dt = timezone.datetime.fromisoformat(end_time_str.replace('Z', '+00:00'))
 
@@ -121,9 +125,8 @@ class DjangoCourtRepository(ICourtRepository):
         availability_results = []
         for court_obj in courts_to_check: # Renombrar variable para evitar conflicto con el modelo Court
             overlapping_bookings = court_obj.booking_set.filter(
-                Q(start_time__lt=end_dt) & Q(end_time__gt=start_dt) &
-                ~Q(status='CANCELLED')
-            ).exists()
+                Q(start_time__lt=end_dt) & Q(end_time__gt=start_dt)
+            ).exclude(status__in=['cancelled', 'expired']).exists()
 
             availability_results.append({
                 'id': court_obj.id,
@@ -138,6 +141,10 @@ class DjangoCourtRepository(ICourtRepository):
     @sync_to_async
     def _get_weekly_availability_sync(self, court_id: int, start_date: datetime, end_date: datetime) -> Dict[str, Dict[int, bool]]:
         from bookings.models import Booking # Importar el modelo Booking aquí para evitar circular imports
+        from bookings.utils.cleanup import cancel_expired_bookings
+
+        # Limpiar reservas expiradas
+        cancel_expired_bookings()
 
         try:
             court = Court.objects.get(pk=court_id)
@@ -153,13 +160,13 @@ class DjangoCourtRepository(ICourtRepository):
             current_date += timedelta(days=1)
 
         # Obtener todas las reservas para la cancha en el rango de fechas
-        # Considerar solo reservas CONFIRMED o PENDING
+        # Considerar solo reservas confirmed o pending (no canceladas ni expiradas)
      #   print(f"DEBUG: Consultando reservas para cancha {court_id} ({court.name}) en el rango de {start_date} a {end_date}") # Debug print
         bookings = Booking.objects.filter(
             court=court,
             start_time__lt=end_date,
             end_time__gt=start_date
-        ).exclude(status='CANCELLED') # Excluir reservas canceladas
+        ).exclude(status__in=['cancelled', 'expired']) # Excluir reservas canceladas y expiradas
 
         # Marcar las horas ocupadas
     #    print(f"DEBUG: Procesando {len(bookings)} reservas para la cancha {court_id} en el rango {start_date} a {end_date}") # Debug print

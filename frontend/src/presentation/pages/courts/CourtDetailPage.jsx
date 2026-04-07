@@ -78,6 +78,8 @@ function CourtDetailPage({ openAuthModal }) {
     zoom,
     handleZoomIn,
     handleZoomOut,
+    timeLeft,
+    isExpired,
   } = useCourtDetailLogic();
 
   // Calcular el precio a pagar basado en el porcentaje seleccionado
@@ -233,6 +235,17 @@ function CourtDetailPage({ openAuthModal }) {
                 </div>
               </div>
               
+              {timeLeft !== null && (
+                <div className={`p-4 rounded-xl border flex items-center justify-between ${isExpired ? 'bg-rose-500/10 border-rose-500/20 text-rose-500' : 'bg-amber-500/10 border-amber-500/20 text-amber-600'}`}>
+                  <span className="text-xs font-bold uppercase tracking-wider">
+                    {isExpired ? 'Tiempo expirado' : 'Tiempo para pagar'}
+                  </span>
+                  <span className="font-mono font-bold text-lg">
+                    {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+                  </span>
+                </div>
+              )}
+
               <div className="bg-emerald-500/5 dark:bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20">
                 <label className="block text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-3">
                   ¿Cuánto deseas pagar ahora?
@@ -271,10 +284,14 @@ function CourtDetailPage({ openAuthModal }) {
               </button>
               <button
                 onClick={() => confirmBooking(paymentPercentage)}
-                disabled={isBooking}
-                className="flex-[2] bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-6 py-4 rounded-xl font-bold transition-all shadow-xl shadow-emerald-500/20 disabled:opacity-50 active:scale-95"
+                disabled={isBooking || isExpired}
+                className={`flex-[2] px-6 py-4 rounded-xl font-bold transition-all shadow-xl disabled:opacity-50 active:scale-95 ${
+                  isExpired 
+                    ? "bg-slate-300 text-slate-500 cursor-not-allowed shadow-none" 
+                    : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-emerald-500/20"
+                }`}
               >
-                {isBooking ? "Procesando..." : "Confirmar Reserva"}
+                {isBooking ? "Procesando..." : isExpired ? "Expirado" : "Confirmar Reserva"}
               </button>
             </div>
           </div>

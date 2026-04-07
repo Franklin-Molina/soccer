@@ -45,6 +45,9 @@ import TournamentDetailPage from './presentation/pages/Tournaments/TournamentDet
 import DashboardManageTournamentsPage from './presentation/pages/Tournaments/DashboardManageTournamentsPage.jsx';
 import DashboardTournamentFormPage from './presentation/pages/Tournaments/DashboardTournamentFormPage.jsx';
 
+// Pagos
+import PaymentSuccessPage from './presentation/pages/payments/PaymentSuccessPage.jsx';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -262,6 +265,9 @@ function AuthContent() {
         </Route>
         <Route path="profile" element={<DashboardProfilePage />} />       
       </Route>
+
+      {/* Ruta para resultado de pago de Wompi */}
+      <Route path="/payment/success" element={<PaymentSuccessPage />} />
 
       {/* Ruta catch-all para 404 */}
       <Route path="*" element={<NotFound />} />

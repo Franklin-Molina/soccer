@@ -35,10 +35,10 @@ class IBookingRepository(ABC):
     @abstractmethod
     async def update_status(self, booking_id: int, status: str, user: Optional[User] = None) -> Optional[Booking]:
         """
-        Actualiza el estado de una reserva existente (ej. 'CANCELLED').
+        Actualiza el estado de una reserva existente (ej. 'cancelled').
         Opcionalmente verifica la pertenencia al usuario si no es admin.
         """
         pass
     
     # Podríamos añadir un método delete si se permite la eliminación física de reservas,
-    # pero generalmente se prefiere cambiar el estado a 'CANCELLED'.
+    # pero generalmente se prefiere cambiar el estado a 'cancelled'.

@@ -12,12 +12,22 @@ class Payment(models.Model):
         ('completed', 'Completado'),
         ('failed', 'Fallido'),
         ('refunded', 'Reembolsado'),
+        ('late_payment', 'Pago Tardío'),
     ]
 
     METHOD_CHOICES = [
         ('credit_card', 'Tarjeta de Crédito'),
+        ('debit_card', 'Tarjeta de Débito'),
         ('pse', 'PSE'),
+        ('nequi', 'Nequi'),
+        ('daviplata', 'Daviplata'),
+        ('reference', 'Pago en Efectivo (Efecty/Baloto)'),
         ('other', 'Otro'),
+    ]
+
+    GATEWAY_CHOICES = [
+        ('wompi', 'Wompi'),
+        ('manual', 'Manual'),
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -26,9 +36,19 @@ class Payment(models.Model):
     payment_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     method = models.CharField(max_length=50, choices=METHOD_CHOICES, default='other')
+    gateway = models.CharField(max_length=20, choices=GATEWAY_CHOICES, default='wompi')
+    
+    # Campos para Wompi
+    reference = models.CharField(max_length=255, blank=True, null=True, unique=True, 
+                                  help_text="Referencia única de pago para Wompi")
+    transaction_id = models.CharField(max_length=255, blank=True, null=True,
+                                       help_text="ID de transacción de Wompi")
+    payment_link = models.URLField(max_length=500, blank=True, null=True,
+                                    help_text="URL de checkout de Wompi")
+    
     # Campo opcional para almacenar datos adicionales de la pasarela de pago
-    transaction_id = models.CharField(max_length=255, blank=True, null=True)
-    gateway_data = models.JSONField(null=True, blank=True)
+    gateway_data = models.JSONField(null=True, blank=True,
+                                     help_text="Datos completos de la respuesta de Wompi")
 
 
     def __str__(self):
