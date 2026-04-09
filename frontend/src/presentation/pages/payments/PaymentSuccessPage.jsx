@@ -16,8 +16,6 @@ export default function PaymentSuccessPage() {
     console.log('Real-time update in Success Page:', event);
     if (event.type === 'booking_updated') {
       const booking = event.booking;
-      // Si el pago asociado a esta reserva es 'late_payment', actualizamos la UI
-      // Nota: El backend envía el estado del pago dentro de la reserva o podemos inferirlo del status de la reserva
       if (booking.status === 'expired') {
         setPaymentStatus('late_payment');
       } else if (booking.status === 'confirmed') {
@@ -27,58 +25,69 @@ export default function PaymentSuccessPage() {
   }, []));
 
   useEffect(() => {
-    const verifyPayment = async () => {
+    const processPaymentStatus = async () => {
       if (verifyAttempted.current) return;
       verifyAttempted.current = true;
 
-      // Wompi redirige con 'id' para la transacción
+      // Wompi redirige con 'id' (transaction_id), 'reference' y nuestro 'token' personalizado
       const transactionId = searchParams.get('id') || searchParams.get('transaction_id');
+      const reference = searchParams.get('reference');
+      const token = searchParams.get('token');
       const statusFromUrl = searchParams.get('status');
       
       console.log("PaymentSuccessPage - URL Params:", { 
         transactionId, 
+        reference,
+        token: token ? 'present' : 'missing',
         statusFromUrl, 
         raw: searchParams.toString() 
       });
 
-      if (!transactionId) {
-        console.warn("No se encontró transactionId en la URL");
+      // 1. Intentar establecer estado inicial basado en la URL si está presente
+      if (statusFromUrl === 'APPROVED') {
+        setPaymentStatus('success');
         setLoading(false);
-        if (statusFromUrl === 'APPROVED') setPaymentStatus('success');
-        else if (statusFromUrl === 'DECLINED') setPaymentStatus('failed');
+        return;
+      } else if (statusFromUrl === 'DECLINED' || statusFromUrl === 'VOIDED' || statusFromUrl === 'ERROR') {
+        setPaymentStatus('failed');
+        setLoading(false);
         return;
       }
 
+      // 2. Si no hay estado en la URL, consultamos a nuestro propio backend (vía endpoint público PRO)
       try {
-        setLoading(true);
-        console.log(`Llamando a verificación del backend para ID: ${transactionId}...`);
-        // Llamamos al backend para verificar oficialmente el estado
-        const response = await api.get(`/api/payments/wompi/verify/${transactionId}/`);
-        console.log("Respuesta del backend:", response.data);
-        
-        if (response.data.status === 'completed') {
-          setPaymentStatus('success');
-        } else if (response.data.status === 'late_payment') {
-          setPaymentStatus('late_payment');
-        } else if (response.data.status === 'failed') {
-          setPaymentStatus('failed');
+        if (reference && token) {
+          setLoading(true);
+          // Usamos el nuevo endpoint público que no requiere login
+          const response = await api.get('/api/payments/wompi/status/', { 
+            params: { reference, token } 
+          });
+          
+          const { status: dbStatus } = response.data;
+          console.log("Estado de pago recuperado localmente:", dbStatus);
+          
+          if (dbStatus === 'completed') {
+            setPaymentStatus('success');
+          } else if (dbStatus === 'late_payment') {
+            setPaymentStatus('late_payment');
+          } else if (dbStatus === 'failed') {
+            setPaymentStatus('failed');
+          } else {
+            setPaymentStatus('processing');
+          }
         } else {
-          setPaymentStatus('processing');
+            console.warn("Faltan parámetros (reference o token) para consulta local inmediata.");
+            setPaymentStatus('processing');
         }
       } catch (err) {
-        console.error("Error verificando pago:", err);
-        const backendError = err.response?.data?.error || err.message;
-        setError(`Error de verificación: ${backendError}`);
-        
-        // Fallback al estado de la URL si el backend falla
-        if (statusFromUrl === 'APPROVED') setPaymentStatus('success');
-        else if (statusFromUrl === 'DECLINED') setPaymentStatus('failed');
+        console.error("Error consultando estado local del pago:", err);
+        // No mostramos error crítico, dejamos que el WebSocket sea el respaldo
       } finally {
         setLoading(false);
       }
     };
 
-    verifyPayment();
+    processPaymentStatus();
   }, [searchParams]);
 
   return (

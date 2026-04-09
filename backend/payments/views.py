@@ -138,39 +138,81 @@ class WompiCheckoutView(views.APIView):
         # Generar referencia única
         reference = f"booking-{booking.id}-{uuid.uuid4().hex[:8]}"
         
-        # Convertir monto a centavos
-        amount_cents = int(booking.court.price * 100) if hasattr(booking.court, 'price') else int(float(booking.court.price) * 100)
-        
-        # Crear checkout en Wompi
-        result = wompi_service.create_checkout(
-            reference=reference,
-            amount_in_cents=amount_cents,
-            customer_email=request.user.email,
-            customer_name=f"{request.user.first_name} {request.user.last_name}".strip()
-        )
-
-        if not result.get("success"):
-            return Response({"error": result.get("error", "Error al crear el pago")}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        # Crear registro de pago en la base de datos
-        # Nota: transaction_id será nulo hasta que el webhook lo actualice
+        # 1. Crear el registro de pago primero para obtener el secure_token
         payment = Payment.objects.create(
             user=request.user,
             booking=booking,
             amount=booking.court.price if hasattr(booking.court, 'price') else 0,
             status='pending',
             gateway='wompi',
-            reference=reference,
-            payment_link=result.get("payment_url"),
-            gateway_data=result.get("raw_response")
+            reference=reference
         )
+
+        # Convertir monto a centavos
+        amount_cents = int(payment.amount * 100)
+        
+        # 2. Crear checkout en Wompi pasando el token
+        result = wompi_service.create_checkout(
+            reference=reference,
+            amount_in_cents=amount_cents,
+            customer_email=request.user.email,
+            customer_name=f"{request.user.first_name} {request.user.last_name}".strip(),
+            secure_token=str(payment.secure_token)
+        )
+
+        if not result.get("success"):
+            # Si falla la creación en Wompi, eliminamos el registro local para evitar basura
+            payment.delete()
+            return Response({"error": result.get("error", "Error al crear el pago")}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # 3. Actualizar con el link de pago y respuesta raw
+        payment.payment_link = result.get("payment_url")
+        payment.gateway_data = result.get("raw_response")
+        payment.save()
 
         return Response({
             "payment_id": payment.id,
             "reference": reference,
             "payment_url": result.get("payment_url"),
             "amount": float(payment.amount),
+            "secure_token": str(payment.secure_token),
         }, status=status.HTTP_200_OK)
+
+
+class PaymentStatusView(views.APIView):
+    """
+    Vista pública para consultar el estado de un pago usando la referencia y el token de seguridad.
+    """
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def get(self, request, *args, **kwargs):
+        reference = request.query_params.get('reference')
+        token = request.query_params.get('token')
+
+        if not reference or not token:
+            return Response({"error": "Referencia y token son requeridos."}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            payment = Payment.objects.get(reference=reference)
+            
+            # Validar el token
+            if str(payment.secure_token) != token:
+                logger.warning(f"Intento de acceso no autorizado al estado del pago {reference}")
+                return Response({"error": "No autorizado."}, status=status.HTTP_403_FORBIDDEN)
+            
+            return Response({
+                "status": payment.status,
+                "reference": reference,
+                "booking_status": payment.booking.status
+            }, status=status.HTTP_200_OK)
+            
+        except Payment.DoesNotExist:
+            return Response({"error": "Pago no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Error en consulta de estado de pago: {str(e)}")
+            return Response({"error": "Error interno."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -276,108 +318,4 @@ class WompiWebhookView(views.APIView):
 
         except Exception as e:
             logger.error(f"Error procesando webhook de Wompi: {str(e)}")
-            return Response({"error": "Error interno"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class WompiVerifyPaymentView(views.APIView):
-    """
-    Vista para verificar el estado de un pago manualmente usando el transaction_id.
-    Útil para el flujo de redirección (Success Page).
-    """
-    permission_classes = [AllowAny]
-    authentication_classes = [] # Deshabilitar para evitar problemas de CSRF/Cookies en la redirección
-
-    def get(self, request, transaction_id, *args, **kwargs):
-        logger.info(f"VERIFICACIÓN MANUAL - Recibido ID: {transaction_id}")
-        
-        # Consultar estado en Wompi API
-        result = wompi_service.verify_payment(transaction_id)
-        
-        if not result.get("success"):
-            logger.error(f"VERIFICACIÓN MANUAL - Falló consulta a Wompi: {result.get('error')}")
-            return Response({"error": result.get("error", "Error al verificar el pago")}, 
-                            status=status.HTTP_400_BAD_REQUEST)
-        
-        reference = result.get("reference")
-        new_status = result.get("status") # APPROVED, DECLINED, etc.
-        logger.info(f"VERIFICACIÓN MANUAL - Wompi responde: status={new_status}, reference={reference}")
-        
-        # Mapear estado
-        status_map = {
-            "APPROVED": "completed",
-            "DECLINED": "failed",
-            "VOIDED": "failed",
-            "ERROR": "failed",
-        }
-        payment_status = status_map.get(new_status, "pending")
-
-        try:
-            with transaction.atomic():
-                # Buscar el pago por referencia (iexact para mayor compatibilidad)
-                payment = Payment.objects.select_for_update().get(reference__iexact=reference)
-                logger.info(f"VERIFICACIÓN MANUAL - Pago local encontrado ID: {payment.id}, DB Status: {payment.status}")
-                
-                # Siempre guardamos el transaction_id si no estaba o si el estado cambió
-                if payment.status != payment_status or payment.transaction_id != transaction_id:
-                    payment.status = payment_status
-                    payment.transaction_id = transaction_id
-                    payment.method = result.get("payment_method", "other")
-                    payment.gateway_data = result.get("raw_response")
-                    payment.save()
-                    logger.info(f"VERIFICACIÓN MANUAL - Registro de pago actualizado a {payment_status}")
-
-                    # Actualizar reserva
-                    booking = payment.booking
-                    if payment_status == "completed" and booking.status != "confirmed":
-                        # 🔥 VALIDACIÓN FINAL: Defensa contra pagos tardíos (Capa 4)
-                        # Si la reserva ya está marcada como expirada o si el tiempo pasó
-                        if booking.is_expired or booking.status == 'expired':
-                            logger.warning(f"PAGO TARDÍO RECIBIDO vía Verificación: Reserva {booking.id} ya expiró. Marcando pago como late_payment.")
-                            payment.status = 'late_payment'
-                            payment.save()
-                            
-                            if booking.status != 'expired':
-                                booking.status = 'expired'
-                                booking.save()
-                            
-                            # Notificar
-                            serializer = BookingSerializer(booking)
-                            transaction.on_commit(lambda: booking_notifier.notify_booking_updated(serializer.data))
-                            
-                            # No confirmamos la reserva, pero informamos al usuario
-                            return Response({
-                                "status": "late_payment",
-                                "message": "El pago fue exitoso pero se realizó fuera del tiempo límite. La reserva no pudo ser confirmada.",
-                                "reference": reference
-                            }, status=status.HTTP_200_OK)
-
-                        booking.status = "confirmed"
-                        booking.payment = payment
-                        booking.save()
-                        
-                        # Notificar
-                        serializer = BookingSerializer(booking)
-                        transaction.on_commit(lambda: booking_notifier.notify_booking_updated(serializer.data))
-                        logger.info(f"Reserva {booking.id} CONFIRMADA vía verificación manual")
-                        
-                    elif payment_status == "failed" and booking.status != "cancelled":
-                        booking.status = "cancelled"
-                        booking.save()
-                        
-                        # Notificar
-                        transaction.on_commit(lambda: booking_notifier.notify_booking_cancelled(booking.id))
-                        logger.info(f"Reserva {booking.id} CANCELADA vía verificación manual")
-
-            return Response({
-                "status": payment_status,
-                "wompi_status": new_status,
-                "reference": reference,
-                "booking_status": booking.status if 'booking' in locals() else None
-            }, status=status.HTTP_200_OK)
-
-        except Payment.DoesNotExist:
-            logger.error(f"Pago con referencia {reference} no encontrado durante verificación manual")
-            return Response({"error": "Pago no encontrado en base de datos local"}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            logger.error(f"Error en verificación manual de pago: {str(e)}")
             return Response({"error": "Error interno"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

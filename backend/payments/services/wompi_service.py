@@ -37,7 +37,7 @@ class WompiService:
         """Headers para las peticiones a Wompi."""
         # Log del header completo (ocultando la key)
         auth_header = f'Bearer {self.api_key}'
-        logger.warning(f"WOMPI HEADERS - Authorization: Bearer {self.api_key[:10]}...")
+       # logger.warning(f"WOMPI HEADERS - Authorization: Bearer {self.api_key[:10]}...")
         
         return {
             'Authorization': auth_header,
@@ -50,7 +50,7 @@ class WompiService:
         SHA256(referencia + monto_en_centavos + moneda + secreto_de_integridad)
         """
         if not self.integrity_secret:
-            logger.warning("WOMPI - No integrity secret configured. Signature will not be generated.")
+           # logger.warning("WOMPI - No integrity secret configured. Signature will not be generated.")
             return None
             
         raw_string = f"{reference}{amount_in_cents}{currency}{self.integrity_secret}"
@@ -58,7 +58,7 @@ class WompiService:
         return signature
 
     def create_checkout(self, reference, amount_in_cents, customer_email, 
-                        customer_name='', redirect_url='', webhook_url=''):
+                        customer_name='', redirect_url='', webhook_url='', secure_token=None):
         """
         Genera los datos necesarios para el Web Checkout de Wompi.
         En el flujo de redirección, no llamamos a /transactions desde el backend.
@@ -70,13 +70,17 @@ class WompiService:
             customer_name (str): Nombre del cliente
             redirect_url (str): URL de redirección después del pago
             webhook_url (str): URL para recibir notificaciones
+            secure_token (str): Token de seguridad para la redirección
             
         Returns:
             dict: Datos para construir el formulario o redirección
         """
         if not redirect_url:
             # Usar la URL completa del frontend para la redirección de éxito
-            redirect_url = f"{self.frontend_url}/payment/success"
+            # Incluimos la referencia y el token para que el frontend pueda consultar el estado de forma segura
+            redirect_url = f"{self.frontend_url}/payment/success?reference={reference}"
+            if secure_token:
+                redirect_url += f"&token={secure_token}"
             
         # Generar firma de integridad
         signature = self._generate_integrity_signature(reference, amount_in_cents)
@@ -104,7 +108,7 @@ class WompiService:
                 final_webhook_url = f"{base}/api/payments/wompi/webhook/"
             
             params["webhook-url"] = final_webhook_url
-            logger.info(f"Incluyendo webhook-url en el checkout: {final_webhook_url}")
+          #  logger.info(f"Incluyendo webhook-url en el checkout: {final_webhook_url}")
         
         if signature:
             params["signature:integrity"] = signature
@@ -112,9 +116,9 @@ class WompiService:
         # Construir la URL con parametros para redireccion directa si se desea
         payment_url = f"{checkout_base_url}?{urlencode(params)}"
         
-        logger.info(f"Generada URL de pago Wompi para referencia: {reference}")
-        logger.warning(f"URL DE PAGO GENERADA: {payment_url}")
-        logger.warning(f"PUBLIC KEY USADA: '{self.public_key}'")
+      #  logger.info(f"Generada URL de pago Wompi para referencia: {reference}")
+      #  logger.warning(f"URL DE PAGO GENERADA: {payment_url}")
+      #  logger.warning(f"PUBLIC KEY USADA: '{self.public_key}'")
         
         return {
             "success": True,
@@ -136,41 +140,6 @@ class WompiService:
             return None
         
         return f"https://checkout.wompi.co/l/{acceptance_token}"
-    
-    def verify_payment(self, transaction_id):
-        """
-        Verifica el estado de una transacción en Wompi.
-        
-        Args:
-            transaction_id (int): ID de la transacción en Wompi
-            
-        Returns:
-            dict: Estado de la transacción
-        """
-        try:
-            response = requests.get(
-                f"{self.base_url}/transactions/{transaction_id}",
-                headers=self._get_headers(),
-                timeout=30
-            )
-            response.raise_for_status()
-            data = response.json()
-            #logger.info(f"Respuesta de Wompi API para {transaction_id}: {data}") # toda la data del pago
-            
-            return {
-                "success": True,
-                "status": data.get("data", {}).get("status"),
-                "reference": data.get("data", {}).get("reference"),
-                "amount_in_cents": data.get("data", {}).get("amount_in_cents"),
-                "payment_method": data.get("data", {}).get("payment_method", {}).get("type"),
-                "raw_response": data
-            }
-        except Exception as e:
-            logger.error(f"Error al verificar pago en Wompi: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
     
     def validate_webhook_signature(self, body, signature):
         """

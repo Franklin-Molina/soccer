@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError # Importar ValidationError
@@ -37,6 +38,10 @@ class Payment(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     method = models.CharField(max_length=50, choices=METHOD_CHOICES, default='other')
     gateway = models.CharField(max_length=20, choices=GATEWAY_CHOICES, default='wompi')
+
+    # Token de seguridad para consultas públicas (redirección)
+    secure_token = models.UUIDField(default=uuid.uuid4, editable=False, 
+                                     help_text="Token para verificar el estado sin estar autenticado")
     
     # Campos para Wompi
     reference = models.CharField(max_length=255, blank=True, null=True, unique=True, 

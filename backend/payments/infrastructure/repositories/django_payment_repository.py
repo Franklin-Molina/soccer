@@ -22,7 +22,10 @@ class DjangoPaymentRepository(IPaymentRepository):
             # Aplicar filtros adicionales si se proporcionan
             if 'status' in filters:
                 queryset = queryset.filter(status=filters['status'])
-            # Añadir más filtros según sea necesario
+            if 'reference' in filters:
+                queryset = queryset.filter(reference=filters['reference'])
+            if 'transaction_id' in filters:
+                queryset = queryset.filter(transaction_id=filters['transaction_id'])
         return list(queryset)
 
     @sync_to_async

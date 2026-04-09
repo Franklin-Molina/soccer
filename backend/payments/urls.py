@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import PaymentList, PaymentDetail, WompiCheckoutView, WompiWebhookView, WompiVerifyPaymentView
+from .views import PaymentList, PaymentDetail, WompiCheckoutView, WompiWebhookView, PaymentStatusView
 
 urlpatterns = [
     path('', PaymentList.as_view()),
@@ -7,5 +7,5 @@ urlpatterns = [
     # Wompi
     path('wompi/checkout/', WompiCheckoutView.as_view(), name='wompi-checkout'),
     path('wompi/webhook/', WompiWebhookView.as_view(), name='wompi-webhook'),
-    path('wompi/verify/<str:transaction_id>/', WompiVerifyPaymentView.as_view(), name='wompi-verify'),
+    path('wompi/status/', PaymentStatusView.as_view(), name='payment-status'),
 ]
