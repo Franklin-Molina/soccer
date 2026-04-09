@@ -1,7 +1,8 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { CheckCircle, XCircle, Clock, Home, Calendar, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Home, Calendar, Loader2, AlertTriangle } from 'lucide-react';
 import api from '../../../infrastructure/api/api';
+import { useBookingsRealtime } from '../../hooks/bookings/useBookingsRealtime';
 
 export default function PaymentSuccessPage() {
   const [searchParams] = useSearchParams();
@@ -9,6 +10,21 @@ export default function PaymentSuccessPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const verifyAttempted = useRef(false);
+
+  // Sincronización en tiempo real vía WebSocket
+  useBookingsRealtime(useCallback((event) => {
+    console.log('Real-time update in Success Page:', event);
+    if (event.type === 'booking_updated') {
+      const booking = event.booking;
+      // Si el pago asociado a esta reserva es 'late_payment', actualizamos la UI
+      // Nota: El backend envía el estado del pago dentro de la reserva o podemos inferirlo del status de la reserva
+      if (booking.status === 'expired') {
+        setPaymentStatus('late_payment');
+      } else if (booking.status === 'confirmed') {
+        setPaymentStatus('success');
+      }
+    }
+  }, []));
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -42,6 +58,8 @@ export default function PaymentSuccessPage() {
         
         if (response.data.status === 'completed') {
           setPaymentStatus('success');
+        } else if (response.data.status === 'late_payment') {
+          setPaymentStatus('late_payment');
         } else if (response.data.status === 'failed') {
           setPaymentStatus('failed');
         } else {
@@ -104,6 +122,25 @@ export default function PaymentSuccessPage() {
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               No se pudo procesar tu pago. Puedes intentarlo de nuevo o contactar a soporte.
             </p>
+          </>
+        )}
+
+        {paymentStatus === 'late_payment' && (
+          <>
+            <div className="w-20 h-20 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle className="w-12 h-12 text-amber-500" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+              Pago Tardío
+            </h1>
+            <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
+              <p className="text-amber-800 dark:text-amber-300 text-sm font-medium">
+                Recibimos tu pago, pero el tiempo límite de la reserva expiró.
+              </p>
+              <p className="text-amber-700 dark:text-amber-400 text-xs mt-2">
+                La reserva no pudo ser garantizada. Por favor, contacta a soporte para gestionar un crédito o reembolso, o intenta realizar una nueva reserva.
+              </p>
+            </div>
           </>
         )}
 

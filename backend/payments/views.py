@@ -195,7 +195,7 @@ class WompiWebhookView(views.APIView):
             # Parsear datos
             import json
             event_data = json.loads(body)
-            logger.info(f"Webhook de Wompi recibido: {event_data}")
+            # logger.info(f"Webhook de Wompi recibido: {event_data}")
 
             # Procesar evento
             event_info = wompi_service.process_webhook_event(event_data)
@@ -233,21 +233,31 @@ class WompiWebhookView(views.APIView):
                         booking = payment.booking
                         if payment_status == "completed":
                             # 🔥 VALIDACIÓN FINAL: Defensa contra pagos tardíos (Capa 4)
-                            if booking.is_expired:
+                            # Si la reserva ya está marcada como expirada o si el tiempo pasó (is_expired lo valida)
+                            if booking.is_expired or booking.status == 'expired':
                                 logger.warning(f"PAGO TARDÍO RECIBIDO vía Webhook: Reserva {booking.id} ya expiró. Marcando pago como late_payment.")
                                 payment.status = 'late_payment'
                                 payment.save()
-                                # No confirmamos la reserva
-                                return Response({"status": "ignored", "detail": "Late payment for expired booking"}, status=status.HTTP_200_OK)
-
-                            booking.status = "confirmed"
-                            booking.payment = payment  # Vincular el pago exitoso
-                            booking.save()
-                            logger.info(f"Reserva {booking.id} CONFIRMADA por pago {reference}")
-                            
-                            # Notificar actualización de reserva via WebSocket
-                            serializer = BookingSerializer(booking)
-                            transaction.on_commit(lambda: booking_notifier.notify_booking_updated(serializer.data))
+                                
+                                # Aseguramos que la reserva esté marcada como expirada
+                                if booking.status != 'expired':
+                                    booking.status = 'expired'
+                                    booking.save()
+                                
+                                # Notificar estado de pago tardío vía WebSocket
+                                serializer = BookingSerializer(booking)
+                                transaction.on_commit(lambda: booking_notifier.notify_booking_updated(serializer.data))
+                                
+                                logger.info(f"Reserva {booking.id} marcada como EXPIRED debido a pago tardío {reference}")
+                            else:
+                                booking.status = "confirmed"
+                                booking.payment = payment  # Vincular el pago exitoso
+                                booking.save()
+                                logger.info(f"Reserva {booking.id} CONFIRMADA por pago {reference}")
+                                
+                                # Notificar actualización de reserva via WebSocket
+                                serializer = BookingSerializer(booking)
+                                transaction.on_commit(lambda: booking_notifier.notify_booking_updated(serializer.data))
                             
                         elif payment_status == "failed":
                             booking.status = "cancelled"
@@ -320,10 +330,20 @@ class WompiVerifyPaymentView(views.APIView):
                     booking = payment.booking
                     if payment_status == "completed" and booking.status != "confirmed":
                         # 🔥 VALIDACIÓN FINAL: Defensa contra pagos tardíos (Capa 4)
-                        if booking.is_expired:
+                        # Si la reserva ya está marcada como expirada o si el tiempo pasó
+                        if booking.is_expired or booking.status == 'expired':
                             logger.warning(f"PAGO TARDÍO RECIBIDO vía Verificación: Reserva {booking.id} ya expiró. Marcando pago como late_payment.")
                             payment.status = 'late_payment'
                             payment.save()
+                            
+                            if booking.status != 'expired':
+                                booking.status = 'expired'
+                                booking.save()
+                            
+                            # Notificar
+                            serializer = BookingSerializer(booking)
+                            transaction.on_commit(lambda: booking_notifier.notify_booking_updated(serializer.data))
+                            
                             # No confirmamos la reserva, pero informamos al usuario
                             return Response({
                                 "status": "late_payment",

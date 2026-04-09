@@ -22,6 +22,7 @@ class WompiService:
         self.public_key = os.environ.get('WOMPI_PUBLIC_KEY', '').strip() # Public Key para Checkout
         self.integrity_secret = os.environ.get('WOMPI_INTEGRITY_SECRET', '').strip() # Secret para firma
         self.merchant_id = os.environ.get('WOMPI_MERCHANT_ID', '').strip()
+        self.webhook_url = os.environ.get('WOMPI_WEBHOOK_URL', '').strip()
         
         base_url_raw = os.environ.get('WOMPI_BASE_URL', 'https://sandbox.wompi.co/v1')
         # Limpiar comillas y espacios si existen
@@ -29,8 +30,8 @@ class WompiService:
         self.frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
         
         # Log siempre visible para debug
-        logger.warning(f"WOMPI CONFIG - Public Key: {self.public_key[:15]}...")
-        logger.warning(f"WOMPI CONFIG - Base URL: {self.base_url}")
+       # logger.warning(f"WOMPI CONFIG - Public Key: {self.public_key[:15]}...")
+       # logger.warning(f"WOMPI CONFIG - Base URL: {self.base_url}")
         
     def _get_headers(self):
         """Headers para las peticiones a Wompi."""
@@ -93,13 +94,27 @@ class WompiService:
             "redirect-url": redirect_url,
         }
         
+        # Usar webhook_url pasado o el configurado en el servicio
+        final_webhook_url = webhook_url or self.webhook_url
+        if final_webhook_url:
+            # El webhook de nuestro backend está en /api/payments/wompi/webhook/
+            # Si WOMPI_WEBHOOK_URL es solo el dominio, construimos la ruta completa
+            if not final_webhook_url.endswith('/api/payments/wompi/webhook/'):
+                base = final_webhook_url.rstrip('/')
+                final_webhook_url = f"{base}/api/payments/wompi/webhook/"
+            
+            params["webhook-url"] = final_webhook_url
+            logger.info(f"Incluyendo webhook-url en el checkout: {final_webhook_url}")
+        
         if signature:
             params["signature:integrity"] = signature
 
-        # Construir la URL con parámetros para redirección directa si se desea
+        # Construir la URL con parametros para redireccion directa si se desea
         payment_url = f"{checkout_base_url}?{urlencode(params)}"
         
         logger.info(f"Generada URL de pago Wompi para referencia: {reference}")
+        logger.warning(f"URL DE PAGO GENERADA: {payment_url}")
+        logger.warning(f"PUBLIC KEY USADA: '{self.public_key}'")
         
         return {
             "success": True,
@@ -140,7 +155,7 @@ class WompiService:
             )
             response.raise_for_status()
             data = response.json()
-            logger.info(f"Respuesta de Wompi API para {transaction_id}: {data}")
+            #logger.info(f"Respuesta de Wompi API para {transaction_id}: {data}") # toda la data del pago
             
             return {
                 "success": True,
