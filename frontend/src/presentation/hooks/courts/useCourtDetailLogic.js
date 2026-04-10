@@ -64,6 +64,7 @@ export const useCourtDetailLogic = () => {
   const [bookingError, setBookingError] = useState(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingBooking, setPendingBooking] = useState(null); // Estado para reserva pendiente
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [bookingDetailsToConfirm, setBookingDetailsToConfirm] = useState(null);
@@ -125,6 +126,63 @@ export const useCourtDetailLogic = () => {
     }
   }, [court, fetchWeeklyAvailability]);
 
+  // Manejador de clic en una celda de disponibilidad
+  const handleCellClick = useCallback(async (date, hour) => {
+    if (!isAuthenticated) {
+      setPendingBooking({ date, hour });
+      setShowLoginModal(true);
+      return;
+    }
+
+    setIsBooking(true);
+    setBookingError(null);
+    setBookingSuccess(false);
+
+    try {
+      const [year, month, day] = date.split('-').map(Number);
+      const baseDate = new Date(year, month - 1, day);
+
+      const startDateTime = setMinutes(setHours(baseDate, hour), 0);
+      const endDateTime = setMinutes(setHours(baseDate, hour + 1), 0);
+
+      const formattedStartTime = startDateTime.toISOString();
+      const formattedEndTime = endDateTime.toISOString();
+
+      setBookingDetailsToConfirm({
+        courtId,
+        startDateTime,
+        endDateTime,
+        formattedStartTime,
+        formattedEndTime,
+        courtName: court?.name,
+        price: court?.price,
+        paymentPercentage: paymentPercentage, // Añadir el porcentaje de pago aquí
+      });
+      setSelectedSlot({ date, hour }); // Actualizar selectedSlot
+      setShowConfirmModal(true);
+
+    } catch (err) {
+      setBookingError("Error al preparar la reserva. Inténtalo de nuevo.");
+      console.error('Error preparing booking:', err.response ? err.response.data : err.message);
+    } finally {
+      setIsBooking(false);
+      // No limpiar selectedSlot aquí, se limpiará en confirmBooking o cancelConfirmation
+    }
+  }, [isAuthenticated, court, courtId, paymentPercentage]);
+
+  // Cerrar el modal de login automáticamente al autenticarse y reanudar reserva pendiente
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (showLoginModal) {
+        setShowLoginModal(false);
+      }
+      if (pendingBooking) {
+        handleCellClick(pendingBooking.date, pendingBooking.hour);
+        setPendingBooking(null);
+      }
+    }
+  }, [isAuthenticated, showLoginModal, pendingBooking, handleCellClick]);
+
   // WebSocket para actualizaciones de la cancha
   useEffect(() => {
     if (!courtId) return;
@@ -172,48 +230,6 @@ export const useCourtDetailLogic = () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [closeModal]); // Depende de la función closeModal
-
-  const handleCellClick = async (date, hour) => {
-    if (!isAuthenticated) {
-      setShowLoginModal(true);
-      return;
-    }
-
-    setIsBooking(true);
-    setBookingError(null);
-    setBookingSuccess(false);
-
-    try {
-      const [year, month, day] = date.split('-').map(Number);
-      const baseDate = new Date(year, month - 1, day);
-
-      const startDateTime = setMinutes(setHours(baseDate, hour), 0);
-      const endDateTime = setMinutes(setHours(baseDate, hour + 1), 0);
-
-      const formattedStartTime = startDateTime.toISOString();
-      const formattedEndTime = endDateTime.toISOString();
-
-      setBookingDetailsToConfirm({
-        courtId,
-        startDateTime,
-        endDateTime,
-        formattedStartTime,
-        formattedEndTime,
-        courtName: court?.name,
-        price: court?.price,
-        paymentPercentage: paymentPercentage, // Añadir el porcentaje de pago aquí
-      });
-      setSelectedSlot({ date, hour }); // Actualizar selectedSlot
-      setShowConfirmModal(true);
-
-    } catch (err) {
-      setBookingError("Error al preparar la reserva. Inténtalo de nuevo.");
-      console.error('Error preparing booking:', err.response ? err.response.data : err.message);
-    } finally {
-      setIsBooking(false);
-      // No limpiar selectedSlot aquí, se limpiará en confirmBooking o cancelConfirmation
-    }
-  };
 
   // Lógica del temporizador de 5 minutos (300 segundos)
   useEffect(() => {
@@ -290,6 +306,7 @@ export const useCourtDetailLogic = () => {
 
   const handleCloseLoginModal = () => {
     setShowLoginModal(false);
+    setPendingBooking(null); // Limpiar reserva pendiente al cerrar el modal
     // navigate('/'); // 🚀 Permitir que el usuario se quede en la página aunque no inicie sesión
   };
 

@@ -1,6 +1,7 @@
-import React, { useState } from 'react'; // Importar useState
+import React, { useState, useEffect } from 'react'; // Importar useState, useEffect
 import Header from './Header.jsx'; // Importar el componente Header
 import AuthPage from '../Auth/AuthPage.jsx'; // Importar AuthPage
+import { useAuth } from '../../context/AuthContext.jsx'; // Importar useAuth
 import Modal from './Modal.jsx'; // Importar el componente Modal
 
 /**
@@ -12,6 +13,14 @@ import Modal from './Modal.jsx'; // Importar el componente Modal
  */
 function Layout({ children }) {
   const [showAuthModal, setShowAuthModal] = useState(false); // Estado para controlar la visibilidad del modal
+  const { isAuthenticated } = useAuth(); // Obtener estado de autenticación
+
+  // Cerrar el modal automáticamente al autenticarse
+  useEffect(() => {
+    if (isAuthenticated && showAuthModal) {
+      setShowAuthModal(false);
+    }
+  }, [isAuthenticated, showAuthModal]);
 
   // Función para abrir el modal de autenticación
   const openAuthModal = () => {

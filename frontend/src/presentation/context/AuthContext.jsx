@@ -91,14 +91,16 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       toast.success('¡Inicio de sesión exitoso!'); // Alerta de éxito
 
-      // Redirigir después de un login exitoso según el rol
+      // 🚀 Redirección deshabilitada para mantener al usuario en su lugar actual
+      /*
       if (user.role === 'adminglobal') {
-          navigate('/adminglobal'); // Redirigir a adminglobal a su dashboard
-      } else if (user.is_staff) { // Para role='admin' u otros staff
-          navigate('/dashboard'); // Redirigir a administradores de cancha al dashboard
-      } else { // Para role='cliente'
-          navigate('/client'); // Redirigir a usuarios normales al dashboard de cliente
+          navigate('/adminglobal');
+      } else if (user.is_staff) {
+          navigate('/dashboard');
+      } else {
+          navigate('/client');
       }
+      */
 
     } catch (error) {
       // console.error('Error en el inicio de sesión (AuthContext):', error); // Eliminado mensaje de consola
