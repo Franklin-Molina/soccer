@@ -7,6 +7,7 @@ import Spinner from '../../components/common/Spinner.jsx';
 import { Sun, Layers, Trophy } from "lucide-react";
 import { formatPrice } from '../../utils/formatters.js';
 import ServerErrorFallback from '../../components/common/ServerErrorFallback.jsx'
+import TournamentsCard from '../Tournaments/TournamentsCard.jsx'
 
 function HomePage({ openAuthModal }) {
   const { isAuthenticated } = useAuth();
@@ -98,38 +99,16 @@ function HomePage({ openAuthModal }) {
       </section>
 
       {/* STATS */}
-      <section className="max-w-8xl mx-auto px-4 sm:px-6 -mt-8 sm:-mt-14 relative z-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          {[
-            { label: 'Canchas', value: 'Disponibles', color: 'from-[#16A34A] to-[#0F172A]', icon: courts.length },
-            { label: 'Torneos', value: 'Torneos ', color: 'from-[#FACC15] to-[#16A34A]', icon: <Trophy className="w-5 h-5" />},
-            /*{ label: 'Calificación', value: '4.9/5.0', color: 'from-[#0F172A] to-[#16A34A]', icon: '★' }, */
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 dark:border-gray-700 transition-all hover:shadow-xl"
-            >
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div
-                  className={`w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br ${item.color} rounded-xl flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-lg shrink-0`}
-                >
-                  {item.icon}
-                </div>
-                <div>
-                  <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm font-medium">{item.label}</p>
-                  <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">{item.value}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+     
+    <div className="max-w-8xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+      <TournamentsCard />
+    </div>
 
       {/* COURTS */}
       <section className="max-w-8xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-10 gap-6">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-2 dark:text-white">Canchas Destacadas</h2>            
+            <h2 className="text-2xl sm:text-3xl text-black font-bold mb-2 dark:text-white">Canchas Destacadas</h2>            
             <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Explora nuestras mejores opciones disponibles</p>
           </div>
 
