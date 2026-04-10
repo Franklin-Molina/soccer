@@ -1,55 +1,84 @@
-import axios from 'axios';
+import axios from "axios";
 
-
-// URL base de la API
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const api = axios.create({
-  baseURL: API_BASE_URL,  
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  xsrfCookieName: 'csrftoken',
-  xsrfHeaderName: 'X-CSRFToken',
-  withCredentials: true, // ¡Crucial para las cookies HttpOnly!
+  baseURL: API_BASE_URL,
+  headers: { "Content-Type": "application/json" },
+  xsrfCookieName: "csrftoken",
+  xsrfHeaderName: "X-CSRFToken",
+  withCredentials: true,
 });
 
+// ==============================
+// 🔥 LOGOUT CENTRALIZADO
+// ==============================
+let isLoggingOut = false;
+
+async function forceLogout() {
+  if (isLoggingOut) return;
+  isLoggingOut = true;
+
+  console.warn("🔒 Sesión inválida. Cerrando sesión...");
+
+  try {
+    // ✅ axios directo, NO `api` — porque `api` ya está bloqueado por isLoggingOut
+    await axios.post(`${API_BASE_URL}/api/users/logout/`, {}, { withCredentials: true });
+  } catch (_) {}
+
+  document.cookie.split(";").forEach((cookie) => {
+    const name = cookie.split("=")[0].trim();
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+  });
+
+  localStorage.clear();
+  sessionStorage.clear();
+
+  window.dispatchEvent(new Event("auth:logout"));
+  window.location.href = "/";
+}
+
+// ==============================
+// 🔄 REFRESH TOKEN
+// ==============================
 let refreshTokenPromise = null;
 
-// Función auxiliar para refrescar el token (Optimizada)
-export const refreshToken = async (retries = 3, delay = 5000) => {
-  if (refreshTokenPromise) {
-    return refreshTokenPromise;
-  }
+export const refreshToken = async (retries = 1, delay = 1000) => {
+  if (refreshTokenPromise) return refreshTokenPromise;
 
   refreshTokenPromise = (async () => {
     for (let i = 0; i < retries; i++) {
       try {
-        // Usamos axios puro para evitar bucles infinitos con el interceptor de 'api'
-        await axios.post(`${API_BASE_URL}/api/users/login/refresh/`, {}, { withCredentials: true });
-        
+        await axios.post(
+          `${API_BASE_URL}/api/users/login/refresh/`,
+          {},
+          { withCredentials: true }
+        );
         refreshTokenPromise = null;
-        return true; // Éxito
+        return true;
       } catch (error) {
         const isLastAttempt = i === retries - 1;
-        const serverAwakening = !error.response || error.code === 'ECONNABORTED' || error.message === 'Network Error';
+        const isNetworkError =
+          !error.response ||
+          error.code === "ECONNABORTED" ||
+          error.message === "Network Error";
 
-        if (serverAwakening && !isLastAttempt) {
-          console.warn(`⏳ Backend despertando (intento ${i + 1}/${retries})... esperando ${delay}ms`);
-          await new Promise(res => setTimeout(res, delay));
+        // 🔥 Solo reintenta si es error de red (backend despertando)
+        // No reintenta si es 401/400 — eso es sesión inválida, logout inmediato
+        if (isNetworkError && !isLastAttempt) {
+          console.warn(`⏳ Backend despertando (${i + 1}/${retries})...`);
+          await new Promise((res) => setTimeout(res, delay));
           continue;
         }
 
-        if (error.response && (error.response.status === 401 || error.response.status === 400)) {
-          console.error('❌ Error al refrescar token (Cookie expirada o inválida)');
+        if (error.response?.status === 401 || error.response?.status === 400) {
+          console.error("❌ Token inválido o expirado");
+          refreshTokenPromise = null;
+          return false; // Logout inmediato, sin más reintentos
         }
 
-        if (isLastAttempt) {
-          // 👇 Si fallan todos los intentos, matamos la bandera de sesión por seguridad
-          localStorage.removeItem('hasSession');
-          refreshTokenPromise = null;
-        }
-        return false; // Retornamos false explícitamente al fallar
+        refreshTokenPromise = null;
+        return false;
       }
     }
     return false;
@@ -57,18 +86,25 @@ export const refreshToken = async (retries = 3, delay = 5000) => {
 
   return refreshTokenPromise;
 };
-let isServerDownFlag = false; 
-// Interceptor de PETICIÓN (actúa ANTES de que salga la llamada)
-api.interceptors.request.use((config) => {
-  if (isServerDownFlag) {
-    // Si ya sabemos que está caído, abortamos el vuelo inmediatamente
-    // Esto evita que el navegador intente conectar y tire el error rojo
-    return Promise.reject(new Error("Bloqueado por cortacircuitos: Servidor apagado."));
-  }
-  return config;
-}, (error) => {
-  return Promise.reject(error);
-});
+
+// ==============================
+// ⚡ CORTACIRCUITOS
+// ==============================
+let isServerDownFlag = false;
+
+api.interceptors.request.use(
+  (config) => {
+    if (isServerDownFlag || isLoggingOut) {
+      return Promise.reject(new Error("🚫 Solicitud bloqueada"));
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// ==============================
+// 🔄 COLA DE REFRESH
+// ==============================
 let isRefreshing = false;
 let refreshSubscribers = [];
 
@@ -77,37 +113,42 @@ function subscribeTokenRefresh(cb) {
 }
 
 function onRefreshed() {
-  refreshSubscribers.forEach(cb => cb());
+  refreshSubscribers.forEach((cb) => cb());
   refreshSubscribers = [];
 }
 
+// ==============================
+// 🔥 INTERCEPTOR RESPUESTA
+// ==============================
 api.interceptors.response.use(
   (response) => response,
 
   async (error) => {
     const originalRequest = error.config;
 
-    // 🔥 AHORA SÍ: El cortacircuitos está dentro del interceptor
+    // 🚨 Servidor caído
     if (!error.response) {
-      isServerDownFlag = true; // 🔒 CERRAMOS EL CANDADO PARA LAS DEMÁS
-      console.warn("Servidor no disponible");
-      
-      // Disparamos la alarma global
-      window.dispatchEvent(new Event('server-down'));
-      
+      isServerDownFlag = true;
+      console.warn("🚨 Servidor no disponible");
+      window.dispatchEvent(new Event("server-down"));
       return Promise.reject(error);
     }
 
-    // Evitar bucle en refresh
-    if (originalRequest.url.includes('/api/users/login/refresh/')) {
+    // 🚫 Evitar loop en el endpoint de refresh
+    if (originalRequest.url.includes("/api/users/login/refresh/")) {
+      if (error.response.status === 401) {
+        forceLogout();
+      }
       return Promise.reject(error);
     }
 
-    // Manejo de 401
+    // 🔐 Manejo 401
     if (error.response.status === 401 && !originalRequest._retry) {
-
       if (isRefreshing) {
-        return new Promise(resolve => {
+        // 🔥 Si ya se está haciendo logout, no encolar más
+        if (isLoggingOut) return Promise.reject(error);
+
+        return new Promise((resolve) => {
           subscribeTokenRefresh(() => {
             resolve(api(originalRequest));
           });
@@ -125,7 +166,8 @@ api.interceptors.response.use(
         onRefreshed();
         return api(originalRequest);
       } else {
-        localStorage.removeItem('hasSession');
+        refreshSubscribers = []; // 🔥 limpiar cola antes del logout
+        forceLogout();
         return Promise.reject(error);
       }
     }
