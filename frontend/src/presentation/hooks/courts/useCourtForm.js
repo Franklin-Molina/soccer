@@ -4,10 +4,12 @@ import { ApiCourtRepository } from '../../../infrastructure/repositories/api-cou
 import { useCategories } from './useCategories';
 import useButtonDisable from '../general/useButtonDisable.js';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 export const useCourtForm = () => {
   const courtRepository = new ApiCourtRepository();
   const createCourtUseCase = new CreateCourtUseCase(courtRepository);
+  const navigate = useNavigate();
   
   const { categories, loading: categoriesLoading } = useCategories();
 
@@ -110,6 +112,9 @@ export const useCourtForm = () => {
         covered: false,
         category: '',
       });
+      setTimeout(() => {
+        navigate('/dashboard/canchas/manage', { replace: true });
+      }, 1500);
     } catch (error) {
       if (error.response && error.response.data) {
         let errorText = 'Error al crear cancha: ';
@@ -144,5 +149,6 @@ export const useCourtForm = () => {
     isSubmitting,
     categories,
     categoriesLoading,
+    navigate
   };
 };
