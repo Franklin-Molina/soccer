@@ -303,7 +303,7 @@ function CourtDetailPage({ openAuthModal }) {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
           <div className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 animate-in slide-in-from-bottom duration-300">
             <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-              <h2 className="text-xl sm:text-2xl font-bold text-emerald-400 dark:text-emerald-400">
+              <h2 className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                 Acceso Requerido
               </h2>
               <button onClick={handleCloseLoginModal} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">

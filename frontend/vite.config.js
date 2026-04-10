@@ -19,6 +19,7 @@ export default defineConfig(({ mode }) => {
       host: true, 
       strictPort: true,
       port: 5173, 
+      allowedHosts: ['wrongly-recluse-old.ngrok-free.dev'],
       
       // 2. LA SOLUCIÓN: Activa el sondeo de archivos (Polling)
       watch: {

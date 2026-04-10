@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000" || "";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -35,7 +35,7 @@ async function forceLogout() {
   sessionStorage.clear();
 
   window.dispatchEvent(new Event("auth:logout"));
-  window.location.href = "/";
+  // window.location.href = "/"; // 🚀 No redirigir automáticamente, dejar que la UI decida
 }
 
 // ==============================

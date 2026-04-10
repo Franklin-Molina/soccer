@@ -194,6 +194,18 @@ export const AuthProvider = ({ children }) => {
     }
   }, []); // Se ejecuta solo una vez al montar el componente
 
+  // 🔥 Escuchar el evento global de logout para sincronizar el estado sin recargar
+  useEffect(() => {
+    const handleGlobalLogout = () => {
+      setIsAuthenticated(false);
+      setUser(null);
+      localStorage.removeItem('hasSession');
+    };
+
+    window.addEventListener('auth:logout', handleGlobalLogout);
+    return () => window.removeEventListener('auth:logout', handleGlobalLogout);
+  }, []);
+
 
   // TODO: Implementar lógica para refrescar tokens usando el refreshToken en el repositorio
   const updateUser = (updatedUserData) => {

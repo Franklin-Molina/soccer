@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { format, startOfWeek, addDays, setHours, setMinutes } from 'date-fns';
 import { useRepositories } from '../../context/RepositoryContext';
 import { useUseCases } from '../../context/UseCaseContext';
+import { useAuth } from '../../context/AuthContext';
 import { useBookingsRealtime } from '../bookings/useBookingsRealtime';
 import { courtsWebSocket } from '../../../infrastructure/websocket/courtsWebSocket';
 import { toast } from 'react-toastify';
@@ -48,6 +49,7 @@ import { ApiPaymentRepository } from '../../../infrastructure/repositories/api-p
 export const useCourtDetailLogic = () => {
   const { courtId } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [court, setCourt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -172,6 +174,11 @@ export const useCourtDetailLogic = () => {
   }, [closeModal]); // Depende de la función closeModal
 
   const handleCellClick = async (date, hour) => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+
     setIsBooking(true);
     setBookingError(null);
     setBookingSuccess(false);
@@ -283,7 +290,7 @@ export const useCourtDetailLogic = () => {
 
   const handleCloseLoginModal = () => {
     setShowLoginModal(false);
-    navigate('/');
+    // navigate('/'); // 🚀 Permitir que el usuario se quede en la página aunque no inicie sesión
   };
 
   const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
