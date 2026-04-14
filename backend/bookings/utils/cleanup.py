@@ -32,6 +32,13 @@ def cancel_expired_bookings():
                     
                     # También marcar pagos pendientes como fallidos
                     booking.payments.filter(status='pending').update(status='failed')
+
+                    # Marcar partido vinculado como EXPIRED si existe
+                    if hasattr(booking, 'open_match'):
+                        match = booking.open_match
+                        match.status = 'EXPIRED'
+                        match.save()
+                        logger.info(f"Partido {match.id} marcado como EXPIRED por limpieza de reservas.")
                     
                     # Opcional: Notificar vía WebSocket si es necesario
                     # Pero usualmente la limpieza pasiva se activa por una acción del usuario 

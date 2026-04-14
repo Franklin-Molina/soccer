@@ -35,9 +35,10 @@ class OpenMatchSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'court', 'creator', 'category', 'start_time', 'end_time', 
             'players_needed', 'status', 'created_at', 'participants',
-            'category_id', 'court_id', 'category_id_read', 'court_id_read'
+            'category_id', 'court_id', 'category_id_read', 'court_id_read',
+            'booking'
         ]
-        read_only_fields = ['id', 'creator', 'status', 'created_at', 'participants']
+        read_only_fields = ['id', 'creator', 'status', 'created_at', 'participants', 'booking']
 
     def get_category_id_read(self, obj):
         return obj.category.id

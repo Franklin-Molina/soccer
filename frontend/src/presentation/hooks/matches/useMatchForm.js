@@ -150,31 +150,39 @@ export const useMatchForm = ({ match, onClose, onMatchCreated }) => {
     }
   };
 
-  // Confirmar reserva y partido
+  // Confirmar reserva y partido (FLUJO ATÓMICO CON PAGO)
   const confirmBookingAndMatch = async () => {
     setIsBooking(true);
     try {
-      const bookingData = {
-        court: formData.court_id,
+      const matchData = {
+        court_id: formData.court_id,
+        category_id: formData.category_id,
         start_time: formData.start_time,
         end_time: formData.end_time,
+        players_needed: formData.players_needed,
         payment_percentage: paymentPercentage,
-        status: 'confirmed'
       };
 
-      await MatchesApi.createBooking(bookingData);
-      toast.info("Cancha reservada con éxito.");
-
-      await saveMatch();
-    } catch (bookingError) {
-      console.error("Error creating booking:", bookingError);
-      const errorMsg = bookingError.response?.data?.detail ||
-                      (bookingError.response?.data?.non_field_errors && bookingError.response?.data?.non_field_errors[0]) ||
-                      "La cancha no está disponible para este horario.";
-      toast.error(`Error en la reserva: ${errorMsg}`);
-    } finally {
+      const response = await MatchesApi.createMatchWithPayment(matchData);
+      
+      if (response.data.payment_url) {
+        toast.info("Redirigiendo a la pasarela de pagos...");
+        // Pequeño delay para que el usuario lea el mensaje
+        setTimeout(() => {
+          window.location.href = response.data.payment_url;
+        }, 1500);
+      } else {
+        toast.success("¡Partido creado con éxito!");
+        onMatchCreated();
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error creating match with payment:", error);
+      const errorMsg = error.response?.data?.error || 
+                      error.response?.data?.detail ||
+                      "Error al procesar el partido y la reserva. Inténtalo de nuevo.";
+      toast.error(errorMsg);
       setIsBooking(false);
-      setShowConfirmBooking(false);
     }
   };
 
@@ -194,8 +202,16 @@ export const useMatchForm = ({ match, onClose, onMatchCreated }) => {
   const selectedCourt = useMemo(() => courts.find(c => c.id === formData.court_id), [courts, formData.court_id]);
   const priceToPay = useMemo(() => {
     if (!selectedCourt) return 0;
-    return (selectedCourt.price * paymentPercentage) / 100;
-  }, [selectedCourt, paymentPercentage]);
+    
+    // Calcular duración en horas
+    if (!formData.start_time || !formData.end_time) return 0;
+    const start = parseISO(formData.start_time);
+    const end = parseISO(formData.end_time);
+    const durationHours = (end - start) / (1000 * 60 * 60);
+    
+    const total = selectedCourt.price * durationHours;
+    return (total * paymentPercentage) / 100;
+  }, [selectedCourt, paymentPercentage, formData.start_time, formData.end_time]);
 
   return {
     formData,

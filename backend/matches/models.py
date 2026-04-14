@@ -16,19 +16,23 @@ class OpenMatch(models.Model):
     Representa un partido abierto creado por un usuario para buscar jugadores.
     """
     class MatchStatus(models.TextChoices):
+        PENDING_PAYMENT = 'PENDING_PAYMENT', 'Pendiente de Pago'
         OPEN = 'OPEN', 'Abierto'
         FULL = 'FULL', 'Completo'
         CANCELLED = 'CANCELLED', 'Cancelado'
+        EXPIRED = 'EXPIRED', 'Expirado'
         COMPLETED = 'COMPLETED', 'Completado'
 
     court = models.ForeignKey(Court, on_delete=models.CASCADE, related_name='open_matches')
+    booking = models.OneToOneField('bookings.Booking', on_delete=models.SET_NULL, null=True, blank=True, related_name='open_match')
+
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_matches')
     category = models.ForeignKey(MatchCategory, on_delete=models.PROTECT, related_name='matches')
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     players_needed = models.PositiveIntegerField()
     status = models.CharField(
-        max_length=10,
+        max_length=20,
         choices=MatchStatus.choices,
         default=MatchStatus.OPEN
     )

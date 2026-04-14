@@ -53,4 +53,11 @@ export const MatchesApi = {
    * @returns {Promise} Promesa con la respuesta de la API
    */
   createBooking: (bookingData) => api.post('/api/bookings/bookings/', bookingData),
+
+  /**
+   * Crear un partido con pago atómico (Booking + Match + Payment)
+   * @param {Object} matchData - Datos del partido y reserva
+   * @returns {Promise} Promesa con la respuesta de la API (incluye checkout_url)
+   */
+  createMatchWithPayment: (matchData) => api.post('/api/matches/open-matches/create-with-payment/', matchData),
 };

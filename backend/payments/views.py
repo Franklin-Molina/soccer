@@ -297,6 +297,13 @@ class WompiWebhookView(views.APIView):
                                 booking.save()
                                 logger.info(f"Reserva {booking.id} CONFIRMADA por pago {reference}")
                                 
+                                # Activar partido vinculado si existe
+                                if hasattr(booking, 'open_match'):
+                                    match = booking.open_match
+                                    match.status = 'OPEN'
+                                    match.save()
+                                    logger.info(f"Partido {match.id} activado (OPEN) por pago exitoso.")
+
                                 # Notificar actualización de reserva via WebSocket
                                 serializer = BookingSerializer(booking)
                                 transaction.on_commit(lambda: booking_notifier.notify_booking_updated(serializer.data))
@@ -305,6 +312,15 @@ class WompiWebhookView(views.APIView):
                             booking.status = "cancelled"
                             booking.save()
                             logger.info(f"Reserva {booking.id} CANCELADA por pago fallido o anulado {reference} (Estado Wompi: {new_status})")
+                            
+                            # Cancelar partido vinculado si existe
+                            if hasattr(booking, 'open_match'):
+                                match = booking.open_match
+                                match.status = 'CANCELLED'
+                                match.save()
+                                logger.info(f"Partido {match.id} CANCELADO por pago fallido.")
+
+
                             
                             # Notificar liberación de la reserva vía WebSocket después de la transacción
                             transaction.on_commit(lambda: booking_notifier.notify_booking_cancelled(booking.id))
