@@ -30,7 +30,7 @@ class WompiService:
         self.frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
         
         # Log siempre visible para debug
-       # logger.warning(f"WOMPI CONFIG - Public Key: {self.public_key[:15]}...")
+        logger.warning(f"WOMPI CONFIG - Public Key: {self.public_key[:15]}...")
        # logger.warning(f"WOMPI CONFIG - Base URL: {self.base_url}")
         
     def _get_headers(self):

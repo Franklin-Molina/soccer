@@ -35,13 +35,13 @@ export default function PaymentSuccessPage() {
       const token = searchParams.get('token');
       const statusFromUrl = searchParams.get('status');
       
-      console.log("PaymentSuccessPage - URL Params:", { 
+      /* console.log("PaymentSuccessPage - URL Params:", { 
         transactionId, 
         reference,
         token: token ? 'present' : 'missing',
         statusFromUrl, 
         raw: searchParams.toString() 
-      });
+      }); */
 
       // 1. Intentar establecer estado inicial basado en la URL si está presente
       if (statusFromUrl === 'APPROVED') {
@@ -64,7 +64,7 @@ export default function PaymentSuccessPage() {
           });
           
           const { status: dbStatus } = response.data;
-          console.log("Estado de pago recuperado localmente:", dbStatus);
+         // console.log("Estado de pago recuperado localmente:", dbStatus);
           
           if (dbStatus === 'completed') {
             setPaymentStatus('success');

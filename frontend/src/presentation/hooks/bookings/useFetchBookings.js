@@ -100,7 +100,7 @@ export const useFetchBookings = ({
 
   // Sincronización en tiempo real vía WebSocket
   useBookingsRealtime(useCallback((event) => {
-    console.log('Real-time booking update:', event);
+   // console.log('Real-time booking update:', event);
     fetchAllBookings();
   }, [fetchAllBookings]));
 

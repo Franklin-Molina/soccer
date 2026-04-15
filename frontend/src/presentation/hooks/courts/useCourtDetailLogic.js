@@ -205,7 +205,7 @@ export const useCourtDetailLogic = () => {
 
   // Actualización en tiempo real vía WebSocket para la disponibilidad
   useBookingsRealtime(useCallback((event) => {
-    console.log('Real-time booking update for court detail:', event);
+    //console.log('Real-time booking update for court detail:', event);
     // Si hay un cambio en las reservas, refrescamos la disponibilidad del calendario
     fetchWeeklyAvailability();
   }, [fetchWeeklyAvailability]));
