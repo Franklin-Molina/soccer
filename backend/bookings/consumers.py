@@ -9,13 +9,8 @@ User = get_user_model()
 
 class BookingConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        # El usuario ya viene autenticado por el JWTAuthMiddleware
+        # Permitimos conexiones de usuarios anónimos para ver disponibilidad en tiempo real
         user = self.scope.get('user')
-
-        if not user or user.is_anonymous:
-            # Enviamos código 4001 para indicar fallo de autenticación
-            await self.close(code=4001)
-            return
 
         self.room_group_name = 'bookings'
         

@@ -11,6 +11,10 @@ def cancel_expired_bookings():
     y las marca como expiradas para liberar el cupo.
     """
     from ..models import Booking
+    from ..serializers import BookingSerializer
+    from .websocket_notifier import booking_notifier
+    from matches.utils.websocket_notifier import match_notifier
+    from matches.serializers import OpenMatchSerializer
     
     expiry_time = timezone.now() - timedelta(minutes=5)     # Tiempo de espera para reservas pedientes a canceladas
     
@@ -39,10 +43,15 @@ def cancel_expired_bookings():
                         match.status = 'EXPIRED'
                         match.save()
                         logger.info(f"Partido {match.id} marcado como EXPIRED por limpieza de reservas.")
+                        
+                        # Notificar expiración del partido vía WebSocket
+                        match_data = OpenMatchSerializer(match).data
+                        transaction.on_commit(lambda m_data=match_data: match_notifier.notify_match_updated(m_data))
                     
-                    # Opcional: Notificar vía WebSocket si es necesario
-                    # Pero usualmente la limpieza pasiva se activa por una acción del usuario 
-                    # que ya disparará una actualización de la UI.
+                    # Notificar vía WebSocket para liberar el espacio en la UI
+                    serializer = BookingSerializer(booking)
+                    transaction.on_commit(lambda b_data=serializer.data: booking_notifier.notify_booking_updated(b_data))
+
             except Exception as e:
                 logger.error(f"Error al cancelar reserva expirada {booking.id}: {str(e)}")
     

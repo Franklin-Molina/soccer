@@ -14,6 +14,8 @@ from .serializers import OpenMatchSerializer, MatchCategorySerializer
 from .utils.websocket_notifier import match_notifier
 from .permissions import IsMatchCreator
 from bookings.models import Booking
+from bookings.serializers import BookingSerializer
+from bookings.utils.websocket_notifier import booking_notifier
 from payments.models import Payment
 from payments.services.wompi_service import wompi_service
 
@@ -126,6 +128,10 @@ class OpenMatchViewSet(viewsets.ModelViewSet):
                 payment.payment_link = result.get("payment_url")
                 payment.gateway_data = result.get("raw_response")
                 payment.save()
+
+                # 6. Notificar creación de reserva vía WebSocket (después de commit)
+                serializer = BookingSerializer(booking)
+                transaction.on_commit(lambda: booking_notifier.notify_booking_created(serializer.data))
 
                 return Response({
                     "match_id": match.id,

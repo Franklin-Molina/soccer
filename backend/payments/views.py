@@ -13,6 +13,8 @@ from .serializers import PaymentSerializer
 from .services.wompi_service import wompi_service
 from bookings.utils.websocket_notifier import booking_notifier
 from bookings.serializers import BookingSerializer
+from matches.utils.websocket_notifier import match_notifier
+from matches.serializers import OpenMatchSerializer
 
 # Importar casos de uso y repositorio
 from .infrastructure.repositories.django_payment_repository import DjangoPaymentRepository
@@ -303,6 +305,10 @@ class WompiWebhookView(views.APIView):
                                     match.status = 'OPEN'
                                     match.save()
                                     logger.info(f"Partido {match.id} activado (OPEN) por pago exitoso.")
+                                    
+                                    # Notificar activación del partido vía WebSocket
+                                    match_data = OpenMatchSerializer(match).data
+                                    transaction.on_commit(lambda m_data=match_data: match_notifier.notify_match_created(m_data))
 
                                 # Notificar actualización de reserva via WebSocket
                                 serializer = BookingSerializer(booking)
@@ -319,7 +325,10 @@ class WompiWebhookView(views.APIView):
                                 match.status = 'CANCELLED'
                                 match.save()
                                 logger.info(f"Partido {match.id} CANCELADO por pago fallido.")
-
+                                
+                                # Notificar cancelación del partido vía WebSocket
+                                match_data = OpenMatchSerializer(match).data
+                                transaction.on_commit(lambda m_data=match_data: match_notifier.notify_match_cancelled(match.id, m_data))
 
                             
                             # Notificar liberación de la reserva vía WebSocket después de la transacción

@@ -47,22 +47,25 @@ class BookingsWebSocket {
       this.ws.onclose = async (event) => {
       //  console.log(`🔌 Booking WebSocket desconectado (Código: ${event.code})`);
         
-        // 🛑 NUEVO: Si cerramos sesión, cortamos la ejecución aquí mismo
+        // 1. Si la desconexión es intencional, no hacemos nada.
         if (this.isIntentionalDisconnect) {
-         // console.log('🛑 Desconexión intencional. El WebSocket no se reconectará.99999999999999999999999999999999999999999999999');
           return;
         }
 
+        // 2. Si hay un fallo de autenticación (4001), intentamos refrescar token.
+        // Pero si falla el refresco, seguimos intentando conectar como anónimo.
         if (event.code === 4001 || event.code === 4003) {
-       //   console.log('🔑 Sesión expirada. Intentando refrescar y reconectar...');
           const success = await refreshToken();
           if (success) {
             this.reconnectAttempts = 0;
             this.connect();
             return;
           }
+          // Si no se pudo refrescar, no redirigimos; permitimos que el flujo continúe 
+          // a handleReconnect para intentar conectar de nuevo (que podría ser anónimo)
         }
 
+        // 3. Reintentar conexión para otros códigos de error
         if (event.code !== 1000 && event.code !== 1001) {
           this.handleReconnect();
         }

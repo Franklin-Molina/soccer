@@ -7,14 +7,11 @@ import { useAuth } from '../../context/AuthContext.jsx'; // Asegúrate de que es
  * @param {Function} onUpdate - Callback que se ejecuta cuando llega un mensaje del servidor.
  */
 export const useBookingsRealtime = (onUpdate) => {
-  // 1. Traemos el estado de autenticación
+  // 1. Traemos el estado de autenticación (opcional, para logging o lógica futura)
   const { isAuthenticated } = useAuth(); 
 
   useEffect(() => {
-    // 2. REGLA DE ORO: Si no hay sesión, no hacemos absolutamente nada.
-    if (!isAuthenticated) return;
-
-    // Si pasamos el filtro de arriba, significa que hay sesión válida. ¡Conectamos!
+    // 2. Conectamos siempre, incluso si no hay sesión, para recibir actualizaciones de disponibilidad pública.
     bookingsWebSocket.connect();
 
     const unsubscribe = bookingsWebSocket.subscribe((data) => {
@@ -32,7 +29,7 @@ export const useBookingsRealtime = (onUpdate) => {
       // matar el WebSocket, solo quitar la suscripción de esta vista.
       // El apagado total del WebSocket ya lo estamos manejando en tu AuthContext.jsx al hacer logout.
     };
-  }, [onUpdate, isAuthenticated]); // 3. Agregamos isAuthenticated a las dependencias
+  }, [onUpdate]); // 3. Quitamos isAuthenticated para que no se reconecte innecesariamente al cambiar el estado
 
   return {};
 };
