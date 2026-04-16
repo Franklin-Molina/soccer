@@ -23,6 +23,7 @@ class Booking(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     # Relación con el modelo Payment. Nullable porque el pago puede no existir inicialmente.
     payment = models.ForeignKey('payments.Payment', on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings')
+    payment_percentage = models.IntegerField(default=100)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

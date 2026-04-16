@@ -29,7 +29,6 @@ class BookingSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # Lógica síncrona directa para evitar problemas ASGI durante el desarrollo
-        validated_data.pop('payment_percentage', 100) # El modelo Booking no tiene este campo
         return Booking.objects.create(**validated_data)
 
     def validate(self, data):

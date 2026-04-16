@@ -1,5 +1,6 @@
 import uuid
 import logging
+from decimal import Decimal
 from django.db import transaction
 from rest_framework import status, views # Importar status y views
 from rest_framework.response import Response
@@ -141,10 +142,14 @@ class WompiCheckoutView(views.APIView):
         reference = f"booking-{booking.id}-{uuid.uuid4().hex[:8]}"
         
         # 1. Crear el registro de pago primero para obtener el secure_token
+        # Calcular el monto basado en el porcentaje seleccionado
+        court_price = booking.court.price if hasattr(booking.court, 'price') else Decimal('0')
+        payment_amount = (court_price * Decimal(booking.payment_percentage)) / Decimal('100')
+
         payment = Payment.objects.create(
             user=request.user,
             booking=booking,
-            amount=booking.court.price if hasattr(booking.court, 'price') else 0,
+            amount=payment_amount,
             status='pending',
             gateway='wompi',
             reference=reference

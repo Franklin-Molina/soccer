@@ -260,7 +260,7 @@ export const useCourtDetailLogic = () => {
         courtId: bookingDetailsToConfirm.courtId,
         startDateTime: bookingDetailsToConfirm.formattedStartTime,
         endDateTime: bookingDetailsToConfirm.formattedEndTime,
-        paymentPercentage: bookingDetailsToConfirm.paymentPercentage,
+        paymentPercentage: paymentPercentage, // Usar el estado actual del hook
       });
 
       const bookingId = createdBooking.id;
