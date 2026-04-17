@@ -112,7 +112,7 @@ function HomePage({ openAuthModal }) {
             <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Explora nuestras mejores opciones disponibles</p>
           </div>
 
-          <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto no-scrollbar">
+         {/*  <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto no-scrollbar">
             {['Todas', 'Fútbol', 'Baloncesto'].map((label, i) => (
               <button
                 key={i}
@@ -124,7 +124,7 @@ function HomePage({ openAuthModal }) {
                 {label}
               </button>
             ))}
-          </div>
+          </div> */}
         </div>
 
         {courts.length === 0 ? (

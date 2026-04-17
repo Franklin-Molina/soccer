@@ -37,16 +37,18 @@ export default function TournamentsCard() {
           </div>
 
           <div className="flex flex-col gap-0.5">
-            <span className="text-white-400 text-sm font-medium tracking-wide">
-              Torneos
-            </span>
-            <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-">
-              Compite y gana
-            </h3>
-            <p className="text-white-400/90 text-base font-medium">
-              Participa en ligas activas
-            </p>
-          </div>
+  <span className="text-gray-700 dark:text-gray-200 text-sm font-medium tracking-wide">
+    Torneos
+  </span>
+
+  <h3 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight leading-none">
+    Compite y gana
+  </h3>
+
+  <p className="text-gray-800 dark:text-gray-400 text-base font-medium">
+    Participa en ligas activas
+  </p>
+</div>
         </div>
 
         {/* Bottom Section */}

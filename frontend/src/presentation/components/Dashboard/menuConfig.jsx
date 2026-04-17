@@ -64,8 +64,8 @@ export const menuItems = {
     },
 
     { to: '/dashboard/usuarios', label: 'Usuarios', icon: <Users className="w-5 h-5 text-indigo-500 dark:text-indigo-400" /> },
-    { to: '/dashboard/pagos', label: 'Pagos', icon: <DollarSign className="w-5 h-5 text-rose-500 dark:text-rose-400" /> },
-    { to: '/dashboard/estadisticas', label: 'Estadísticas', icon: <BarChart2 className="w-5 h-5 text-orange-500 dark:text-orange-400" /> },
+   /*  { to: '/dashboard/pagos', label: 'Pagos', icon: <DollarSign className="w-5 h-5 text-rose-500 dark:text-rose-400" /> },
+    { to: '/dashboard/estadisticas', label: 'Estadísticas', icon: <BarChart2 className="w-5 h-5 text-orange-500 dark:text-orange-400" /> }, */
   ],
   adminglobal: [
     { to: '/adminglobal', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5 text-blue-500 dark:text-blue-400" /> },
