@@ -413,10 +413,10 @@ SIMPLE_JWT = {
     # "USERNAME_FIELD": os.getenv("SIMPLE_JWT_USERNAME_FIELD"),
     "AUTH_COOKIE": "access_token",  
     "AUTH_COOKIE_REFRESH": "refresh_token",  
-    "AUTH_COOKIE_SECURE": not DEBUG,  # True en producción (HTTPS), False en local
+    "AUTH_COOKIE_SECURE": os.getenv("AUTH_COOKIE_SECURE", "True" if not DEBUG else "False").lower() == "true",
     "AUTH_COOKIE_HTTP_ONLY": True,  
     "AUTH_COOKIE_PATH": "/",  
-    "AUTH_COOKIE_SAMESITE": os.getenv("AUTH_COOKIE_SAMESITE", "None" if not DEBUG else "Lax"), #Produccion None, local Lax
+    "AUTH_COOKIE_SAMESITE": os.getenv("AUTH_COOKIE_SAMESITE", "None" if not DEBUG else "Lax"),
 }
 
 # Configuración de CORS para permitir solicitudes desde el frontend durante el desarrollo

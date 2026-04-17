@@ -346,7 +346,7 @@ class RefreshView(TokenRefreshView):
         return response
 
 class LogoutView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         from django.conf import settings

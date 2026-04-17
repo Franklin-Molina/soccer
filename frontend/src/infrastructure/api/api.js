@@ -19,12 +19,10 @@ async function forceLogout() {
   if (isLoggingOut) return;
   isLoggingOut = true;
 
-  console.warn("🔒 Sesión inválida. Cerrando sesión...");
+  console.warn("🔒 Sesión inválida. Limpieza local...");
 
-  try {
-    // ✅ axios directo, NO `api` — porque `api` ya está bloqueado por isLoggingOut
-    await axios.post(`${API_BASE_URL}/api/users/logout/`, {}, { withCredentials: true });
-  } catch (_) {}
+  // ❌ NO llamar backend
+  // await axios.post(...)
 
   document.cookie.split(";").forEach((cookie) => {
     const name = cookie.split("=")[0].trim();
@@ -35,7 +33,6 @@ async function forceLogout() {
   sessionStorage.clear();
 
   window.dispatchEvent(new Event("auth:logout"));
-  // window.location.href = "/"; // 🚀 No redirigir automáticamente, dejar que la UI decida
 }
 
 // ==============================
@@ -43,7 +40,8 @@ async function forceLogout() {
 // ==============================
 let refreshTokenPromise = null;
 
-export const refreshToken = async (retries = 1, delay = 1000) => {
+
+export const refreshToken = async (retries = 3, delay = 2000) => {
   if (refreshTokenPromise) return refreshTokenPromise;
 
   refreshTokenPromise = (async () => {
@@ -88,21 +86,6 @@ export const refreshToken = async (retries = 1, delay = 1000) => {
 };
 
 // ==============================
-// ⚡ CORTACIRCUITOS
-// ==============================
-let isServerDownFlag = false;
-
-api.interceptors.request.use(
-  (config) => {
-    if (isServerDownFlag || isLoggingOut) {
-      return Promise.reject(new Error("🚫 Solicitud bloqueada"));
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// ==============================
 // 🔄 COLA DE REFRESH
 // ==============================
 let isRefreshing = false;
@@ -118,6 +101,19 @@ function onRefreshed() {
 }
 
 // ==============================
+// ⚡ CORTACIRCUITOS (Solo para Logout)
+// ==============================
+api.interceptors.request.use(
+  (config) => {
+    if (isLoggingOut) {
+      return Promise.reject(new Error("🚫 Solicitud bloqueada por cierre de sesión"));
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// ==============================
 // 🔥 INTERCEPTOR RESPUESTA
 // ==============================
 api.interceptors.response.use(
@@ -126,16 +122,27 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // 🚨 Servidor caído
+    // ⚠️ Validación básica (solo null check)
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
+
+    // 🚨 Servidor no responde
     if (!error.response) {
-      isServerDownFlag = true;
-      console.warn("🚨 Servidor no disponible");
+      if (originalRequest.method === 'get' && !originalRequest._retry) {
+        originalRequest._retry = true;
+        console.warn("⏳ Servidor no responde, reintentando en 2s...");
+        await new Promise(res => setTimeout(res, 2000));
+        return api(originalRequest);
+      }
+
+      console.warn("🚨 Servidor no disponible tras reintento.");
       window.dispatchEvent(new Event("server-down"));
       return Promise.reject(error);
     }
 
-    // 🚫 Evitar loop en el endpoint de refresh
-    if (originalRequest.url.includes("/api/users/login/refresh/")) {
+    // 🚫 Evitar loop en refresh
+    if (originalRequest?.url?.includes("/api/users/login/refresh/")) {
       if (error.response.status === 401) {
         forceLogout();
       }
@@ -143,9 +150,20 @@ api.interceptors.response.use(
     }
 
     // 🔐 Manejo 401
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response.status === 401) {
+
+      // 🚫 Si ya se reintentó, no repetir
+      if (originalRequest._retry) {
+        return Promise.reject(error);
+      }
+
+      // 🚫 Si no hay sesión, no intentes refresh
+      const hasSession = document.cookie.includes("sessionid"); // ajusta nombre real
+      if (!hasSession) {
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
-        // 🔥 Si ya se está haciendo logout, no encolar más
         if (isLoggingOut) return Promise.reject(error);
 
         return new Promise((resolve) => {
@@ -166,7 +184,7 @@ api.interceptors.response.use(
         onRefreshed();
         return api(originalRequest);
       } else {
-        refreshSubscribers = []; // 🔥 limpiar cola antes del logout
+        refreshSubscribers = [];
         forceLogout();
         return Promise.reject(error);
       }
